@@ -309,6 +309,12 @@ body {
     background-color: var(--accent-gold-hover);
 }
 
+/* Style for auto-calculated read-only fields */
+input.auto-calc-readonly[readonly] {
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+}
+
 
 .required-asterisk {
     color: var(--accent-gold);

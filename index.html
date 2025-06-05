@@ -75,6 +75,16 @@
                             <input type="number" id="desiredIncomeAmount" name="desiredIncomeAmount" step="0.01" min="0">
                         </div>
                         <div class="form-group">
+                            <label>Is this income amount:</label>
+                            <div class="radio-group">
+                                <input type="radio" name="desiredIncomeType" id="desiredIncomeTypeGross" value="Gross" checked>
+                                <label for="desiredIncomeTypeGross">Before Taxes &amp; Deductions (Gross Income)</label>
+                                <input type="radio" name="desiredIncomeType" id="desiredIncomeTypeNet" value="Net">
+                                <label for="desiredIncomeTypeNet">After Estimated Taxes &amp; Deductions (Target Net Income)</label>
+                            </div>
+                            <p id="netIncomeAdjustmentNote" class="info-text" style="display:none;"></p>
+                        </div>
+                        <div class="form-group">
                             <label for="desiredIncomePeriod">Income Period <span class="required-asterisk">*</span></label>
                             <select id="desiredIncomePeriod" name="desiredIncomePeriod">
                                 <option value="Annual" selected>Annual</option>

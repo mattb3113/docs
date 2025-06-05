@@ -83,7 +83,7 @@ body {
     backdrop-filter: blur(var(--blur-amount));
     -webkit-backdrop-filter: blur(var(--blur-amount));
     border-bottom: 1px solid var(--border-color-light);
-    padding: 10px 30px;
+    padding: 15px 30px;
     height: var(--header-height);
     display: flex;
     align-items: center;
@@ -168,7 +168,7 @@ body {
     flex: 0 0 var(--sidebar-width);
     background-color: rgba(20, 20, 24, 0.7); /* Semi-transparent glass look */
     border: 1px solid var(--border-color);
-    padding: 25px;
+    padding: 30px;
     border-radius: var(--border-radius-md);
     position: sticky; /* Sticky to scroll with content */
     top: var(--header-height); /* Stick below the header */
@@ -189,6 +189,7 @@ body {
     color: var(--accent-gold);
     text-transform: uppercase;
     letter-spacing: var(--letter-spacing-header);
+    font-weight: 600;
     margin-bottom: 10px;
     border-bottom: 1px solid var(--border-color);
     padding-bottom: 10px;
@@ -199,14 +200,14 @@ body {
 /* -------------------- */
 .main-content {
     flex: 1;
-    padding: 30px;
+    padding: 40px;
     overflow-y: auto; /* Allows main content to scroll independently if needed */
 }
 
 .hero-section {
     text-align: center;
-    margin-bottom: 20px;
-    padding: 15px;
+    margin-bottom: 30px;
+    padding: 20px;
     background-color: var(--bg-secondary);
     border-radius: var(--border-radius-md);
     border: 1px solid var(--border-color);
@@ -218,11 +219,13 @@ body {
     margin-bottom: 10px;
     text-transform: uppercase;
     letter-spacing: var(--letter-spacing-header);
+    font-weight: 600;
 }
 
 .hero-section p {
-    font-size: 16px;
+    font-size: 15px;
     color: var(--text-secondary);
+    font-weight: 400;
 }
 
 /* -------------------- */
@@ -233,8 +236,8 @@ body {
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-md);
-    padding: 25px;
-    margin-bottom: 30px;
+    padding: 30px;
+    margin-bottom: 40px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     transition: box-shadow 0.3s ease, max-height 0.5s ease, opacity 0.5s ease;
     overflow: hidden;
@@ -277,6 +280,7 @@ body {
     border-bottom: 1px solid var(--border-color);
     text-transform: uppercase;
     letter-spacing: var(--letter-spacing-header);
+    font-weight: 600;
 }
 .form-section-card h4 {
     font-size: 16px;
@@ -285,6 +289,7 @@ body {
     margin-bottom: 15px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    font-weight: 600;
 }
 
 
@@ -292,7 +297,7 @@ body {
 /* --- FORM ELEMENTS --- */
 /* -------------------- */
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
 
 .form-group label {
@@ -300,6 +305,7 @@ body {
     margin-bottom: 8px;
     font-size: 14px;
     color: var(--text-secondary);
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -318,7 +324,14 @@ body {
     border-radius: var(--border-radius-sm);
     color: var(--text-primary);
     font-size: 15px;
+    font-weight: 400;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 20px 0;
 }
 
 .form-group input[type="text"]:focus,
@@ -380,6 +393,7 @@ input.invalid, select.invalid, textarea.invalid {
     color: var(--text-tertiary);
     margin-bottom: 15px;
     font-style: italic;
+    font-family: var(--font-family);
 }
 
 .radio-group label {
@@ -468,7 +482,7 @@ input.invalid, select.invalid, textarea.invalid {
     transition: background-color 0.3s ease, transform 0.2s ease;
     text-transform: uppercase;
     letter-spacing: 1px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .btn-primary {
@@ -546,8 +560,8 @@ input.invalid, select.invalid, textarea.invalid {
     border: 1px solid var(--border-color);
     padding: 20px;
     border-radius: var(--border-radius-sm);
-    background-color: #fff; /* Simulate paper */
-    color: #333; /* Standard document text color */
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     font-size: 12px; /* Smaller font for preview compactness */
     position: relative; /* For watermark context */
     z-index: 2; /* Above watermark */
@@ -559,7 +573,7 @@ input.invalid, select.invalid, textarea.invalid {
     align-items: flex-start;
     margin-bottom: 15px;
     padding-bottom: 10px;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid var(--border-color);
 }
 .company-info-left div, .employee-info-preview div, .pay-period-info-preview div {
     margin-bottom: 3px;
@@ -572,19 +586,19 @@ input.invalid, select.invalid, textarea.invalid {
 #livePreviewCompanyName { font-weight: bold; font-size: 1.2em; }
 
 .paystub-title-preview { text-align: right; }
-.paystub-title-preview h2 { font-size: 1.4em; margin-bottom: 3px; color: #333; letter-spacing: 0; }
+.paystub-title-preview h2 { font-size: 1.4em; margin-bottom: 3px; color: var(--text-primary); letter-spacing: 0; }
 
 .employee-pay-period-preview {
     display: flex;
     justify-content: space-between;
     margin-bottom: 15px;
     padding-bottom: 10px;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid var(--border-color);
 }
 .employee-info-preview h4, .pay-period-info-preview h4 {
     font-size: 1.1em;
     margin-bottom: 5px;
-    color: #555;
+    color: var(--text-secondary);
     text-transform: uppercase;
 }
 
@@ -596,12 +610,12 @@ input.invalid, select.invalid, textarea.invalid {
 }
 .earnings-table-preview th, .earnings-table-preview td,
 .deductions-table-preview th, .deductions-table-preview td {
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     padding: 6px 8px;
     text-align: left;
 }
 .earnings-table-preview th, .deductions-table-preview th {
-    background-color: #f2f2f2;
+    background-color: var(--bg-tertiary);
     font-weight: bold;
 }
 .earnings-table-preview td:nth-child(n+2), /* Hours, Rate, Current, YTD */
@@ -613,7 +627,7 @@ input.invalid, select.invalid, textarea.invalid {
 .summary-preview {
     margin-top: 15px;
     padding-top: 10px;
-    border-top: 1px solid #ccc;
+    border-top: 1px solid var(--border-color);
     text-align: right;
     font-weight: bold;
 }
@@ -648,7 +662,7 @@ input.invalid, select.invalid, textarea.invalid {
     align-items: center;
     margin-top: 20px;
     padding-top: 10px;
-    border-top: 1px solid #ccc;
+    border-top: 1px solid var(--border-color);
 }
 .live-preview-logo { display: block; } /* Default display for images */
 
@@ -659,12 +673,12 @@ input.invalid, select.invalid, textarea.invalid {
     max-width: 400px; /* Or adjust as needed */
 }
 .voided-check-css {
-    background-color: #fff;
-    border: 1px solid #ccc;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
     padding: 15px;
     font-family: 'Courier New', Courier, monospace; /* Monospaced font */
     font-size: 10px;
-    color: #333;
+    color: var(--text-primary);
     position: relative; /* For VOID text */
     overflow: hidden; /* Keep VOID text contained */
     line-height: 1.4;
@@ -686,11 +700,11 @@ input.invalid, select.invalid, textarea.invalid {
     z-index: 2;
 }
 .voided-check-css .payee { font-size: 11px; }
-.voided-check-css .amount-box { float: right; border: 1px solid #333; padding: 2px 5px; width: 80px; text-align: right; }
+.voided-check-css .amount-box { float: right; border: 1px solid var(--border-color); padding: 2px 5px; width: 80px; text-align: right; }
 .voided-check-css .date { clear: both; padding-top: 5px;}
 .voided-check-css .memo {}
 .voided-check-css .signature { text-align: right; margin-top: 15px; }
-.voided-check-css .micr { font-size: 12px; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 5px;}
+.voided-check-css .micr { font-size: 12px; margin-top: 10px; border-top: 1px dashed var(--border-color); padding-top: 5px;}
 
 /* -------------------- */
 /* --- MODAL STYLING --- */
@@ -852,7 +866,7 @@ input.invalid, select.invalid, textarea.invalid {
         grid-template-columns: 1fr; /* Stack columns */
     }
     .app-header {
-        padding: 10px 15px;
+        padding: 12px 20px;
     }
     .header-nav .nav-link {
         margin-left: 15px;
@@ -877,7 +891,7 @@ input.invalid, select.invalid, textarea.invalid {
     .app-header {
         flex-direction: column;
         height: auto;
-        padding-bottom: 10px;
+        padding: 12px 20px 10px;
     }
     .logo-container {
         margin-bottom: 10px;
@@ -948,7 +962,7 @@ input.invalid, select.invalid, textarea.invalid {
     .earnings-table-preview tr, .deductions-table-preview tr {
         display: block;
         margin-bottom: 10px;
-        border: 1px solid #ddd;
+        border: 1px solid var(--border-color);
         border-radius: var(--border-radius-sm);
         overflow: hidden;
     }
@@ -956,7 +970,7 @@ input.invalid, select.invalid, textarea.invalid {
         display: block;
         text-align: right !important; /* Force right align for values */
         border: none;
-        border-bottom: 1px solid #eee; /* Separator for pseudo-rows */
+        border-bottom: 1px solid var(--border-color-light); /* Separator for pseudo-rows */
         padding-left: 50%; /* Make space for the label */
         position: relative;
     }

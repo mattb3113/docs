@@ -150,9 +150,10 @@ body {
 .sidebar {
     width: var(--sidebar-width);
     flex: 0 0 var(--sidebar-width);
-    background-color: rgba(20, 20, 24, 0.6); /* --bg-secondary with transparency */
-    border-right: 1px solid var(--border-color-light);
+    background-color: rgba(20, 20, 24, 0.7); /* Semi-transparent glass look */
+    border: 1px solid var(--border-color);
     padding: 25px;
+    border-radius: var(--border-radius-md);
     position: sticky; /* Sticky to scroll with content */
     top: var(--header-height); /* Stick below the header */
     height: calc(100vh - var(--header-height)); /* Full height minus header */
@@ -168,8 +169,8 @@ body {
 }
 
 .sidebar-title {
-    font-size: 18px;
-    color: var(--text-primary);
+    font-size: 16px;
+    color: var(--accent-gold);
     text-transform: uppercase;
     letter-spacing: var(--letter-spacing-header);
     margin-bottom: 10px;
@@ -767,8 +768,8 @@ input.invalid, select.invalid, textarea.invalid {
         width: 100%;
         position: static; /* No longer sticky */
         height: auto; /* Adjust to content */
-        border-right: none;
-        border-bottom: 1px solid var(--border-color-light);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-md);
         margin-bottom: 20px; /* Space before main content */
     }
     .main-content {

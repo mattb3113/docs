@@ -6,6 +6,7 @@
     Description: Styles for the paystub generator application,
                  adhering to the BuellDocs premium brand aesthetic.
 */
+/* TODO (Build Process): For production deployment, consider minifying this file to reduce its size and improve load times. */
 
 /* -------------------- */
 /* --- ROOT VARIABLES --- */

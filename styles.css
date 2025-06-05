@@ -424,6 +424,14 @@ input.invalid, select.invalid, textarea.invalid {
     font-weight: 500;
 }
 
+/* Active state for buttons for visual feedback */
+.btn:active,
+.btn-primary:active,
+.btn-secondary:active {
+    transform: scale(0.98);
+    box-shadow: inset 0 0 6px rgba(174, 142, 93, 0.6);
+}
+
 .btn-primary {
     background-color: var(--accent-gold);
     color: var(--bg-primary); /* Dark text on gold button */

@@ -240,6 +240,20 @@ body {
     letter-spacing: 0.5px;
 }
 
+/* Highlight currently visible form section */
+.form-section-card h3.active-section {
+    border-left: 4px solid var(--accent-gold);
+    padding-left: 6px;
+    color: var(--accent-gold-hover);
+    transition: border-color 0.2s, color 0.2s;
+}
+
+/* Hypothetical sidebar link highlight */
+.sidebar a.active {
+    color: var(--accent-gold-hover);
+    font-weight: bold;
+}
+
 
 /* -------------------- */
 /* --- FORM ELEMENTS --- */

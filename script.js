@@ -148,6 +148,76 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- Scroll Spy for Form Sections --- //
+    const mainContent = document.querySelector('.main-content');
+    const formSectionCards = document.querySelectorAll('.form-section-card');
+    const sidebar = document.querySelector('.sidebar');
+
+    // Map sidebar links by their text for hypothetical highlighting
+    const sidebarLinkMap = {};
+    if (sidebar) {
+        const sidebarLinks = sidebar.querySelectorAll('a');
+        sidebarLinks.forEach(link => {
+            const text = link.textContent.trim();
+            if (text) sidebarLinkMap[text] = link;
+        });
+    }
+
+    let currentActiveCard = null;
+    let scrollScheduled = false;
+
+    function highlightActiveSection() {
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        let bestRatio = 0;
+        let bestCard = null;
+
+        formSectionCards.forEach(card => {
+            const rect = card.getBoundingClientRect();
+            const visible = Math.max(0, Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0));
+            const ratio = visible / rect.height;
+            if (ratio > bestRatio) {
+                bestRatio = ratio;
+                bestCard = card;
+            }
+        });
+
+        if (bestCard && bestCard !== currentActiveCard) {
+            if (currentActiveCard) {
+                const oldHeading = currentActiveCard.querySelector('h3');
+                if (oldHeading) {
+                    oldHeading.classList.remove('active-section');
+                    const oldText = oldHeading.textContent.trim();
+                    if (sidebarLinkMap[oldText]) sidebarLinkMap[oldText].classList.remove('active');
+                }
+            }
+
+            const newHeading = bestCard.querySelector('h3');
+            if (newHeading) {
+                newHeading.classList.add('active-section');
+                const newText = newHeading.textContent.trim();
+                if (sidebarLinkMap[newText]) sidebarLinkMap[newText].classList.add('active');
+            }
+
+            currentActiveCard = bestCard;
+        }
+    }
+
+    function onScroll() {
+        if (!scrollScheduled) {
+            scrollScheduled = true;
+            requestAnimationFrame(() => {
+                highlightActiveSection();
+                scrollScheduled = false;
+            });
+        }
+    }
+
+    if (mainContent) {
+        mainContent.addEventListener('scroll', onScroll);
+    }
+    window.addEventListener('scroll', onScroll);
+    highlightActiveSection();
+
     // --- Core Logic Functions --- //
 
     function toggleEmploymentFields() {

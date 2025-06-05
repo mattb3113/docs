@@ -142,6 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     numPaystubsSelect.addEventListener('change', updateHourlyPayFrequencyVisibility);
     // Also trigger on employment type change
     employmentTypeRadios.forEach(radio => radio.addEventListener('change', updateHourlyPayFrequencyVisibility));
+    isForNjEmploymentCheckbox.addEventListener('change', handleNjEmploymentChange);
 
 
     // Handle Logo Uploads
@@ -1231,6 +1232,36 @@ document.addEventListener('DOMContentLoaded', () => {
         autoCalculateSocialSecurityCheckbox.checked = true;
         autoCalculateMedicareCheckbox.checked = true;
 
+        updateLivePreview();
+    }
+
+    function handleNjEmploymentChange() {
+        const forNJ = isForNjEmploymentCheckbox.checked;
+        const fields = [
+            'federalTaxAmount', 'stateTaxAmount', 'socialSecurityAmount',
+            'medicareAmount', 'njSdiAmount', 'njFliAmount', 'njUiHcWfAmount'
+        ];
+        const stateTaxNameInput = document.getElementById('stateTaxName');
+
+        if (forNJ) {
+            estimateAllDeductions();
+            if (stateTaxNameInput && !stateTaxNameInput.value) {
+                stateTaxNameInput.value = 'NJ State Tax';
+            }
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.classList.add('auto-populated'); el.readOnly = true; }
+            });
+        } else {
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.classList.remove('auto-populated'); el.readOnly = false; }
+            });
+            if (stateTaxNameInput) stateTaxNameInput.value = '';
+            document.getElementById('njSdiAmount').value = 0;
+            document.getElementById('njFliAmount').value = 0;
+            document.getElementById('njUiHcWfAmount').value = 0;
+        }
         updateLivePreview();
     }
 

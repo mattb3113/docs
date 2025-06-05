@@ -1260,6 +1260,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // TODO (Future Backend): When a real backend is implemented, ensure all data submitted from the client (especially if it includes any sensitive form details beyond just TXID and email for manual processing) is transmitted over HTTPS and handled securely on the server according to best practices for data protection and encryption at rest.
     function handlePaymentConfirmationSubmit() {
         const txId = cashAppTxIdInput.value.trim();
         if (!txId) {
@@ -1785,7 +1786,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Required validation
         if (field.hasAttribute('required') && !value && field.offsetParent !== null) { // Check offsetParent to only validate visible required fields
             isValid = false;
-            errorMessage = `${field.labels[0] ? field.labels[0].textContent.replace(' *','').replace('(XXX-XX-NNNN)','').trim() : 'This field'} is required.`;
+            errorMessage = `${field.labels[0] ? field.labels[0].textContent.replace(' *','').replace('(XXX-XX-NNNN)','').replace('(Last 4 Digits Only)','').trim() : 'This field'} is required.`;
         }
 
         // Specific validations
@@ -1794,9 +1795,9 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage = 'Please enter a valid email address.';
         }
 
-        if (isValid && field.name === 'employeeSsn' && value && !/^\d{3}-?\d{2}-?\d{4}$/.test(value) && !/^\d{9}$/.test(value)) {
+        if (isValid && field.name === 'employeeSsn' && value && !/^\d{4}$/.test(value)) {
             isValid = false;
-            errorMessage = 'SSN must be in NNN-NN-NNNN or NNNNNNNNN format.';
+            errorMessage = 'Please enter the last 4 digits of the SSN.';
         }
 
         if (isValid && field.type === 'number' && parseFloat(value) < 0) {
@@ -1947,11 +1948,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function maskSSN(ssn) {
         if (!ssn) return '';
-        const cleaned = ssn.replace(/-/g, '');
-        if (cleaned.length === 9) {
-            return `XXX-XX-${cleaned.substring(5)}`;
-        }
-        return ssn; // Return original if not in expected format
+        const digits = ssn.replace(/\D/g, '');
+        const last4 = digits.slice(-4);
+        return last4 ? `XXX-XX-${last4}` : '';
     }
 
     function debounce(func, delay) {

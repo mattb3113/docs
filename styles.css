@@ -46,7 +46,7 @@ body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
-    font-size: 16px;
+    font-size: clamp(15px, 2.5vw, 16px);
     overflow-x: hidden; /* Prevent horizontal scroll */
     position: relative;
 }
@@ -213,7 +213,7 @@ body {
 }
 
 .hero-section h1 {
-    font-size: 28px;
+    font-size: clamp(24px, 5vw, 32px);
     color: var(--accent-gold);
     margin-bottom: 10px;
     text-transform: uppercase;
@@ -221,7 +221,7 @@ body {
 }
 
 .hero-section p {
-    font-size: 16px;
+    font-size: clamp(14px, 2vw, 16px);
     color: var(--text-secondary);
 }
 
@@ -313,6 +313,7 @@ body {
 .form-group textarea {
     width: 100%;
     padding: 12px 15px;
+    min-height: 44px;
     background-color: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-sm);
@@ -462,6 +463,7 @@ input.invalid, select.invalid, textarea.invalid {
 .btn {
     padding: 12px 25px;
     font-size: 15px;
+    min-height: 44px;
     border: none;
     border-radius: var(--border-radius-sm);
     cursor: pointer;
@@ -834,22 +836,8 @@ input.invalid, select.invalid, textarea.invalid {
 /* --- RESPONSIVE DESIGN --- */
 /* -------------------- */
 @media (max-width: 992px) { /* Tablets and smaller desktops */
-    .main-wrapper {
-        flex-direction: column;
-    }
-    .sidebar {
-        width: 100%;
-        position: static; /* No longer sticky */
-        height: auto; /* Adjust to content */
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius-md);
-        margin-bottom: 20px; /* Space before main content */
-    }
     .main-content {
         padding: 20px;
-    }
-    .grid-col-2, .grid-col-3 {
-        grid-template-columns: 1fr; /* Stack columns */
     }
     .app-header {
         padding: 10px 15px;
@@ -892,6 +880,21 @@ input.invalid, select.invalid, textarea.invalid {
     }
 
     .main-wrapper {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        position: static;
+        height: auto;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-md);
+        margin-bottom: 20px;
+    }
+    .grid-col-2, .grid-col-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .main-wrapper {
         padding-top: 0; /* Header is not fixed in this layout */
     }
     body { /* Adjust body padding if header becomes static for mobile */
@@ -902,12 +905,7 @@ input.invalid, select.invalid, textarea.invalid {
     }
 
 
-    .hero-section h1 {
-        font-size: 24px;
-    }
-    .hero-section p {
-        font-size: 14px;
-    }
+    /* Font sizes adjust via clamp in base styles */
 
     .form-section-card h3, .preview-section-card h3 {
         font-size: 18px;

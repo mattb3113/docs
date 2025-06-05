@@ -490,6 +490,18 @@ input.invalid, select.invalid, textarea.invalid {
     display: block;
 }
 
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.preview-nav-controls button:disabled {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-tertiary);
+    cursor: not-allowed;
+}
+
 /* Prominent CTA in Desired Income section */
 #populateDetailsBtn {
     font-size: 17px;

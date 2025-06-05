@@ -465,6 +465,12 @@ input.invalid, select.invalid, textarea.invalid {
     display: block;
 }
 
+/* Prominent CTA in Desired Income section */
+#populateDetailsBtn {
+    font-size: 17px;
+    padding: 14px 28px;
+}
+
 /* -------------------- */
 /* --- LIVE PREVIEW SECTION --- */
 /* -------------------- */

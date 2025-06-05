@@ -28,6 +28,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const isForNjEmploymentCheckbox = document.getElementById('isForNJEmployment');
     const populateDetailsBtn = document.getElementById('populateDetailsBtn');
 
+    function enablePopulateBtn() {
+        if (populateDetailsBtn) {
+            populateDetailsBtn.disabled = false;
+            populateDetailsBtn.textContent = 'Calculate & Fill Paystub Details \u2794';
+        }
+    }
+
+    [desiredIncomeAmountInput, desiredIncomePeriodSelect, assumedHourlyRegularHoursInput,
+     isForNjEmploymentCheckbox, ...incomeRepresentationRadios].forEach(el => {
+        el.addEventListener('input', enablePopulateBtn);
+        el.addEventListener('change', enablePopulateBtn);
+    });
+
     // Logo Preview Elements
     const companyLogoInput = document.getElementById('companyLogo');
     const companyLogoPreviewContainer = document.getElementById('companyLogoPreviewContainer');
@@ -136,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
     incomeRepresentationRadios.forEach(radio => {
         radio.addEventListener('change', toggleRepresentationFields);
     });
-    populateDetailsBtn.addEventListener('click', populateDetailsFromDesiredIncome);
+    populateDetailsBtn.addEventListener('click', autoPopulateFromDesiredIncome);
 
     // Update Hourly Pay Frequency Visibility
     numPaystubsSelect.addEventListener('change', updateHourlyPayFrequencyVisibility);
@@ -166,7 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
     estimateDeductionsBtn.addEventListener('click', estimateAllDeductions);
     previewPdfWatermarkedBtn.addEventListener('click', () => generateAndDownloadPdf(true));
     generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
-    if (populateDetailsBtn) populateDetailsBtn.addEventListener('click', autoPopulateFromDesiredIncome);
 
     // Modal Interactions
     closePaymentModalBtn.addEventListener('click', () => paymentModal.style.display = 'none');
@@ -266,6 +278,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateHourlyPayFrequencyVisibility();
         updateLivePreview();
+
+        if (populateDetailsBtn) {
+            populateDetailsBtn.textContent = 'Recalculate from Desired Income';
+            populateDetailsBtn.disabled = true;
+        }
     }
 
     function handleLogoUpload(event, previewImgElement, placeholderElement) {
@@ -1181,6 +1198,11 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleEmploymentFields();
         updateHourlyPayFrequencyVisibility();
         updateLivePreview();
+
+        if (populateDetailsBtn) {
+            populateDetailsBtn.textContent = 'Recalculate from Desired Income';
+            populateDetailsBtn.disabled = true;
+        }
     }
 
     function estimateFederalTax(grossPayPerPeriod, payFrequency, status) {

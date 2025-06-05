@@ -1135,12 +1135,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Helper Functions --- //
     function formatCurrency(amount, includeSymbol = true) {
-        const options = { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 };
+        const options = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
         if (includeSymbol) {
-            // For PDF, we might not want the dollar sign if it's in a table handled by autotable currency style
-            // For live preview, we generally do.
-            // Let's assume for general formatting, we use it.
-             return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', ...options }).format(amount || 0);
+            // For PDF generation, the currency symbol may be omitted when handled
+            // via autotable. For other scenarios we default to displaying it.
+            return new Intl.NumberFormat('en-US', {
+                ...options,
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount || 0);
         }
         return new Intl.NumberFormat('en-US', options).format(amount || 0);
     }

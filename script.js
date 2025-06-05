@@ -31,6 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const payrollProviderLogoPlaceholder = payrollProviderLogoPreviewContainer.querySelector('.logo-placeholder-text');
 
     const includeVoidedCheckCheckbox = document.getElementById('includeVoidedCheck');
+    const workStateSelect = document.getElementById('workState');
+    const autoCalcStateTaxCheckbox = document.getElementById('autoCalculateStateTax');
 
     // Live Preview Elements
     const livePreviewContent = document.getElementById('paystubPreviewContent');
@@ -102,6 +104,19 @@ document.addEventListener('DOMContentLoaded', () => {
         4: { price: 99.99, note: "Save $20" },
         5: { price: 125.00, note: "$25 each - Bulk rate applied!" }
     };
+
+    const STATE_TAX_RULES = {
+        'CA': (gross, freq, status) => gross * (status === 'Single' ? 0.05 : 0.04),
+        'NY': (gross, freq, status) => gross * (status === 'Single' ? 0.06 : 0.05),
+        'TX': () => 0
+    };
+
+    function estimateStateTax(grossPayPerPeriod, payFrequency, filingStatus = 'Single', stateAbbreviation) {
+        const rule = STATE_TAX_RULES[stateAbbreviation];
+        if (!rule) return 0;
+        const result = rule(grossPayPerPeriod, payFrequency, filingStatus);
+        return parseFloat((result || 0).toFixed(2));
+    }
 
     // --- Event Listeners --- //
 
@@ -295,6 +310,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if(data.bonus > 0) results.currentPeriodAmounts.bonus = data.bonus;
         if(data.miscEarningAmount > 0 && data.miscEarningName) results.currentPeriodAmounts[data.miscEarningName || 'miscEarning'] = data.miscEarningAmount;
+
+        if (data.autoCalculateStateTax && data.workState) {
+            const freq = data.employmentType === 'Hourly' ? (hourlyPayFrequencySelect ? hourlyPayFrequencySelect.value : 'Weekly') : data.salariedPayFrequency;
+            const estimated = estimateStateTax(results.grossPay, freq, data.filingStatus || 'Single', data.workState);
+            data.stateTaxAmount = estimated;
+            data.stateTaxName = `${data.workState} Estimated Tax`;
+            const stAmtInput = document.getElementById('stateTaxAmount');
+            const stNameInput = document.getElementById('stateTaxName');
+            if (stAmtInput) stAmtInput.value = estimated.toFixed(2);
+            if (stNameInput) stNameInput.value = `${data.workState} Estimated Tax`;
+        }
 
 
         // --- Calculate Total Taxes for Period ---

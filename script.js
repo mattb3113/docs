@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const estimateDeductionsBtn = document.getElementById('estimateDeductions');
     const previewPdfWatermarkedBtn = document.getElementById('previewPdfWatermarked');
     const generateAndPayBtn = document.getElementById('generateAndPay');
+    const populateDetailsBtn = document.getElementById('populateDetailsBtn');
 
     // Modal Elements
     const paymentModal = document.getElementById('paymentModal');
@@ -164,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
     estimateDeductionsBtn.addEventListener('click', estimateAllDeductions);
     previewPdfWatermarkedBtn.addEventListener('click', () => generateAndDownloadPdf(true));
     generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
+    if (populateDetailsBtn) populateDetailsBtn.addEventListener('click', autoPopulateFromDesiredIncome);
 
     // Modal Interactions
     closePaymentModalBtn.addEventListener('click', () => paymentModal.style.display = 'none');
@@ -1094,6 +1096,123 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleEmploymentFields();
         updateHourlyPayFrequencyVisibility();
         updateLivePreview();
+    }
+
+    function autoPopulateFromDesiredIncome() {
+        const amount = parseFloat(document.getElementById('desiredIncomeAmount').value);
+        const period = document.getElementById('desiredIncomePeriod').value;
+        const repType = document.getElementById('incomeRepresentationType').value;
+        const assumedHours = parseFloat(document.getElementById('assumedHourlyRegularHours').value) || 40;
+        const forNJ = document.getElementById('isForNJEmployment').checked;
+
+        if (isNaN(amount) || amount <= 0) {
+            showNotificationModal('Invalid Input', 'Desired income amount must be greater than 0.');
+            return;
+        }
+
+        const periodsMap = { ...PAY_PERIODS_PER_YEAR, 'Annual': 1, 'Hourly': PAY_PERIODS_PER_YEAR['Weekly'] };
+        const periods = periodsMap[period] || 1;
+        const effectiveAnnualSalary = period === 'Hourly'
+            ? amount * assumedHours * PAY_PERIODS_PER_YEAR['Weekly']
+            : amount * periods;
+
+        let payFrequency = 'Bi-Weekly';
+        let grossPayPerPeriod = 0;
+
+        if (repType === 'Salaried') {
+            document.querySelector('input[name="employmentType"][value="Salaried"]').checked = true;
+            const annualSalaryInput = document.getElementById('annualSalary');
+            annualSalaryInput.value = effectiveAnnualSalary.toFixed(2);
+            const payFreqSelect = document.getElementById('salariedPayFrequency');
+            if (payFreqSelect.value) payFrequency = payFreqSelect.value; else payFreqSelect.value = payFrequency;
+            grossPayPerPeriod = effectiveAnnualSalary / PAY_PERIODS_PER_YEAR[payFrequency];
+        } else {
+            document.querySelector('input[name="employmentType"][value="Hourly"]').checked = true;
+            const payFreqSelect = document.getElementById('hourlyPayFrequency');
+            payFrequency = payFreqSelect.value || 'Weekly';
+            payFreqSelect.value = payFrequency;
+            grossPayPerPeriod = effectiveAnnualSalary / PAY_PERIODS_PER_YEAR[payFrequency];
+            const hourlyRate = grossPayPerPeriod / assumedHours;
+            document.getElementById('hourlyRate').value = hourlyRate.toFixed(2);
+            document.getElementById('regularHours').value = assumedHours;
+        }
+
+        if (forNJ) {
+            const fedStatusEl = document.querySelector('input[name="federalFilingStatus"]:checked') ||
+                                document.getElementById('federalFilingStatus');
+            const filingStatus = fedStatusEl ? fedStatusEl.value : 'Single';
+            const ytdSS = parseFloat(document.getElementById('initialYtdSocialSecurity').value) || 0;
+
+            const fedTax = estimateFederalTax(grossPayPerPeriod, payFrequency, filingStatus);
+            const stateTax = estimateNJStateTax(grossPayPerPeriod, payFrequency, filingStatus);
+            const ssTax = estimateSocialSecurity(grossPayPerPeriod, ytdSS);
+            const medicareTax = estimateMedicare(grossPayPerPeriod);
+            const sdi = estimateNJ_SDI(grossPayPerPeriod);
+            const fli = estimateNJ_FLI(grossPayPerPeriod);
+            const ui = estimateNJ_UIHCWF(grossPayPerPeriod);
+
+            document.getElementById('federalTaxAmount').value = fedTax.toFixed(2);
+            document.getElementById('stateTaxAmount').value = stateTax.toFixed(2);
+            document.getElementById('stateTaxName').value = 'NJ State Tax';
+            document.getElementById('socialSecurityAmount').value = ssTax.toFixed(2);
+            document.getElementById('medicareAmount').value = medicareTax.toFixed(2);
+            document.getElementById('njSdiAmount').value = sdi.toFixed(2);
+            document.getElementById('njFliAmount').value = fli.toFixed(2);
+            document.getElementById('njUiHcWfAmount').value = ui.toFixed(2);
+
+            ['federalTaxAmount','stateTaxAmount','socialSecurityAmount','medicareAmount','njSdiAmount','njFliAmount','njUiHcWfAmount']
+                .forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) { el.classList.add('auto-populated'); el.readOnly = true; }
+                });
+        } else {
+            ['federalTaxAmount','stateTaxAmount','socialSecurityAmount','medicareAmount','njSdiAmount','njFliAmount','njUiHcWfAmount']
+                .forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) { el.classList.remove('auto-populated'); el.readOnly = false; }
+                });
+            document.getElementById('stateTaxName').value = '';
+            document.getElementById('njSdiAmount').value = 0;
+            document.getElementById('njFliAmount').value = 0;
+            document.getElementById('njUiHcWfAmount').value = 0;
+        }
+
+        toggleEmploymentFields();
+        updateHourlyPayFrequencyVisibility();
+        updateLivePreview();
+    }
+
+    function estimateFederalTax(grossPayPerPeriod, payFrequency, status) {
+        return grossPayPerPeriod * FEDERAL_TAX_RATE;
+    }
+
+    function estimateNJStateTax(grossPayPerPeriod, payFrequency, status) {
+        const annual = grossPayPerPeriod * (PAY_PERIODS_PER_YEAR[payFrequency] || 1);
+        const rate = annual > 40000 ? 0.055 : 0.03;
+        return (annual * rate) / (PAY_PERIODS_PER_YEAR[payFrequency] || 1);
+    }
+
+    function estimateSocialSecurity(grossPayPerPeriod, ytdSocialSecuritySoFar) {
+        const wagesSoFar = ytdSocialSecuritySoFar / SOCIAL_SECURITY_RATE;
+        if (wagesSoFar >= SOCIAL_SECURITY_WAGE_LIMIT) return 0;
+        const taxable = Math.min(grossPayPerPeriod, SOCIAL_SECURITY_WAGE_LIMIT - wagesSoFar);
+        return taxable * SOCIAL_SECURITY_RATE;
+    }
+
+    function estimateMedicare(grossPayPerPeriod) {
+        return grossPayPerPeriod * MEDICARE_RATE;
+    }
+
+    function estimateNJ_SDI(grossPayPerPeriod) {
+        return grossPayPerPeriod * 0.003;
+    }
+
+    function estimateNJ_FLI(grossPayPerPeriod) {
+        return grossPayPerPeriod * 0.0015;
+    }
+
+    function estimateNJ_UIHCWF(grossPayPerPeriod) {
+        return grossPayPerPeriod * 0.000425;
     }
 
     function estimateAllDeductions() {

@@ -56,6 +56,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const livePreviewNetPay = document.getElementById('livePreviewNetPay');
     const livePreviewPayrollProviderLogo = document.getElementById('livePreviewPayrollProviderLogo');
     const livePreviewVoidedCheckContainer = document.getElementById('livePreviewVoidedCheckContainer');
+    const summaryGrossPay = document.getElementById('summaryGrossPay');
+    const summaryTotalDeductions = document.getElementById('summaryTotalDeductions');
+    const summaryNetPay = document.getElementById('summaryNetPay');
 
 
     // Buttons
@@ -538,6 +541,9 @@ document.addEventListener('DOMContentLoaded', () => {
         livePreviewGrossPay.textContent = formatCurrency(calculations.grossPay);
         livePreviewTotalDeductions.textContent = formatCurrency(calculations.totalDeductions);
         livePreviewNetPay.textContent = formatCurrency(calculations.netPay);
+        summaryGrossPay.textContent = formatCurrency(calculations.grossPay);
+        summaryTotalDeductions.textContent = formatCurrency(calculations.totalDeductions);
+        summaryNetPay.textContent = formatCurrency(calculations.netPay);
 
         // Optional Additions Preview
         if (data.payrollProviderLogoDataUrl) {

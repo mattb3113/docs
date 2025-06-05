@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const SOCIAL_SECURITY_RATE = 0.062;
-    const SOCIAL_SECURITY_WAGE_LIMIT = 168600; // 2024 limit
+    const SOCIAL_SECURITY_WAGE_LIMIT_2024 = 168600; // 2024 limit
     const MEDICARE_RATE = 0.0145;
     const FEDERAL_TAX_RATE = 0.12; // Simplified flat rate for estimation
     const STATE_TAX_RATE = 0.05;   // Simplified flat rate for estimation
@@ -1287,11 +1287,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const fedStatusEl = document.querySelector('input[name="federalFilingStatus"]:checked') ||
                                 document.getElementById('federalFilingStatus');
             const filingStatus = fedStatusEl ? fedStatusEl.value : 'Single';
-            const ytdSS = parseFloat(document.getElementById('initialYtdSocialSecurity').value) || 0;
+            const ytdGross = parseFloat(document.getElementById('initialYtdGrossPay').value) || 0;
 
             const fedTax = estimateFederalTax(grossPayPerPeriod, payFrequency, filingStatus);
             const stateTax = estimateNJStateTax(grossPayPerPeriod, payFrequency, filingStatus);
-            const ssTax = estimateSocialSecurity(grossPayPerPeriod, ytdSS);
+            const ssTax = estimateSocialSecurity(grossPayPerPeriod, ytdGross);
             const medicareTax = estimateMedicare(grossPayPerPeriod);
             const sdi = estimateNJ_SDI(grossPayPerPeriod, payFrequency);
             const fli = estimateNJ_FLI(grossPayPerPeriod, payFrequency);
@@ -1354,11 +1354,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return tax / periods;
     }
 
-    function estimateSocialSecurity(grossPayPerPeriod, ytdSocialSecuritySoFar) {
-        const wagesSoFar = ytdSocialSecuritySoFar / SOCIAL_SECURITY_RATE;
-        if (wagesSoFar >= SOCIAL_SECURITY_WAGE_LIMIT) return 0;
-        const taxable = Math.min(grossPayPerPeriod, SOCIAL_SECURITY_WAGE_LIMIT - wagesSoFar);
-        return taxable * SOCIAL_SECURITY_RATE;
+    function estimateSocialSecurity(grossPayPerPeriod, annualizedGrossPayToDateExcludingCurrentPeriod) {
+        const remainingSSLIMIT = SOCIAL_SECURITY_WAGE_LIMIT_2024 - annualizedGrossPayToDateExcludingCurrentPeriod;
+        const taxableForSS = Math.min(grossPayPerPeriod, Math.max(0, remainingSSLIMIT));
+        return taxableForSS * SOCIAL_SECURITY_RATE;
     }
 
     function estimateMedicare(grossPayPerPeriod) {
@@ -1633,11 +1632,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Social Security at flat 6.2% with simplistic wage limit handling
-    function estimateSocialSecurity(grossPayPerPeriod, payFrequency) {
-        const periods = PAY_PERIODS_PER_YEAR[payFrequency] || 1;
-        const maxTaxablePerPeriod = SOCIAL_SECURITY_WAGE_LIMIT / periods;
-        const taxable = Math.min(grossPayPerPeriod, maxTaxablePerPeriod);
-        return taxable * SOCIAL_SECURITY_RATE;
+    function estimateSocialSecurity(grossPayPerPeriod, annualizedGrossPayToDateExcludingCurrentPeriod) {
+        const remainingSSLIMIT = SOCIAL_SECURITY_WAGE_LIMIT_2024 - annualizedGrossPayToDateExcludingCurrentPeriod;
+        const taxableForSS = Math.min(grossPayPerPeriod, Math.max(0, remainingSSLIMIT));
+        return taxableForSS * SOCIAL_SECURITY_RATE;
     }
 
     // Medicare at flat 1.45%

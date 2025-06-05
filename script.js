@@ -64,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadDraftBtn = document.getElementById('loadDraft');
     const previewPdfWatermarkedBtn = document.getElementById('previewPdfWatermarked');
     const generateAndPayBtn = document.getElementById('generateAndPay');
+    const estimateAllDeductionsBtn = document.getElementById('estimateAllDeductionsBtn');
 
     // Modal Elements
     const paymentModal = document.getElementById('paymentModal');
@@ -136,6 +137,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDraftBtn.addEventListener('click', loadDraft);
     previewPdfWatermarkedBtn.addEventListener('click', () => generateAndDownloadPdf(true));
     generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
+    if (estimateAllDeductionsBtn) {
+        estimateAllDeductionsBtn.addEventListener('click', recalculateAllEstimatedTaxes);
+    }
 
     // Modal Interactions
     closePaymentModalBtn.addEventListener('click', () => paymentModal.style.display = 'none');
@@ -572,6 +576,30 @@ document.addEventListener('DOMContentLoaded', () => {
         // For responsive table attributes
         row.cells[1].setAttribute('data-label', 'Current');
         row.cells[2].setAttribute('data-label', 'YTD');
+    }
+
+    function recalculateAllEstimatedTaxes() {
+        const data = gatherFormData();
+        const { grossPay } = calculateCurrentPeriodPay(data);
+
+        const federalInput = document.getElementById('federalTaxAmount');
+        const stateInput = document.getElementById('stateTaxAmount');
+        const ssInput = document.getElementById('socialSecurityAmount');
+        const medicareInput = document.getElementById('medicareAmount');
+
+        const federal = grossPay * 0.10;
+        const state = grossPay * 0.05;
+        const ss = grossPay * 0.062;
+        const medicare = grossPay * 0.0145;
+
+        federalInput.value = federal.toFixed(2);
+        stateInput.value = state.toFixed(2);
+        ssInput.value = ss.toFixed(2);
+        medicareInput.value = medicare.toFixed(2);
+
+        [federalInput, stateInput, ssInput, medicareInput].forEach(el => el.setAttribute('readonly', 'readonly'));
+
+        updateLivePreview();
     }
 
 

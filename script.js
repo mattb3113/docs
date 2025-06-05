@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Buttons
     const resetAllFieldsBtn = document.getElementById('resetAllFields');
-    const saveDraftBtn = document.getElementById('saveDraftBtn');
+    const saveDraftBtn = document.getElementById('saveDraft');
     const loadDraftBtn = document.getElementById('loadDraft');
     const loadDraftBtnV2 = document.getElementById('loadDraftBtn');
     const estimateDeductionsBtn = document.getElementById('estimateDeductions');

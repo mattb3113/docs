@@ -197,9 +197,10 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="employeeSsn">Employee SSN (XXX-XX-NNNN)</label>
-                        <input type="text" id="employeeSsn" name="employeeSsn" placeholder="XXX-XX-NNNN" aria-describedby="employeeSsnError">
+                    <label for="employeeSsn">Employee SSN (Last 4 Digits Only)</label>
+                        <input type="text" id="employeeSsn" name="employeeSsn" placeholder="1234" aria-describedby="employeeSsnError">
                         <span class="error-message" id="employeeSsnError"></span>
+                        <p class="info-text ssn-info">SSN is used for display on the paystub and is not stored by BuellDocs for this generator tool. See our <a href='privacy_policy.html'>Privacy Policy</a>.</p>
                     </div>
                 </section>
 
@@ -516,7 +517,7 @@
                             <div id="livePreviewEmployeeName">Employee Name</div>
                             <div id="livePreviewEmployeeAddress1">456 Employee Ave</div>
                             <div id="livePreviewEmployeeAddress2">Workville, ST 67890</div>
-                            <div id="livePreviewEmployeeSsn">SSN: XXX-XX-NNNN</div>
+                            <div id="livePreviewEmployeeSsn">SSN: XXX-XX-1234</div>
                         </div>
                         <div class="pay-period-info-preview">
                             <h4>Pay Period</h4>
@@ -656,6 +657,9 @@
             <p id="notificationModalMessage"></p>
         </div>
     </div>
+    <footer>
+        BUELLDOCS © 2025 | SYSTEM INFO | <a href='privacy_policy.html'>Privacy Policy</a>
+    </footer>
     <script src="script.js"></script>
 </body>
 </html>

@@ -127,15 +127,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const successNumStubsSpan = document.getElementById('successNumStubs');
     const successUserNotesSpan = document.getElementById('successUserNotes');
 
-    // Sections to be minimized until populated
-    const secondarySections = Array.from(document.querySelectorAll('.form-section-card')).slice(1);
+    // Sequential section progression
+    const formSections = Array.from(document.querySelectorAll('.form-section-card'));
+    let nextSectionIndex = 1; // start after step 1
 
     function minimizeSecondarySections() {
-        secondarySections.forEach(sec => sec.classList.add('form-section-minimized'));
+        formSections.forEach((sec, idx) => {
+            if (idx > 0) sec.classList.add('form-section-minimized');
+        });
+        nextSectionIndex = 1;
     }
 
-    function revealSecondarySections() {
-        secondarySections.forEach(sec => sec.classList.remove('form-section-minimized'));
+    function revealAllSections() {
+        formSections.forEach(sec => sec.classList.remove('form-section-minimized'));
+        nextSectionIndex = formSections.length;
+    }
+
+    function revealNextSection() {
+        while (nextSectionIndex < formSections.length) {
+            const sec = formSections[nextSectionIndex];
+            sec.classList.remove('form-section-minimized');
+            nextSectionIndex++;
+            if (sec.querySelectorAll('[required]').length > 0) break;
+        }
+    }
+
+    function isSectionComplete(index) {
+        const sec = formSections[index];
+        const requiredInputs = sec.querySelectorAll('[required]');
+        for (const input of requiredInputs) {
+            if (input.offsetParent !== null && !input.value.trim()) {
+                return false;
+            }
+        }
+        return true;
     }
 
 
@@ -216,6 +241,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Also trigger on employment type change
     employmentTypeRadios.forEach(radio => radio.addEventListener('change', updateHourlyPayFrequencyVisibility));
     isForNjEmploymentCheckbox.addEventListener('change', handleNjEmploymentChange);
+
+    // Sequentially reveal sections once required fields are complete
+    formSections.slice(1).forEach((section, idx) => {
+        const sectionIndex = idx + 1;
+        const requiredInputs = section.querySelectorAll('[required]');
+        if (requiredInputs.length === 0) return;
+        const checkAndAdvance = () => {
+            if (sectionIndex + 1 === nextSectionIndex && isSectionComplete(sectionIndex)) {
+                revealNextSection();
+            }
+        };
+        requiredInputs.forEach(input => {
+            input.addEventListener('input', checkAndAdvance);
+            input.addEventListener('change', checkAndAdvance);
+        });
+    });
 
 
     // Handle Logo Uploads
@@ -1271,7 +1312,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields();
         updateHourlyPayFrequencyVisibility();
-        revealSecondarySections();
+        revealAllSections();
         updateLivePreview();
     }
 
@@ -1453,7 +1494,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields();
         updateHourlyPayFrequencyVisibility();
-        revealSecondarySections();
+        revealNextSection();
         updateLivePreview();
 
         if (populateDetailsBtn) {

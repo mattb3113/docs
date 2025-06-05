@@ -6,6 +6,7 @@
     Description: JavaScript logic for the paystub generator application,
                  including form handling, calculations, live preview, and PDF generation.
 */
+/* TODO (Build Process): For production deployment, consider minifying this file to reduce its size and improve load times. */
 
 'use strict';
 
@@ -471,11 +472,28 @@ document.addEventListener('DOMContentLoaded', () => {
         if (file && file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                previewImgElement.src = e.target.result;
-                previewImgElement.style.display = 'block';
-                if (placeholderElement) placeholderElement.style.display = 'none';
-                updateLivePreview(); // Update the main live preview
-            }
+                const img = new Image();
+                img.onload = () => {
+                    const MAX_DIMENSION = 500; // basic client-side resize
+                    let { width, height } = img;
+                    if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+                        const scale = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
+                        width = Math.round(width * scale);
+                        height = Math.round(height * scale);
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const dataUrl = canvas.toDataURL('image/png', 0.8);
+                    previewImgElement.src = dataUrl;
+                    previewImgElement.style.display = 'block';
+                    if (placeholderElement) placeholderElement.style.display = 'none';
+                    updateLivePreview();
+                };
+                img.src = e.target.result;
+            };
             reader.readAsDataURL(file);
             clearError(event.target);
         } else if (file) {
@@ -1303,7 +1321,12 @@ document.addEventListener('DOMContentLoaded', () => {
         data.companyLogoDataUrl = companyLogoPreviewImg.style.display !== 'none' ? companyLogoPreviewImg.src : null;
         data.payrollProviderLogoDataUrl = payrollProviderLogoPreviewImg.style.display !== 'none' ? payrollProviderLogoPreviewImg.src : null;
         try {
-            localStorage.setItem('buellDocsPaystubDraft_v2', JSON.stringify(data));
+            const json = JSON.stringify(data);
+            if (json.length > 4000000) { // ~4MB safety check
+                alert('Draft is too large to save. Please use smaller logo images.');
+                return;
+            }
+            localStorage.setItem('buellDocsPaystubDraft_v2', json);
             const originalText = saveDraftBtn.textContent;
             saveDraftBtn.textContent = 'Draft Saved!';
             setTimeout(() => { saveDraftBtn.textContent = originalText; }, 1500);

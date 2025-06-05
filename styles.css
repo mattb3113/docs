@@ -32,6 +32,16 @@
     --sidebar-width: 280px;
 }
 
+/* Utility styles for auto-calculated fields and highlighted buttons */
+.auto-calculated-field {
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+}
+
+.highlight-btn {
+    box-shadow: 0 0 10px var(--accent-gold);
+}
+
 /* -------------------- */
 /* --- GLOBAL RESETS & BASE --- */
 /* -------------------- */

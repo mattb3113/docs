@@ -64,6 +64,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const summaryTotalDeductions = document.getElementById('summaryTotalDeductions');
     const summaryNetPay = document.getElementById('summaryNetPay');
 
+    // New Elements for NJ Employment workflow
+    const isForNJEmploymentCheckbox = document.getElementById('isForNJEmployment');
+    const populateDetailsBtn = document.getElementById('populateDetailsBtn');
+    const njTaxesSection = document.getElementById('njTaxesSection');
+    const desiredIncomeRepresentationSection = document.getElementById('desiredIncomeRepresentation');
+
 
     // Buttons
     const resetAllFieldsBtn = document.getElementById('resetAllFields');
@@ -117,6 +123,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const FEDERAL_TAX_RATE = 0.12; // Simplified flat rate for estimation
     const STATE_TAX_RATE = 0.05;   // Simplified flat rate for estimation
 
+    // Approximate NJ-specific tax rates for auto population
+    const NJ_SDI_RATE = 0.005;
+    const NJ_FLI_RATE = 0.001;
+    const NJ_UI_HC_WF_RATE = 0.0035;
+
     // --- Event Listeners --- //
 
     // Toggle Hourly/Salaried Fields
@@ -151,6 +162,13 @@ document.addEventListener('DOMContentLoaded', () => {
     estimateDeductionsBtn.addEventListener('click', estimateAllDeductions);
     previewPdfWatermarkedBtn.addEventListener('click', () => generateAndDownloadPdf(true));
     generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
+
+    if (isForNJEmploymentCheckbox) {
+        isForNJEmploymentCheckbox.addEventListener('change', handleNjEmploymentToggle);
+    }
+    if (populateDetailsBtn) {
+        populateDetailsBtn.addEventListener('click', populateDetails);
+    }
 
     // Modal Interactions
     closePaymentModalBtn.addEventListener('click', () => paymentModal.style.display = 'none');
@@ -208,6 +226,57 @@ document.addEventListener('DOMContentLoaded', () => {
             setRequired(hourlyPayFrequencySelect, false);
         }
         updateLivePreview(); // Update stub indicator
+    }
+
+    function handleNjEmploymentToggle() {
+        if (!isForNJEmploymentCheckbox) return;
+        const isNj = isForNJEmploymentCheckbox.checked;
+
+        const mainTaxInputs = [
+            document.getElementById('federalTaxAmount'),
+            document.getElementById('stateTaxAmount'),
+            socialSecurityAmountInput,
+            medicareAmountInput
+        ];
+        const njTaxInputs = [
+            document.getElementById('njSdiAmount'),
+            document.getElementById('njFliAmount'),
+            document.getElementById('njUiHcWfAmount')
+        ];
+
+        if (isNj) {
+            if (njTaxesSection) njTaxesSection.style.display = 'block';
+            mainTaxInputs.forEach(i => { if(i){ i.readOnly = true; i.classList.add('auto-calculated-field'); }});
+            njTaxInputs.forEach(i => { if(i){ i.readOnly = true; i.classList.add('auto-calculated-field'); }});
+            if (populateDetailsBtn) populateDetailsBtn.classList.add('highlight-btn');
+        } else {
+            if (njTaxesSection) njTaxesSection.style.display = 'none';
+            njTaxInputs.forEach(i => { if(i){ i.value = ''; i.readOnly = false; i.classList.remove('auto-calculated-field'); }});
+            mainTaxInputs.forEach(i => { if(i){ i.readOnly = false; i.classList.remove('auto-calculated-field'); }});
+            if (populateDetailsBtn) populateDetailsBtn.classList.remove('highlight-btn');
+            showNotificationModal('Manual Tax Entry Required', 'Please enter tax details for your state manually.');
+        }
+    }
+
+    function populateDetails() {
+        const data = gatherFormData();
+        const calculations = calculateCurrentPeriodPay(data);
+
+        if (isForNJEmploymentCheckbox && isForNJEmploymentCheckbox.checked) {
+            estimateAllDeductions();
+            const gross = calculations.grossPay || 0;
+            const njSdi = document.getElementById('njSdiAmount');
+            const njFli = document.getElementById('njFliAmount');
+            const njUi = document.getElementById('njUiHcWfAmount');
+            if (njSdi) njSdi.value = (gross * NJ_SDI_RATE).toFixed(2);
+            if (njFli) njFli.value = (gross * NJ_FLI_RATE).toFixed(2);
+            if (njUi) njUi.value = (gross * NJ_UI_HC_WF_RATE).toFixed(2);
+        } else {
+            estimateAllDeductions();
+            showNotificationModal('Notice', 'Please enter tax details for your state manually.');
+        }
+
+        updateLivePreview();
     }
 
     function handleLogoUpload(event, previewImgElement, placeholderElement) {
@@ -972,6 +1041,21 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.error-message').forEach(span => span.textContent = '');
         document.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
 
+        if (isForNJEmploymentCheckbox) {
+            isForNJEmploymentCheckbox.checked = false;
+        }
+        if (desiredIncomeRepresentationSection) {
+            desiredIncomeRepresentationSection.querySelectorAll('input, select, textarea').forEach(el => {
+                if (el.type === 'checkbox' || el.type === 'radio') {
+                    el.checked = false;
+                } else {
+                    el.value = '';
+                }
+            });
+        }
+
+        handleNjEmploymentToggle();
+
         toggleEmploymentFields(); // Ensure correct fields are shown based on default radio
         updateHourlyPayFrequencyVisibility(); // And update conditional dropdown
         updateLivePreview(); // Refresh live preview
@@ -1192,5 +1276,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Initial Setup Calls --- //
     toggleEmploymentFields(); // Set initial state of employment fields
     updateHourlyPayFrequencyVisibility(); // Set initial state of hourly frequency dropdown
+    handleNjEmploymentToggle();
 
 });

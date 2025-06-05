@@ -69,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetAllFieldsBtn = document.getElementById('resetAllFields');
     const saveDraftBtn = document.getElementById('saveDraft');
     const loadDraftBtn = document.getElementById('loadDraft');
+    const estimateDeductionsBtn = document.getElementById('estimateDeductions');
     const previewPdfWatermarkedBtn = document.getElementById('previewPdfWatermarked');
     const generateAndPayBtn = document.getElementById('generateAndPay');
 
@@ -113,6 +114,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const SOCIAL_SECURITY_RATE = 0.062;
     const SOCIAL_SECURITY_WAGE_LIMIT = 168600; // 2024 limit
     const MEDICARE_RATE = 0.0145;
+    const FEDERAL_TAX_RATE = 0.12; // Simplified flat rate for estimation
+    const STATE_TAX_RATE = 0.05;   // Simplified flat rate for estimation
 
     // --- Event Listeners --- //
 
@@ -145,6 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
     resetAllFieldsBtn.addEventListener('click', resetAllFormFields);
     saveDraftBtn.addEventListener('click', saveDraft);
     loadDraftBtn.addEventListener('click', loadDraft);
+    estimateDeductionsBtn.addEventListener('click', estimateAllDeductions);
     previewPdfWatermarkedBtn.addEventListener('click', () => generateAndDownloadPdf(true));
     generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
 
@@ -1034,6 +1038,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields();
         updateHourlyPayFrequencyVisibility();
+        updateLivePreview();
+    }
+
+    function estimateAllDeductions() {
+        const data = gatherFormData();
+        const calculations = calculateCurrentPeriodPay(data);
+
+        document.getElementById('federalTaxAmount').value = (calculations.grossPay * FEDERAL_TAX_RATE).toFixed(2);
+        document.getElementById('stateTaxAmount').value = (calculations.grossPay * STATE_TAX_RATE).toFixed(2);
+
+        autoCalculateSocialSecurityCheckbox.checked = true;
+        autoCalculateMedicareCheckbox.checked = true;
+
         updateLivePreview();
     }
 

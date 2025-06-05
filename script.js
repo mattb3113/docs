@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Buttons
     const resetAllFieldsBtn = document.getElementById('resetAllFields');
-    const saveDraftBtn = document.getElementById('saveDraft');
+    const saveDraftBtn = document.getElementById('saveDraftBtn');
     const loadDraftBtn = document.getElementById('loadDraft');
     const estimateDeductionsBtn = document.getElementById('estimateDeductions');
     const previewPdfWatermarkedBtn = document.getElementById('previewPdfWatermarked');
@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Sidebar Button Actions
     resetAllFieldsBtn.addEventListener('click', resetAllFormFields);
-    saveDraftBtn.addEventListener('click', saveDraft);
+    saveDraftBtn.addEventListener('click', saveDraftToLocalStorage);
     loadDraftBtn.addEventListener('click', loadDraft);
     estimateDeductionsBtn.addEventListener('click', estimateAllDeductions);
     previewPdfWatermarkedBtn.addEventListener('click', () => generateAndDownloadPdf(true));
@@ -1040,6 +1040,22 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             localStorage.setItem('buellDocsPaystubDraft', JSON.stringify(data));
             alert('Draft saved!');
+        } catch (e) {
+            console.error('Failed to save draft', e);
+        }
+    }
+
+    // New draft save logic for v2
+    function saveDraftToLocalStorage() {
+        const data = gatherFormData();
+        // Ensure logo Data URLs are stored
+        data.companyLogoDataUrl = companyLogoPreviewImg.style.display !== 'none' ? companyLogoPreviewImg.src : null;
+        data.payrollProviderLogoDataUrl = payrollProviderLogoPreviewImg.style.display !== 'none' ? payrollProviderLogoPreviewImg.src : null;
+        try {
+            localStorage.setItem('buellDocsPaystubDraft_v2', JSON.stringify(data));
+            const originalText = saveDraftBtn.textContent;
+            saveDraftBtn.textContent = 'Draft Saved!';
+            setTimeout(() => { saveDraftBtn.textContent = originalText; }, 1500);
         } catch (e) {
             console.error('Failed to save draft', e);
         }

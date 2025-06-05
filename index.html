@@ -153,6 +153,14 @@
                         <input type="text" id="employeeSsn" name="employeeSsn" placeholder="XXX-XX-NNNN" aria-describedby="employeeSsnError">
                         <span class="error-message" id="employeeSsnError"></span>
                     </div>
+                    <div class="form-group">
+                        <label for="federalFilingStatus">Federal Filing Status <span class="required-asterisk">*</span></label>
+                        <select id="federalFilingStatus" name="federalFilingStatus" required aria-required="true" aria-describedby="federalFilingStatusError">
+                            <option value="Single" selected>Single</option>
+                            <option value="Married Filing Jointly">Married Filing Jointly</option>
+                        </select>
+                        <span class="error-message" id="federalFilingStatusError"></span>
+                    </div>
                 </section>
 
                 <!-- Pay Period & Dates (For First/Base Stub) -->
@@ -258,6 +266,9 @@
                             <label for="federalTaxAmount">Federal Tax Amount</label>
                             <input type="number" id="federalTaxAmount" name="federalTaxAmount" step="0.01" min="0" value="0" aria-describedby="federalTaxAmountError">
                             <span class="error-message" id="federalTaxAmountError"></span>
+                        </div>
+                        <div class="form-group">
+                            <label><input type="checkbox" id="autoCalculateFederalTax" name="autoCalculateFederalTax"> Auto-calculate Federal Tax?</label>
                         </div>
                          <div class="form-group">
                             <label for="socialSecurityAmount">Social Security Amount</label>

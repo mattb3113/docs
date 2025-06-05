@@ -259,10 +259,16 @@
                             <input type="number" id="federalTaxAmount" name="federalTaxAmount" step="0.01" min="0" value="0" aria-describedby="federalTaxAmountError">
                             <span class="error-message" id="federalTaxAmountError"></span>
                         </div>
-                         <div class="form-group">
+                        <div class="form-group">
                             <label for="socialSecurityAmount">Social Security Amount</label>
                             <input type="number" id="socialSecurityAmount" name="socialSecurityAmount" step="0.01" min="0" value="0" aria-describedby="socialSecurityAmountError">
                             <span class="error-message" id="socialSecurityAmountError"></span>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <label for="autoCalculateSocialSecurity">
+                                <input type="checkbox" id="autoCalculateSocialSecurity" name="autoCalculateSocialSecurity">
+                                Auto-calculate Social Security?
+                            </label>
                         </div>
                     </div>
                     <div class="grid-col-2">
@@ -281,6 +287,12 @@
                         <label for="medicareAmount">Medicare Amount</label>
                         <input type="number" id="medicareAmount" name="medicareAmount" step="0.01" min="0" value="0" aria-describedby="medicareAmountError">
                         <span class="error-message" id="medicareAmountError"></span>
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <label for="autoCalculateMedicare">
+                            <input type="checkbox" id="autoCalculateMedicare" name="autoCalculateMedicare">
+                            Auto-calculate Medicare?
+                        </label>
                     </div>
                 </section>
 

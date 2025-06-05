@@ -60,6 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Buttons
     const resetAllFieldsBtn = document.getElementById('resetAllFields');
+    const saveDraftBtn = document.getElementById('saveDraft');
+    const loadDraftBtn = document.getElementById('loadDraft');
     const previewPdfWatermarkedBtn = document.getElementById('previewPdfWatermarked');
     const generateAndPayBtn = document.getElementById('generateAndPay');
 
@@ -130,6 +132,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Sidebar Button Actions
     resetAllFieldsBtn.addEventListener('click', resetAllFormFields);
+    saveDraftBtn.addEventListener('click', saveDraft);
+    loadDraftBtn.addEventListener('click', loadDraft);
     previewPdfWatermarkedBtn.addEventListener('click', () => generateAndDownloadPdf(true));
     generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
 
@@ -923,6 +927,70 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleEmploymentFields(); // Ensure correct fields are shown based on default radio
         updateHourlyPayFrequencyVisibility(); // And update conditional dropdown
         updateLivePreview(); // Refresh live preview
+    }
+
+    function saveDraft() {
+        const data = gatherFormData();
+        try {
+            localStorage.setItem('buellDocsPaystubDraft', JSON.stringify(data));
+            alert('Draft saved!');
+        } catch (e) {
+            console.error('Failed to save draft', e);
+        }
+    }
+
+    function loadDraft() {
+        const draftStr = localStorage.getItem('buellDocsPaystubDraft');
+        if (!draftStr) {
+            alert('No draft found.');
+            return;
+        }
+        let data;
+        try {
+            data = JSON.parse(draftStr);
+        } catch (e) {
+            console.error('Failed to parse draft', e);
+            return;
+        }
+
+        for (const [key, value] of Object.entries(data)) {
+            const el = paystubForm.elements[key];
+            if (!el) continue;
+            if (el.type === 'radio') {
+                const radio = document.querySelector(`input[name="${key}"][value="${value}"]`);
+                if (radio) radio.checked = true;
+            } else if (el.type === 'checkbox') {
+                el.checked = !!value;
+            } else if (el.tagName === 'SELECT') {
+                el.value = value;
+            } else if (el.type !== 'file') {
+                el.value = value;
+            }
+        }
+
+        if (data.companyLogoDataUrl) {
+            companyLogoPreviewImg.src = data.companyLogoDataUrl;
+            companyLogoPreviewImg.style.display = 'block';
+            companyLogoPlaceholder.style.display = 'none';
+        } else {
+            companyLogoPreviewImg.src = '#';
+            companyLogoPreviewImg.style.display = 'none';
+            companyLogoPlaceholder.style.display = 'block';
+        }
+
+        if (data.payrollProviderLogoDataUrl) {
+            payrollProviderLogoPreviewImg.src = data.payrollProviderLogoDataUrl;
+            payrollProviderLogoPreviewImg.style.display = 'block';
+            payrollProviderLogoPlaceholder.style.display = 'none';
+        } else {
+            payrollProviderLogoPreviewImg.src = '#';
+            payrollProviderLogoPreviewImg.style.display = 'none';
+            payrollProviderLogoPlaceholder.style.display = 'block';
+        }
+
+        toggleEmploymentFields();
+        updateHourlyPayFrequencyVisibility();
+        updateLivePreview();
     }
 
 

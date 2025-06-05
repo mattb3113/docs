@@ -844,6 +844,35 @@ input.invalid, select.invalid, textarea.invalid {
     margin-top: 5px;
 }
 
+.progress-indicator {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.progress-step {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--border-color);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 5px;
+    font-size: 12px;
+}
+
+.progress-step.active {
+    background: var(--accent-gold);
+}
+
+.step-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
 /* -------------------- */
 /* --- RESPONSIVE DESIGN --- */
 /* -------------------- */

@@ -554,6 +554,23 @@ input.invalid, select.invalid, textarea.invalid {
 }
 .summary-preview div { margin-bottom: 5px; font-size: 1.1em; }
 
+/* Summary Bar */
+.summary-bar {
+    position: sticky;
+    bottom: 0;
+    background-color: rgba(20, 20, 24, 0.8);
+    backdrop-filter: blur(var(--blur-amount));
+    border-top: 1px solid var(--border-color-light);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    z-index: 200;
+}
+.summary-bar div {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
 .preview-disclaimer {
     font-size: 12px;
     color: var(--text-tertiary);

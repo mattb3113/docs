@@ -678,6 +678,12 @@ input.invalid, select.invalid, textarea.invalid {
 }
 .modal strong { color: var(--accent-gold-hover); }
 
+
+#notificationModal .modal-content {
+    max-width: 400px;
+    text-align: center;
+}
+
 .qr-code-options {
     display: flex;
     justify-content: space-around;

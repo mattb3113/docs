@@ -1045,8 +1045,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = gatherFormData();
         const calculations = calculateCurrentPeriodPay(data);
 
-        document.getElementById('federalTaxAmount').value = (calculations.grossPay * FEDERAL_TAX_RATE).toFixed(2);
-        document.getElementById('stateTaxAmount').value = (calculations.grossPay * STATE_TAX_RATE).toFixed(2);
+        const payFrequency = data.employmentType === 'Hourly' ? (hourlyPayFrequencySelect.value || 'Weekly') : (data.salariedPayFrequency || 'Bi-Weekly');
+        const filingStatus = data.filingStatus || 'Single'; // placeholder until a field is added
+
+        document.getElementById('federalTaxAmount').value = estimateFederalTax(calculations.grossPay, payFrequency, filingStatus).toFixed(2);
+        document.getElementById('stateTaxAmount').value = estimateNJStateTax(calculations.grossPay, payFrequency, filingStatus).toFixed(2);
+        document.getElementById('njSdiAmount').value = estimateNJ_SDI(calculations.grossPay).toFixed(2);
+        document.getElementById('njFliAmount').value = estimateNJ_FLI(calculations.grossPay).toFixed(2);
+        document.getElementById('njUiHcWfAmount').value = estimateNJ_UIHCWF(calculations.grossPay).toFixed(2);
 
         autoCalculateSocialSecurityCheckbox.checked = true;
         autoCalculateMedicareCheckbox.checked = true;
@@ -1151,6 +1157,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Helper Functions --- //
+
+    // Placeholder federal tax estimate using a very simplified progressive structure
+    function estimateFederalTax(grossPayPerPeriod, payFrequency, filingStatus) {
+        const periods = PAY_PERIODS_PER_YEAR[payFrequency] || 1;
+        const annualIncome = grossPayPerPeriod * periods;
+        let annualTax = 0;
+        // Basic example brackets (placeholder logic)
+        if (annualIncome <= 11000) {
+            annualTax = annualIncome * 0.10;
+        } else if (annualIncome <= 44725) {
+            annualTax = 11000 * 0.10 + (annualIncome - 11000) * 0.12;
+        } else {
+            annualTax = 11000 * 0.10 + (44725 - 11000) * 0.12 + (annualIncome - 44725) * 0.22;
+        }
+        return annualTax / periods;
+    }
+
+    // Social Security at flat 6.2% with simplistic wage limit handling
+    function estimateSocialSecurity(grossPayPerPeriod, payFrequency) {
+        const periods = PAY_PERIODS_PER_YEAR[payFrequency] || 1;
+        const maxTaxablePerPeriod = SOCIAL_SECURITY_WAGE_LIMIT / periods;
+        const taxable = Math.min(grossPayPerPeriod, maxTaxablePerPeriod);
+        return taxable * SOCIAL_SECURITY_RATE;
+    }
+
+    // Medicare at flat 1.45%
+    function estimateMedicare(grossPayPerPeriod) {
+        return grossPayPerPeriod * MEDICARE_RATE;
+    }
+
+    // New Jersey state tax placeholder (flat 3%)
+    function estimateNJStateTax(grossPayPerPeriod, payFrequency, filingStatus) {
+        return grossPayPerPeriod * 0.03; // Placeholder rate
+    }
+
+    // New Jersey State Disability Insurance placeholder
+    function estimateNJ_SDI(grossPayPerPeriod) {
+        return grossPayPerPeriod * 0.002; // Placeholder rate
+    }
+
+    // New Jersey Family Leave Insurance placeholder
+    function estimateNJ_FLI(grossPayPerPeriod) {
+        return grossPayPerPeriod * 0.001; // Placeholder rate
+    }
+
+    // New Jersey Unemployment/Health/Workforce placeholder
+    function estimateNJ_UIHCWF(grossPayPerPeriod) {
+        return grossPayPerPeriod * 0.0005; // Placeholder rate
+    }
+
     function formatCurrency(amount, includeSymbol = true) {
         const options = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
         if (includeSymbol) {

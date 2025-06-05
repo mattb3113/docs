@@ -917,4 +917,8 @@ input.invalid, select.invalid, textarea.invalid {
     background-color: rgba(174, 142, 93, 0.2);
 }
 
+.auto-calculated-field {
+    background-color: rgba(174, 142, 93, 0.2);
+}
+
 }

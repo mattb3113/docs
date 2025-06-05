@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const medicareAmountInput = document.getElementById('medicareAmount');
     const autoCalculateSocialSecurityCheckbox = document.getElementById('autoCalculateSocialSecurity');
     const autoCalculateMedicareCheckbox = document.getElementById('autoCalculateMedicare');
+    const autoCalculateFederalTaxCheckbox = document.getElementById('autoCalculateFederalTax');
 
     // Live Preview Elements
     const livePreviewContent = document.getElementById('paystubPreviewContent');
@@ -79,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveDraftBtn = document.getElementById('saveDraft');
     const loadDraftBtn = document.getElementById('loadDraft');
     const estimateDeductionsBtn = document.getElementById('estimateDeductions');
+    const estimateAllDeductionsBtn = document.getElementById('estimateAllDeductionsBtn');
     const previewPdfWatermarkedBtn = document.getElementById('previewPdfWatermarked');
     const generateAndPayBtn = document.getElementById('generateAndPay');
     const populateDetailsBtn = document.getElementById('populateDetailsBtn');
@@ -164,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
     saveDraftBtn.addEventListener('click', saveDraft);
     loadDraftBtn.addEventListener('click', loadDraft);
     estimateDeductionsBtn.addEventListener('click', estimateAllDeductions);
+    if (estimateAllDeductionsBtn) estimateAllDeductionsBtn.addEventListener('click', estimateAllStandardDeductions);
     previewPdfWatermarkedBtn.addEventListener('click', () => generateAndDownloadPdf(true));
     generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
     if (populateDetailsBtn) populateDetailsBtn.addEventListener('click', autoPopulateFromDesiredIncome);
@@ -1233,6 +1236,90 @@ document.addEventListener('DOMContentLoaded', () => {
         autoCalculateMedicareCheckbox.checked = true;
 
         updateLivePreview();
+    }
+
+    function estimateAllStandardDeductions() {
+        const data = gatherFormData();
+        const calculations = calculateCurrentPeriodPay(data);
+        const grossPay = calculations.grossPay;
+
+        const payFrequency = data.employmentType === 'Hourly'
+            ? (hourlyPayFrequencySelect.value || 'Weekly')
+            : (data.salariedPayFrequency || 'Bi-Weekly');
+
+        const filingStatus = data.federalFilingStatus || data.filingStatus || 'Single';
+        const isForNJ = data.isForNJEmployment || false;
+
+        if (typeof estimateFederalTax === 'function') {
+            const fedTax = estimateFederalTax(grossPay, payFrequency, filingStatus);
+            const fedInput = document.getElementById('federalTaxAmount');
+            if (fedInput) {
+                fedInput.value = fedTax.toFixed(2);
+                fedInput.classList.add('auto-calculated-field');
+                fedInput.readOnly = true;
+            }
+            if (autoCalculateFederalTaxCheckbox) autoCalculateFederalTaxCheckbox.checked = true;
+        }
+
+        if (typeof estimateSocialSecurity === 'function') {
+            const ytdSS = parseFloat(document.getElementById('initialYtdSocialSecurity')?.value) || 0;
+            const ss = estimateSocialSecurity(grossPay, ytdSS);
+            socialSecurityAmountInput.value = ss.toFixed(2);
+            socialSecurityAmountInput.classList.add('auto-calculated-field');
+            socialSecurityAmountInput.readOnly = true;
+            if (autoCalculateSocialSecurityCheckbox) autoCalculateSocialSecurityCheckbox.checked = true;
+        }
+
+        if (typeof estimateMedicare === 'function') {
+            const med = estimateMedicare(grossPay);
+            medicareAmountInput.value = med.toFixed(2);
+            medicareAmountInput.classList.add('auto-calculated-field');
+            medicareAmountInput.readOnly = true;
+            if (autoCalculateMedicareCheckbox) autoCalculateMedicareCheckbox.checked = true;
+        }
+
+        if (isForNJ) {
+            if (typeof estimateNJStateTax === 'function') {
+                const stateTax = estimateNJStateTax(grossPay, payFrequency, filingStatus);
+                const stateAmountInput = document.getElementById('stateTaxAmount');
+                const stateNameInput = document.getElementById('stateTaxName');
+                if (stateAmountInput) {
+                    stateAmountInput.value = stateTax.toFixed(2);
+                    stateAmountInput.classList.add('auto-calculated-field');
+                    stateAmountInput.readOnly = true;
+                }
+                if (stateNameInput && !stateNameInput.value) stateNameInput.value = 'NJ State Tax';
+            }
+
+            const sdiInput = document.getElementById('njSdiAmount');
+            if (sdiInput && typeof estimateNJ_SDI === 'function') {
+                sdiInput.value = estimateNJ_SDI(grossPay).toFixed(2);
+                sdiInput.classList.add('auto-calculated-field');
+                sdiInput.readOnly = true;
+            }
+
+            const fliInput = document.getElementById('njFliAmount');
+            if (fliInput && typeof estimateNJ_FLI === 'function') {
+                fliInput.value = estimateNJ_FLI(grossPay).toFixed(2);
+                fliInput.classList.add('auto-calculated-field');
+                fliInput.readOnly = true;
+            }
+
+            const uiInput = document.getElementById('njUiHcWfAmount');
+            if (uiInput && typeof estimateNJ_UIHCWF === 'function') {
+                uiInput.value = estimateNJ_UIHCWF(grossPay).toFixed(2);
+                uiInput.classList.add('auto-calculated-field');
+                uiInput.readOnly = true;
+            }
+        }
+
+        updateLivePreview();
+
+        if (estimateAllDeductionsBtn) {
+            const original = estimateAllDeductionsBtn.textContent;
+            estimateAllDeductionsBtn.textContent = 'Estimates Applied!';
+            setTimeout(() => { estimateAllDeductionsBtn.textContent = original; }, 2000);
+        }
     }
 
     function handleNjEmploymentChange() {

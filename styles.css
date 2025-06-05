@@ -1,0 +1,879 @@
+/* BuellDocs Paystub Generator v2 - style.css */
+/*
+    Author: Gemini
+    Date: June 5, 2025
+    Project: BuellDocs Client-Side Paystub Generator v2
+    Description: Styles for the paystub generator application,
+                 adhering to the BuellDocs premium brand aesthetic.
+*/
+
+/* -------------------- */
+/* --- ROOT VARIABLES --- */
+/* -------------------- */
+:root {
+    --bg-primary: #0a0a0c;
+    --bg-secondary: #141418;
+    --bg-tertiary: #1a1a1e; /* For input fields */
+    --accent-gold: #ae8e5d;
+    --accent-gold-hover: #c9a77d;
+    --text-primary: rgba(255, 255, 255, 0.9);
+    --text-secondary: rgba(255, 255, 255, 0.7);
+    --text-tertiary: rgba(255, 255, 255, 0.4); /* For placeholders, optional labels */
+    --error-color: #e25d6a;
+    --success-color: #4fa089;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --border-color-light: rgba(255, 255, 255, 0.05);
+    --font-family: 'Helvetica Neue', Arial, sans-serif;
+    --blur-amount: 10px;
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --letter-spacing-header: 1px;
+    --header-height: 70px;
+    --sidebar-width: 280px;
+}
+
+/* -------------------- */
+/* --- GLOBAL RESETS & BASE --- */
+/* -------------------- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    font-size: 16px;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    position: relative;
+}
+
+/* Noise Overlay & Backdrop Glow */
+.noise-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.03; /* As specified */
+    pointer-events: none;
+    z-index: -2; /* Behind backdrop glow */
+}
+
+.backdrop-glow {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at top right, rgba(20, 20, 26, 0.9) 0%, rgba(10, 10, 12, 1) 70%);
+    pointer-events: none;
+    z-index: -1; /* Behind content */
+}
+
+/* -------------------- */
+/* --- HEADER --- */
+/* -------------------- */
+.app-header {
+    background-color: rgba(10, 10, 12, 0.7); /* Darker, semi-transparent */
+    backdrop-filter: blur(var(--blur-amount));
+    -webkit-backdrop-filter: blur(var(--blur-amount));
+    border-bottom: 1px solid var(--border-color-light);
+    padding: 0 30px;
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo-text {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-header);
+    position: relative;
+    padding-right: 15px; /* Space for the dot */
+}
+
+.logo-text::after {
+    content: "";
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    background-color: var(--accent-gold);
+    border-radius: 50%;
+    right: 0;
+    bottom: 5px; /* Adjusted for better alignment */
+}
+
+.header-nav .nav-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    margin-left: 25px;
+    font-size: 15px;
+    transition: color 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.header-nav .nav-link:hover {
+    color: var(--accent-gold);
+}
+
+/* -------------------- */
+/* --- MAIN WRAPPER & LAYOUT --- */
+/* -------------------- */
+.main-wrapper {
+    display: flex;
+    padding-top: var(--header-height); /* Account for fixed header */
+    min-height: calc(100vh - var(--header-height));
+}
+
+/* -------------------- */
+/* --- SIDEBAR --- */
+/* -------------------- */
+.sidebar {
+    width: var(--sidebar-width);
+    flex: 0 0 var(--sidebar-width);
+    background-color: rgba(20, 20, 24, 0.6); /* --bg-secondary with transparency */
+    border-right: 1px solid var(--border-color-light);
+    padding: 25px;
+    position: sticky; /* Sticky to scroll with content */
+    top: var(--header-height); /* Stick below the header */
+    height: calc(100vh - var(--header-height)); /* Full height minus header */
+    overflow-y: auto; /* Scrollable if content exceeds height */
+    backdrop-filter: blur(var(--blur-amount));
+    -webkit-backdrop-filter: blur(var(--blur-amount));
+}
+
+.sidebar-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sidebar-title {
+    font-size: 18px;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-header);
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+/* -------------------- */
+/* --- MAIN CONTENT --- */
+/* -------------------- */
+.main-content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto; /* Allows main content to scroll independently if needed */
+}
+
+.hero-section {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: var(--bg-secondary);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--border-color);
+}
+
+.hero-section h1 {
+    font-size: 28px;
+    color: var(--accent-gold);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-header);
+}
+
+.hero-section p {
+    font-size: 16px;
+    color: var(--text-secondary);
+}
+
+/* -------------------- */
+/* --- CARD STYLING --- */
+/* -------------------- */
+.form-section-card,
+.preview-section-card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.form-section-card h3,
+.preview-section-card h3 {
+    font-size: 20px;
+    color: var(--accent-gold);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-header);
+}
+.form-section-card h4 {
+    font-size: 16px;
+    color: var(--text-primary);
+    margin-top: 20px;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+
+/* -------------------- */
+/* --- FORM ELEMENTS --- */
+/* -------------------- */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group input[type="number"],
+.form-group input[type="date"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 15px;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-primary);
+    font-size: 15px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group input[type="tel"]:focus,
+.form-group input[type="number"]:focus,
+.form-group input[type="date"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 0 2px rgba(174, 142, 93, 0.3); /* Gold glow */
+}
+.form-group input[type="file"] {
+    padding: 10px;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-secondary); /* For the "No file chosen" text */
+    cursor: pointer;
+}
+
+.form-group input[type="file"]::-webkit-file-upload-button { /* Style the button part */
+    background-color: var(--accent-gold);
+    color: var(--bg-primary);
+    border: none;
+    padding: 8px 12px;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-right: 10px;
+}
+
+.form-group input[type="file"]::-webkit-file-upload-button:hover {
+    background-color: var(--accent-gold-hover);
+}
+
+
+.required-asterisk {
+    color: var(--accent-gold);
+    margin-left: 2px;
+}
+
+.error-message {
+    display: block;
+    color: var(--error-color);
+    font-size: 12px;
+    margin-top: 5px;
+    min-height: 15px; /* Reserve space to prevent layout shifts */
+}
+input.invalid, select.invalid, textarea.invalid {
+    border-color: var(--error-color) !important;
+    box-shadow: 0 0 0 2px rgba(226, 93, 106, 0.3) !important; /* Red glow */
+}
+
+
+.info-text {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
+.radio-group label {
+    margin-right: 20px;
+    color: var(--text-secondary);
+    font-size: 15px;
+    text-transform: none; /* Normal case for radio labels */
+    letter-spacing: 0;
+    cursor: pointer;
+}
+
+.radio-group input[type="radio"] {
+    margin-right: 8px;
+    accent-color: var(--accent-gold); /* Styles the radio button itself */
+    transform: scale(1.1);
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    color: var(--text-secondary);
+    font-size: 15px;
+    text-transform: none;
+    letter-spacing: 0;
+    cursor: pointer;
+}
+.checkbox-group input[type="checkbox"] {
+    margin-right: 10px;
+    accent-color: var(--accent-gold);
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+/* Grid layout for forms */
+.grid-col-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+.grid-col-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+
+/* Logo Preview */
+.logo-preview-container {
+    width: 100%;
+    max-width: 180px; /* As specified */
+    height: auto;
+    min-height: 100px; /* For placeholder */
+    border: 2px dashed var(--border-color); /* Dotted border */
+    border-radius: var(--border-radius-sm);
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.02); /* Semi-transparent gray box */
+    position: relative; /* For text positioning */
+}
+
+.logo-preview-container img {
+    max-width: 100%;
+    max-height: 100px; /* Ensure logo doesn't get too tall */
+    height: auto; /* Maintain aspect ratio */
+    border-radius: var(--border-radius-sm);
+}
+
+.logo-placeholder-text {
+    color: var(--accent-gold); /* Light gold */
+    font-size: 14px;
+    text-align: center;
+}
+
+
+/* -------------------- */
+/* --- BUTTONS --- */
+/* -------------------- */
+.btn {
+    padding: 12px 25px;
+    font-size: 15px;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background-color: var(--accent-gold);
+    color: var(--bg-primary); /* Dark text on gold button */
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-gold-hover);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: var(--bg-tertiary);
+    color: var(--accent-gold);
+    border: 1px solid var(--accent-gold);
+}
+
+.btn-secondary:hover {
+    background-color: var(--accent-gold);
+    color: var(--bg-primary);
+    transform: translateY(-2px);
+}
+
+.btn-full-width {
+    width: 100%;
+    display: block;
+}
+
+/* -------------------- */
+/* --- LIVE PREVIEW SECTION --- */
+/* -------------------- */
+#previewSection {
+    position: relative; /* For watermark */
+}
+.preview-watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-30deg);
+    font-size: clamp(30px, 8vw, 60px); /* Responsive font size */
+    color: rgba(255, 255, 255, 0.05);
+    font-weight: bold;
+    pointer-events: none; /* Allows interaction with content below */
+    z-index: 1;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+#previewStubIndicator {
+    font-size: 0.8em;
+    color: var(--text-tertiary);
+    margin-left: 10px;
+}
+
+.paystub-live-preview {
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    border-radius: var(--border-radius-sm);
+    background-color: #fff; /* Simulate paper */
+    color: #333; /* Standard document text color */
+    font-size: 12px; /* Smaller font for preview compactness */
+    position: relative; /* For watermark context */
+    z-index: 2; /* Above watermark */
+}
+
+.paystub-header-preview {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ccc;
+}
+.company-info-left div, .employee-info-preview div, .pay-period-info-preview div {
+    margin-bottom: 3px;
+}
+.company-info-left .live-preview-logo {
+    max-width: 120px;
+    max-height: 50px;
+    margin-bottom: 8px;
+}
+#livePreviewCompanyName { font-weight: bold; font-size: 1.2em; }
+
+.paystub-title-preview { text-align: right; }
+.paystub-title-preview h2 { font-size: 1.4em; margin-bottom: 3px; color: #333; letter-spacing: 0; }
+
+.employee-pay-period-preview {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ccc;
+}
+.employee-info-preview h4, .pay-period-info-preview h4 {
+    font-size: 1.1em;
+    margin-bottom: 5px;
+    color: #555;
+    text-transform: uppercase;
+}
+
+.earnings-table-preview, .deductions-table-preview {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+    font-size: 11px;
+}
+.earnings-table-preview th, .earnings-table-preview td,
+.deductions-table-preview th, .deductions-table-preview td {
+    border: 1px solid #ddd;
+    padding: 6px 8px;
+    text-align: left;
+}
+.earnings-table-preview th, .deductions-table-preview th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+.earnings-table-preview td:nth-child(n+2), /* Hours, Rate, Current, YTD */
+.deductions-table-preview td:nth-child(n+2) { /* Current, YTD */
+    text-align: right;
+}
+
+
+.summary-preview {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #ccc;
+    text-align: right;
+    font-weight: bold;
+}
+.summary-preview div { margin-bottom: 5px; font-size: 1.1em; }
+
+.preview-disclaimer {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    text-align: center;
+    margin-top: 15px;
+}
+.preview-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 10px;
+    border-top: 1px solid #ccc;
+}
+.live-preview-logo { display: block; } /* Default display for images */
+
+/* CSS Voided Check */
+.voided-check-css-container {
+    margin-top: 15px;
+    width: 100%;
+    max-width: 400px; /* Or adjust as needed */
+}
+.voided-check-css {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 15px;
+    font-family: 'Courier New', Courier, monospace; /* Monospaced font */
+    font-size: 10px;
+    color: #333;
+    position: relative; /* For VOID text */
+    overflow: hidden; /* Keep VOID text contained */
+    line-height: 1.4;
+}
+.voided-check-css .void-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-30deg);
+    font-size: 40px; /* Large VOID text */
+    color: rgba(255, 0, 0, 0.3); /* Semi-transparent red */
+    font-weight: bold;
+    pointer-events: none;
+    z-index: 1;
+}
+.voided-check-css .check-line {
+    margin-bottom: 8px;
+    position: relative; /* For z-index to be above VOID */
+    z-index: 2;
+}
+.voided-check-css .payee { font-size: 11px; }
+.voided-check-css .amount-box { float: right; border: 1px solid #333; padding: 2px 5px; width: 80px; text-align: right; }
+.voided-check-css .date { clear: both; padding-top: 5px;}
+.voided-check-css .memo {}
+.voided-check-css .signature { text-align: right; margin-top: 15px; }
+.voided-check-css .micr { font-size: 12px; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 5px;}
+
+/* -------------------- */
+/* --- MODAL STYLING --- */
+/* -------------------- */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 2000; /* Above everything else */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.6); /* Darker overlay for modal */
+    backdrop-filter: blur(var(--blur-amount));
+    -webkit-backdrop-filter: blur(var(--blur-amount));
+    display: flex; /* For centering modal content */
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: var(--bg-secondary);
+    margin: auto;
+    padding: 30px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    width: 90%;
+    max-width: 600px; /* Max width for the modal */
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+.close-modal-btn {
+    color: var(--text-tertiary);
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.close-modal-btn:hover,
+.close-modal-btn:focus {
+    color: var(--accent-gold);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal h2 {
+    color: var(--accent-gold);
+    margin-bottom: 20px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-header);
+}
+.modal h3 {
+    color: var(--accent-gold);
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.modal p {
+    margin-bottom: 15px;
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 1.7;
+}
+.modal strong { color: var(--accent-gold-hover); }
+
+.qr-code-options {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    margin-bottom: 25px;
+    gap: 15px;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+.qr-code-item {
+    text-align: center;
+    flex: 1;
+    min-width: 150px; /* Ensure QR code is readable */
+}
+.qr-code-item p {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+}
+.qr-code-item .qr-container {
+    width: 150px;
+    height: 150px;
+    border: 2px dashed var(--border-color);
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto; /* Center the container */
+    background-color: var(--bg-tertiary);
+}
+.qr-code-item img {
+    max-width: 140px; /* Slightly smaller than container */
+    max-height: 140px;
+    border-radius: var(--border-radius-sm);
+}
+
+#modalOrderSuccessMessage ul {
+    list-style-type: none; /* Remove default bullets */
+    padding-left: 0; /* Remove default padding */
+    margin-bottom: 20px;
+}
+#modalOrderSuccessMessage li {
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    padding: 10px 15px;
+    border-radius: var(--border-radius-sm);
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+.discount-note {
+    font-size: 0.9em;
+    color: var(--success-color);
+    margin-left: 5px;
+    font-style: italic;
+}
+
+/* -------------------- */
+/* --- RESPONSIVE DESIGN --- */
+/* -------------------- */
+@media (max-width: 992px) { /* Tablets and smaller desktops */
+    .main-wrapper {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        position: static; /* No longer sticky */
+        height: auto; /* Adjust to content */
+        border-right: none;
+        border-bottom: 1px solid var(--border-color-light);
+        margin-bottom: 20px; /* Space before main content */
+    }
+    .main-content {
+        padding: 20px;
+    }
+    .grid-col-2, .grid-col-3 {
+        grid-template-columns: 1fr; /* Stack columns */
+    }
+    .app-header {
+        padding: 0 15px;
+    }
+    .header-nav .nav-link {
+        margin-left: 15px;
+        font-size: 14px;
+    }
+     .qr-code-options {
+        flex-direction: column;
+        align-items: center;
+    }
+    .qr-code-item {
+        width: 100%;
+        max-width: 200px; /* Limit width when stacked */
+        margin-bottom: 15px;
+    }
+    .qr-code-item .qr-container, .qr-code-item img {
+        width: 150px;
+        height: 150px;
+    }
+}
+
+@media (max-width: 768px) { /* Mobile devices */
+    .app-header {
+        flex-direction: column;
+        height: auto;
+        padding-bottom: 10px;
+    }
+    .logo-container {
+        margin-bottom: 10px;
+    }
+    .header-nav {
+        width: 100%;
+        display: flex;
+        justify-content: space-around;
+    }
+    .header-nav .nav-link {
+        margin-left: 0;
+    }
+
+    .main-wrapper {
+        padding-top: 0; /* Header is not fixed in this layout */
+    }
+    body { /* Adjust body padding if header becomes static for mobile */
+        padding-top: 100px; /* Approximate height of stacked header */
+    }
+    .app-header {
+        position: fixed; /* Keep header fixed even on mobile if desired, adjust body padding-top */
+    }
+
+
+    .hero-section h1 {
+        font-size: 24px;
+    }
+    .hero-section p {
+        font-size: 14px;
+    }
+
+    .form-section-card h3, .preview-section-card h3 {
+        font-size: 18px;
+    }
+    .form-group input[type="text"],
+    .form-group input[type="email"],
+    .form-group input[type="tel"],
+    .form-group input[type="number"],
+    .form-group input[type="date"],
+    .form-group select,
+    .form-group textarea {
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+    .btn {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+
+    .modal-content {
+        padding: 20px;
+        width: 95%;
+    }
+    .modal h2 { font-size: 20px; }
+
+    .earnings-table-preview, .deductions-table-preview {
+        font-size: 10px; /* Further reduce font size for small screens */
+    }
+    .earnings-table-preview th, .earnings-table-preview td,
+    .deductions-table-preview th, .deductions-table-preview td {
+        padding: 4px 6px;
+    }
+
+    /* Responsive tables for preview */
+    .earnings-table-preview thead, .deductions-table-preview thead {
+        display: none; /* Hide table headers on small screens */
+    }
+    .earnings-table-preview tr, .deductions-table-preview tr {
+        display: block;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: var(--border-radius-sm);
+        overflow: hidden;
+    }
+    .earnings-table-preview td, .deductions-table-preview td {
+        display: block;
+        text-align: right !important; /* Force right align for values */
+        border: none;
+        border-bottom: 1px solid #eee; /* Separator for pseudo-rows */
+        padding-left: 50%; /* Make space for the label */
+        position: relative;
+    }
+    .earnings-table-preview td::before, .deductions-table-preview td::before {
+        content: attr(data-label); /* Use data-label for pseudo-header */
+        position: absolute;
+        left: 10px;
+        font-weight: bold;
+        text-align: left !important;
+        width: 45%; /* Width of the label */
+        white-space: nowrap;
+    }
+    .earnings-table-preview td:last-child, .deductions-table-preview td:last-child {
+        border-bottom: 0;
+    }
+
+}

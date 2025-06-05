@@ -143,6 +143,14 @@ body {
     color: var(--accent-gold);
 }
 
+/* Contact button placed in header */
+.header-contact-btn {
+    margin-left: 25px;
+    padding: 8px 18px;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
 /* -------------------- */
 /* --- MAIN WRAPPER & LAYOUT --- */
 /* -------------------- */

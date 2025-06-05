@@ -10,6 +10,7 @@
 'use strict';
 
 document.addEventListener('DOMContentLoaded', () => {
+    let currentPreviewStubIndex = 0;
     // --- DOM Elements --- //
     const paystubForm = document.getElementById('paystubForm');
     const numPaystubsSelect = document.getElementById('numPaystubs');
@@ -90,6 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const summaryGrossPay = document.getElementById('summaryGrossPay');
     const summaryTotalDeductions = document.getElementById('summaryTotalDeductions');
     const summaryNetPay = document.getElementById('summaryNetPay');
+
+    const prevStubBtn = document.getElementById('prevStubBtn');
+    const nextStubBtn = document.getElementById('nextStubBtn');
+    const previewNavControls = document.querySelector('.preview-nav-controls');
 
 
     // Buttons
@@ -198,8 +203,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     populateDetailsBtn.addEventListener('click', autoPopulateFromDesiredIncome);
 
-    // Update Hourly Pay Frequency Visibility
-    numPaystubsSelect.addEventListener('change', updateHourlyPayFrequencyVisibility);
+    // Update Hourly Pay Frequency Visibility and preview navigation when number of stubs changes
+    numPaystubsSelect.addEventListener('change', () => {
+        updateHourlyPayFrequencyVisibility();
+        currentPreviewStubIndex = 0;
+        const numStubs = parseInt(numPaystubsSelect.value) || 1;
+        if (previewNavControls) previewNavControls.style.display = numStubs > 1 ? 'block' : 'none';
+        if (prevStubBtn) prevStubBtn.disabled = true;
+        if (nextStubBtn) nextStubBtn.disabled = numStubs <= 1;
+        updateLivePreview();
+    });
     // Also trigger on employment type change
     employmentTypeRadios.forEach(radio => radio.addEventListener('change', updateHourlyPayFrequencyVisibility));
     isForNjEmploymentCheckbox.addEventListener('change', handleNjEmploymentChange);
@@ -215,8 +228,35 @@ document.addEventListener('DOMContentLoaded', () => {
         input.addEventListener('input', debounce(updateLivePreview, 300));
         input.addEventListener('change', debounce(updateLivePreview, 300)); // For selects, radios, checkboxes
     });
+
+    if (nextStubBtn && prevStubBtn) {
+        nextStubBtn.addEventListener('click', () => {
+            const numStubs = parseInt(numPaystubsSelect.value) || 1;
+            if (currentPreviewStubIndex < numStubs - 1) {
+                currentPreviewStubIndex++;
+                updateLivePreview();
+            }
+            prevStubBtn.disabled = currentPreviewStubIndex === 0;
+            nextStubBtn.disabled = currentPreviewStubIndex >= numStubs - 1;
+        });
+
+        prevStubBtn.addEventListener('click', () => {
+            const numStubs = parseInt(numPaystubsSelect.value) || 1;
+            if (currentPreviewStubIndex > 0) {
+                currentPreviewStubIndex--;
+                updateLivePreview();
+            }
+            prevStubBtn.disabled = currentPreviewStubIndex === 0;
+            nextStubBtn.disabled = currentPreviewStubIndex >= numStubs - 1;
+        });
+    }
     // Initial preview update
     updateLivePreview();
+
+    const initialNumStubs = parseInt(numPaystubsSelect.value) || 1;
+    if (previewNavControls) previewNavControls.style.display = initialNumStubs > 1 ? 'block' : 'none';
+    if (prevStubBtn) prevStubBtn.disabled = true;
+    if (nextStubBtn) nextStubBtn.disabled = initialNumStubs <= 1;
 
 
     // Sidebar Button Actions
@@ -611,95 +651,132 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-   function updateLivePreview() {
-       const data = gatherFormData();
-       const calculations = calculateCurrentPeriodPay(data); // For the base stub
-        if (netIncomeAdjustmentNote && netIncomeAdjustmentNote.textContent.trim() !== '') {
-            netIncomeAdjustmentNote.style.display = 'block';
-        }
+    function updateLivePreview() {
+        const formData = gatherFormData();
+        const numStubs = parseInt(numPaystubsSelect.value) || 1;
 
-        if (data.autoCalculateSocialSecurity) {
-            socialSecurityAmountInput.value = calculations.currentPeriodAmounts.socialSecurity.toFixed(2);
-            socialSecurityAmountInput.readOnly = true;
+        let displayDataForStub = { ...formData };
+        let runningYtdData = {
+            grossPay: formData.initialYtdGrossPay,
+            federalTax: formData.initialYtdFederalTax,
+            stateTax: formData.initialYtdStateTax,
+            socialSecurity: formData.initialYtdSocialSecurity,
+            medicare: formData.initialYtdMedicare,
+            njSdi: formData.initialYtdNjSdi,
+            njFli: formData.initialYtdNjFli,
+            njUiHcWf: formData.initialYtdNjUiHcWf,
+        };
+        if (formData.employmentType === 'Hourly') {
+            runningYtdData.regularPay = 0;
+            runningYtdData.overtimePay = 0;
         } else {
-            socialSecurityAmountInput.readOnly = false;
+            runningYtdData.salary = 0;
         }
-        if (data.autoCalculateMedicare) {
-            medicareAmountInput.value = calculations.currentPeriodAmounts.medicare.toFixed(2);
-            medicareAmountInput.readOnly = true;
-        } else {
-            medicareAmountInput.readOnly = false;
+        if (formData.bonus > 0) runningYtdData.bonus = 0;
+        if (formData.miscEarningName) runningYtdData[formData.miscEarningName] = 0;
+        if (formData.healthInsurance > 0) runningYtdData.healthInsurance = 0;
+        if (formData.retirement401k > 0) runningYtdData.retirement401k = 0;
+        if (formData.otherDeductionName) runningYtdData[formData.otherDeductionName] = 0;
+
+        let currentPeriodStartDate = formData.payPeriodStartDate;
+        let currentPeriodEndDate = formData.payPeriodEndDate;
+        let currentPayDate = formData.payDate;
+        let calculations = null;
+
+        for (let i = 0; i <= currentPreviewStubIndex; i++) {
+            displayDataForStub.payPeriodStartDate = currentPeriodStartDate;
+            displayDataForStub.payPeriodEndDate = currentPeriodEndDate;
+            displayDataForStub.payDate = currentPayDate;
+
+            calculations = calculateCurrentPeriodPay(displayDataForStub, runningYtdData);
+            runningYtdData = { ...calculations.ytdAmounts };
+
+            if (i < currentPreviewStubIndex) {
+                const frequencyForDateCalc = formData.employmentType === 'Hourly' ? hourlyPayFrequencySelect.value : formData.salariedPayFrequency;
+                const nextPeriod = getNextPayPeriod(currentPeriodStartDate, currentPeriodEndDate, currentPayDate, frequencyForDateCalc);
+                currentPeriodStartDate = nextPeriod.startDate;
+                currentPeriodEndDate = nextPeriod.endDate;
+                currentPayDate = nextPeriod.payDate;
+            }
         }
 
-        // Update stub indicator
-        const totalStubs = parseInt(numPaystubsSelect.value) || 1;
-        livePreviewStubIndicator.textContent = `(Previewing Base Stub: 1 of ${totalStubs})`;
-        livePreviewStubXofY.textContent = `Stub 1 of ${totalStubs}`;
+        if (currentPreviewStubIndex === 0) {
+            if (formData.autoCalculateSocialSecurity) {
+                socialSecurityAmountInput.value = calculations.currentPeriodAmounts.socialSecurity.toFixed(2);
+                socialSecurityAmountInput.readOnly = true;
+            } else {
+                socialSecurityAmountInput.readOnly = false;
+            }
+            if (formData.autoCalculateMedicare) {
+                medicareAmountInput.value = calculations.currentPeriodAmounts.medicare.toFixed(2);
+                medicareAmountInput.readOnly = true;
+            } else {
+                medicareAmountInput.readOnly = false;
+            }
+        }
 
+        const totalStubs = numStubs;
+        livePreviewStubIndicator.textContent = `(Previewing Stub: ${currentPreviewStubIndex + 1} of ${totalStubs})`;
+        livePreviewStubXofY.textContent = `Stub ${currentPreviewStubIndex + 1} of ${totalStubs}`;
 
         // Company Info
-        livePreviewCompanyName.textContent = data.companyName || 'Your Company Name';
-        livePreviewCompanyAddress1.textContent = data.companyStreetAddress || '123 Main St';
-        livePreviewCompanyAddress2.textContent = `${data.companyCity || 'Anytown'}, ${data.companyState || 'ST'} ${data.companyZip || '12345'}`;
-        livePreviewCompanyPhone.textContent = data.companyPhone ? `Phone: ${data.companyPhone}` : 'Phone: (555) 123-4567';
-        livePreviewCompanyEin.textContent = data.companyEin ? `EIN: ${data.companyEin}` : 'EIN: XX-XXXXXXX';
-        if (data.companyLogoDataUrl) {
-            livePreviewCompanyLogo.src = data.companyLogoDataUrl;
+        livePreviewCompanyName.textContent = displayDataForStub.companyName || 'Your Company Name';
+        livePreviewCompanyAddress1.textContent = displayDataForStub.companyStreetAddress || '123 Main St';
+        livePreviewCompanyAddress2.textContent = `${displayDataForStub.companyCity || 'Anytown'}, ${displayDataForStub.companyState || 'ST'} ${displayDataForStub.companyZip || '12345'}`;
+        livePreviewCompanyPhone.textContent = displayDataForStub.companyPhone ? `Phone: ${displayDataForStub.companyPhone}` : 'Phone: (555) 123-4567';
+        livePreviewCompanyEin.textContent = displayDataForStub.companyEin ? `EIN: ${displayDataForStub.companyEin}` : 'EIN: XX-XXXXXXX';
+        if (displayDataForStub.companyLogoDataUrl) {
+            livePreviewCompanyLogo.src = displayDataForStub.companyLogoDataUrl;
             livePreviewCompanyLogo.style.display = 'block';
         } else {
             livePreviewCompanyLogo.style.display = 'none';
         }
 
         // Employee Info
-        livePreviewEmployeeName.textContent = data.employeeFullName || 'Employee Name';
-        livePreviewEmployeeAddress1.textContent = data.employeeStreetAddress || '456 Employee Ave';
-        livePreviewEmployeeAddress2.textContent = `${data.employeeCity || 'Workville'}, ${data.employeeState || 'ST'} ${data.employeeZip || '67890'}`;
-        livePreviewEmployeeSsn.textContent = data.employeeSsn ? `SSN: ${maskSSN(data.employeeSsn)}` : 'SSN: XXX-XX-NNNN';
+        livePreviewEmployeeName.textContent = displayDataForStub.employeeFullName || 'Employee Name';
+        livePreviewEmployeeAddress1.textContent = displayDataForStub.employeeStreetAddress || '456 Employee Ave';
+        livePreviewEmployeeAddress2.textContent = `${displayDataForStub.employeeCity || 'Workville'}, ${displayDataForStub.employeeState || 'ST'} ${displayDataForStub.employeeZip || '67890'}`;
+        livePreviewEmployeeSsn.textContent = displayDataForStub.employeeSsn ? `SSN: ${maskSSN(displayDataForStub.employeeSsn)}` : 'SSN: XXX-XX-NNNN';
 
-        // Pay Period Info
-        livePreviewPayPeriodStart.textContent = data.payPeriodStartDate || 'YYYY-MM-DD';
-        livePreviewPayPeriodEnd.textContent = data.payPeriodEndDate || 'YYYY-MM-DD';
-        livePreviewPayDate.textContent = data.payDate || 'YYYY-MM-DD';
+        livePreviewPayPeriodStart.textContent = displayDataForStub.payPeriodStartDate || 'YYYY-MM-DD';
+        livePreviewPayPeriodEnd.textContent = displayDataForStub.payPeriodEndDate || 'YYYY-MM-DD';
+        livePreviewPayDate.textContent = displayDataForStub.payDate || 'YYYY-MM-DD';
 
-        // Earnings Table
-        livePreviewEarningsBody.innerHTML = ''; // Clear previous
-        if (data.employmentType === 'Hourly') {
-            addEarningRow('Regular Pay', data.regularHours, data.hourlyRate, calculations.currentPeriodAmounts.regularPay, calculations.ytdAmounts.regularPay);
-            if (data.overtimeHours > 0 && calculations.currentPeriodAmounts.overtimePay) {
-                addEarningRow('Overtime Pay', data.overtimeHours, (data.hourlyRate || 0) * 1.5, calculations.currentPeriodAmounts.overtimePay, calculations.ytdAmounts.overtimePay);
+        livePreviewEarningsBody.innerHTML = '';
+        if (displayDataForStub.employmentType === 'Hourly') {
+            addEarningRow('Regular Pay', displayDataForStub.regularHours, displayDataForStub.hourlyRate, calculations.currentPeriodAmounts.regularPay, calculations.ytdAmounts.regularPay);
+            if (displayDataForStub.overtimeHours > 0 && calculations.currentPeriodAmounts.overtimePay) {
+                addEarningRow('Overtime Pay', displayDataForStub.overtimeHours, (displayDataForStub.hourlyRate || 0) * 1.5, calculations.currentPeriodAmounts.overtimePay, calculations.ytdAmounts.overtimePay);
             }
-        } else { // Salaried
-             const payFrequency = data.salariedPayFrequency;
-             const periodsPerYear = PAY_PERIODS_PER_YEAR[payFrequency] || 1;
-             const salaryPerPeriod = (data.annualSalary || 0) / periodsPerYear;
+        } else {
+            const payFrequency = displayDataForStub.salariedPayFrequency;
+            const periodsPerYear = PAY_PERIODS_PER_YEAR[payFrequency] || 1;
+            const salaryPerPeriod = (displayDataForStub.annualSalary || 0) / periodsPerYear;
             addEarningRow('Salary', 1, salaryPerPeriod, calculations.currentPeriodAmounts.salary, calculations.ytdAmounts.salary);
         }
-        if (data.bonus > 0) {
+        if (displayDataForStub.bonus > 0) {
             addEarningRow('Bonus', '', '', calculations.currentPeriodAmounts.bonus, calculations.ytdAmounts.bonus);
         }
-        if (data.miscEarningAmount > 0 && data.miscEarningName) {
-            addEarningRow(data.miscEarningName, '', '', calculations.currentPeriodAmounts[data.miscEarningName], calculations.ytdAmounts[data.miscEarningName]);
+        if (displayDataForStub.miscEarningAmount > 0 && displayDataForStub.miscEarningName) {
+            addEarningRow(displayDataForStub.miscEarningName, '', '', calculations.currentPeriodAmounts[displayDataForStub.miscEarningName], calculations.ytdAmounts[displayDataForStub.miscEarningName]);
         }
 
-        // Deductions Table
-        livePreviewDeductionsBody.innerHTML = ''; // Clear previous
+        livePreviewDeductionsBody.innerHTML = '';
         addDeductionRow('Federal Income Tax', calculations.currentPeriodAmounts.federalTax, calculations.ytdAmounts.federalTax);
-        if(data.stateTaxName) addDeductionRow(data.stateTaxName, calculations.currentPeriodAmounts[data.stateTaxName], calculations.ytdAmounts.stateTax);
+        if (displayDataForStub.stateTaxName) addDeductionRow(displayDataForStub.stateTaxName, calculations.currentPeriodAmounts[displayDataForStub.stateTaxName], calculations.ytdAmounts.stateTax);
         else addDeductionRow('State Income Tax', calculations.currentPeriodAmounts.stateTax, calculations.ytdAmounts.stateTax);
 
         addDeductionRow('Social Security', calculations.currentPeriodAmounts.socialSecurity, calculations.ytdAmounts.socialSecurity);
         addDeductionRow('Medicare', calculations.currentPeriodAmounts.medicare, calculations.ytdAmounts.medicare);
-        if (data.njSdiAmount > 0) addDeductionRow('NJ SDI', calculations.currentPeriodAmounts.njSdi, calculations.ytdAmounts.njSdi);
-        if (data.njFliAmount > 0) addDeductionRow('NJ FLI', calculations.currentPeriodAmounts.njFli, calculations.ytdAmounts.njFli);
-        if (data.njUiHcWfAmount > 0) addDeductionRow('NJ UI/HC/WF', calculations.currentPeriodAmounts.njUiHcWf, calculations.ytdAmounts.njUiHcWf);
-        if (data.healthInsurance > 0) addDeductionRow('Health Insurance', calculations.currentPeriodAmounts.healthInsurance, calculations.ytdAmounts.healthInsurance);
-        if (data.retirement401k > 0) addDeductionRow('Retirement (401k)', calculations.currentPeriodAmounts.retirement401k, calculations.ytdAmounts.retirement401k);
-        if (data.otherDeductionAmount > 0 && data.otherDeductionName) {
-            addDeductionRow(data.otherDeductionName, calculations.currentPeriodAmounts[data.otherDeductionName], calculations.ytdAmounts[data.otherDeductionName]);
+        if (displayDataForStub.njSdiAmount > 0) addDeductionRow('NJ SDI', calculations.currentPeriodAmounts.njSdi, calculations.ytdAmounts.njSdi);
+        if (displayDataForStub.njFliAmount > 0) addDeductionRow('NJ FLI', calculations.currentPeriodAmounts.njFli, calculations.ytdAmounts.njFli);
+        if (displayDataForStub.njUiHcWfAmount > 0) addDeductionRow('NJ UI/HC/WF', calculations.currentPeriodAmounts.njUiHcWf, calculations.ytdAmounts.njUiHcWf);
+        if (displayDataForStub.healthInsurance > 0) addDeductionRow('Health Insurance', calculations.currentPeriodAmounts.healthInsurance, calculations.ytdAmounts.healthInsurance);
+        if (displayDataForStub.retirement401k > 0) addDeductionRow('Retirement (401k)', calculations.currentPeriodAmounts.retirement401k, calculations.ytdAmounts.retirement401k);
+        if (displayDataForStub.otherDeductionAmount > 0 && displayDataForStub.otherDeductionName) {
+            addDeductionRow(displayDataForStub.otherDeductionName, calculations.currentPeriodAmounts[displayDataForStub.otherDeductionName], calculations.ytdAmounts[displayDataForStub.otherDeductionName]);
         }
 
-
-        // Summary
         livePreviewGrossPay.textContent = formatCurrency(calculations.grossPay);
         livePreviewTotalDeductions.textContent = formatCurrency(calculations.totalDeductions);
         livePreviewNetPay.textContent = formatCurrency(calculations.netPay);
@@ -707,14 +784,18 @@ document.addEventListener('DOMContentLoaded', () => {
         summaryTotalDeductions.textContent = formatCurrency(calculations.totalDeductions);
         summaryNetPay.textContent = formatCurrency(calculations.netPay);
 
-        // Optional Additions Preview
-        if (data.payrollProviderLogoDataUrl) {
-            livePreviewPayrollProviderLogo.src = data.payrollProviderLogoDataUrl;
+        if (displayDataForStub.payrollProviderLogoDataUrl) {
+            livePreviewPayrollProviderLogo.src = displayDataForStub.payrollProviderLogoDataUrl;
             livePreviewPayrollProviderLogo.style.display = 'block';
         } else {
             livePreviewPayrollProviderLogo.style.display = 'none';
         }
-        livePreviewVoidedCheckContainer.style.display = data.includeVoidedCheck ? 'block' : 'none';
+        livePreviewVoidedCheckContainer.style.display = displayDataForStub.includeVoidedCheck ? 'block' : 'none';
+
+        if (prevStubBtn && nextStubBtn) {
+            prevStubBtn.disabled = currentPreviewStubIndex === 0;
+            nextStubBtn.disabled = currentPreviewStubIndex >= numStubs - 1;
+        }
     }
 
     function addEarningRow(description, hours, rate, current, ytd) {

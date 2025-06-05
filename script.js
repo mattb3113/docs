@@ -31,6 +31,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const payrollProviderLogoPlaceholder = payrollProviderLogoPreviewContainer.querySelector('.logo-placeholder-text');
 
     const includeVoidedCheckCheckbox = document.getElementById('includeVoidedCheck');
+    const socialSecurityAmountInput = document.getElementById('socialSecurityAmount');
+    const medicareAmountInput = document.getElementById('medicareAmount');
+    const autoCalculateSocialSecurityCheckbox = document.getElementById('autoCalculateSocialSecurity');
+    const autoCalculateMedicareCheckbox = document.getElementById('autoCalculateMedicare');
 
     // Live Preview Elements
     const livePreviewContent = document.getElementById('paystubPreviewContent');
@@ -102,6 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
         4: { price: 99.99, note: "Save $20" },
         5: { price: 125.00, note: "$25 each - Bulk rate applied!" }
     };
+
+    const SOCIAL_SECURITY_RATE = 0.062;
+    const SOCIAL_SECURITY_WAGE_LIMIT = 168600; // 2024 limit
+    const MEDICARE_RATE = 0.0145;
 
     // --- Event Listeners --- //
 
@@ -297,11 +305,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if(data.miscEarningAmount > 0 && data.miscEarningName) results.currentPeriodAmounts[data.miscEarningName || 'miscEarning'] = data.miscEarningAmount;
 
 
+        const calculatedSocialSecurity = results.grossPay * SOCIAL_SECURITY_RATE;
+        const calculatedMedicare = results.grossPay * MEDICARE_RATE;
+        results.calculatedSocialSecurity = calculatedSocialSecurity;
+        results.calculatedMedicare = calculatedMedicare;
+
+        const socialSecurityUsed = data.autoCalculateSocialSecurity ? calculatedSocialSecurity : (data.socialSecurityAmount || 0);
+        const medicareUsed = data.autoCalculateMedicare ? calculatedMedicare : (data.medicareAmount || 0);
+
         // --- Calculate Total Taxes for Period ---
         results.totalTaxes += (data.federalTaxAmount || 0);
         results.totalTaxes += (data.stateTaxAmount || 0);
-        results.totalTaxes += (data.socialSecurityAmount || 0);
-        results.totalTaxes += (data.medicareAmount || 0);
+        results.totalTaxes += socialSecurityUsed;
+        results.totalTaxes += medicareUsed;
         results.totalTaxes += (data.njSdiAmount || 0);
         results.totalTaxes += (data.njFliAmount || 0);
         results.totalTaxes += (data.njUiHcWfAmount || 0);
@@ -309,8 +325,8 @@ document.addEventListener('DOMContentLoaded', () => {
         results.currentPeriodAmounts.federalTax = data.federalTaxAmount || 0;
         if (data.stateTaxName) results.currentPeriodAmounts[data.stateTaxName || 'stateTax'] = data.stateTaxAmount || 0;
         else results.currentPeriodAmounts.stateTax = data.stateTaxAmount || 0;
-        results.currentPeriodAmounts.socialSecurity = data.socialSecurityAmount || 0;
-        results.currentPeriodAmounts.medicare = data.medicareAmount || 0;
+        results.currentPeriodAmounts.socialSecurity = socialSecurityUsed;
+        results.currentPeriodAmounts.medicare = medicareUsed;
         results.currentPeriodAmounts.njSdi = data.njSdiAmount || 0;
         results.currentPeriodAmounts.njFli = data.njFliAmount || 0;
         results.currentPeriodAmounts.njUiHcWf = data.njUiHcWfAmount || 0;
@@ -361,8 +377,8 @@ document.addEventListener('DOMContentLoaded', () => {
         results.ytdAmounts.grossPay = (ytdBase.grossPay || 0) + results.grossPay;
         results.ytdAmounts.federalTax = (ytdBase.federalTax || 0) + (data.federalTaxAmount || 0);
         results.ytdAmounts.stateTax = (ytdBase.stateTax || 0) + (data.stateTaxAmount || 0);
-        results.ytdAmounts.socialSecurity = (ytdBase.socialSecurity || 0) + (data.socialSecurityAmount || 0);
-        results.ytdAmounts.medicare = (ytdBase.medicare || 0) + (data.medicareAmount || 0);
+        results.ytdAmounts.socialSecurity = (ytdBase.socialSecurity || 0) + socialSecurityUsed;
+        results.ytdAmounts.medicare = (ytdBase.medicare || 0) + medicareUsed;
         results.ytdAmounts.njSdi = (ytdBase.njSdi || 0) + (data.njSdiAmount || 0);
         results.ytdAmounts.njFli = (ytdBase.njFli || 0) + (data.njFliAmount || 0);
         results.ytdAmounts.njUiHcWf = (ytdBase.njUiHcWf || 0) + (data.njUiHcWfAmount || 0);
@@ -465,6 +481,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateLivePreview() {
         const data = gatherFormData();
         const calculations = calculateCurrentPeriodPay(data); // For the base stub
+
+        if (data.autoCalculateSocialSecurity) {
+            socialSecurityAmountInput.value = calculations.currentPeriodAmounts.socialSecurity.toFixed(2);
+            socialSecurityAmountInput.readOnly = true;
+        } else {
+            socialSecurityAmountInput.readOnly = false;
+        }
+        if (data.autoCalculateMedicare) {
+            medicareAmountInput.value = calculations.currentPeriodAmounts.medicare.toFixed(2);
+            medicareAmountInput.readOnly = true;
+        } else {
+            medicareAmountInput.readOnly = false;
+        }
 
         // Update stub indicator
         const totalStubs = parseInt(numPaystubsSelect.value) || 1;

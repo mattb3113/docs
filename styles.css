@@ -83,7 +83,7 @@ body {
     backdrop-filter: blur(var(--blur-amount));
     -webkit-backdrop-filter: blur(var(--blur-amount));
     border-bottom: 1px solid var(--border-color-light);
-    padding: 0 30px;
+    padding: 10px 30px;
     height: var(--header-height);
     display: flex;
     align-items: center;
@@ -97,7 +97,8 @@ body {
 
 .logo-container {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    flex-direction: column;
 }
 
 .logo-text {
@@ -108,6 +109,13 @@ body {
     letter-spacing: var(--letter-spacing-header);
     position: relative;
     padding-right: 15px; /* Space for the dot */
+}
+
+.header-tagline {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    line-height: 1;
+    margin-top: 2px;
 }
 
 .logo-text::after {
@@ -784,7 +792,7 @@ input.invalid, select.invalid, textarea.invalid {
         grid-template-columns: 1fr; /* Stack columns */
     }
     .app-header {
-        padding: 0 15px;
+        padding: 10px 15px;
     }
     .header-nav .nav-link {
         margin-left: 15px;

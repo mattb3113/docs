@@ -74,6 +74,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalPaymentAmountSpan = document.getElementById('totalPaymentAmount');
     const paymentDiscountNoteSpan = document.getElementById('paymentDiscountNote');
 
+    const notificationModal = document.getElementById("notificationModal");
+    const notificationModalTitle = document.getElementById("notificationModalTitle");
+    const notificationModalMessage = document.getElementById("notificationModalMessage");
+    const closeNotificationModalBtn = document.getElementById("closeNotificationModalBtn");
     // Success Message Placeholders
     const successUserEmailSpan = document.getElementById('successUserEmail');
     const successTxIdSpan = document.getElementById('successTxId');
@@ -141,13 +145,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     confirmPaymentBtn.addEventListener('click', handlePaymentConfirmationSubmit);
 
+    closeNotificationModalBtn.addEventListener("click", () => notificationModal.style.display = "none");
     // Close modal if clicked outside of modal-content
     window.addEventListener('click', (event) => {
         if (event.target === paymentModal) {
             paymentModal.style.display = 'none';
         }
+        if (event.target === notificationModal) {
+            notificationModal.style.display = 'none';
+        }
     });
-
     // --- Core Logic Functions --- //
 
     function toggleEmploymentFields() {
@@ -557,7 +564,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function generateAndDownloadPdf(isPreviewMode) {
         if (!validateAllFormFields()) {
-            alert('Please fix the errors in the form before generating the PDF.'); // Replace with custom modal later
+            showNotificationModal('Validation Error', 'Please fix the errors in the form before generating the PDF.'); // Replace with custom modal later
             return;
         }
 
@@ -877,7 +884,7 @@ document.addEventListener('DOMContentLoaded', () => {
             modalOrderSuccessMessageDiv.style.display = 'none';
         } else {
             // Consider a more elegant way to show this, e.g., scroll to first error
-            alert("Please correct the errors in the form.");
+            showNotificationModal('Validation Error', 'Please correct the errors in the form.');
         }
     }
 
@@ -1043,6 +1050,12 @@ document.addEventListener('DOMContentLoaded', () => {
             timeout = setTimeout(() => func.apply(this, args), delay);
         };
     }
+    function showNotificationModal(title, message) {
+        notificationModalTitle.textContent = title;
+        notificationModalMessage.textContent = message;
+        notificationModal.style.display = "flex";
+    }
+
 
     // --- Initial Setup Calls --- //
     toggleEmploymentFields(); // Set initial state of employment fields

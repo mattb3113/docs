@@ -80,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const successNumStubsSpan = document.getElementById('successNumStubs');
     const successUserNotesSpan = document.getElementById('successUserNotes');
 
+    const loadingSpinner = document.getElementById("loadingSpinner");
 
     // --- Initial State & Configuration --- //
     const PAY_PERIODS_PER_YEAR = {
@@ -618,7 +619,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        loadingSpinner.style.display = "flex";
         doc.save(isPreviewMode ? 'BuellDocs_Paystub_Preview.pdf' : 'BuellDocs_Paystub.pdf');
+        loadingSpinner.style.display = "none";
     }
 
     function generatePdfPage(doc, data, calculations, isPreviewMode, stubNum, totalStubs) {
@@ -863,6 +866,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleMainFormSubmit() {
         if (validateAllFormFields()) {
             // Update dynamic pricing in modal
+            loadingSpinner.style.display = "flex";
             const numStubs = parseInt(numPaystubsSelect.value);
             const pricingInfo = PRICING[numStubs] || PRICING[1];
             totalPaymentAmountSpan.textContent = formatCurrency(pricingInfo.price);
@@ -871,8 +875,10 @@ document.addEventListener('DOMContentLoaded', () => {
             paymentModal.style.display = 'flex'; // Use flex for centering
             paymentInstructionsDiv.style.display = 'block';
             modalOrderSuccessMessageDiv.style.display = 'none';
+            loadingSpinner.style.display = "none";
         } else {
             // Consider a more elegant way to show this, e.g., scroll to first error
+            loadingSpinner.style.display = "none";
             alert("Please correct the errors in the form.");
         }
     }

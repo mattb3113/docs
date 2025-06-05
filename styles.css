@@ -75,6 +75,33 @@ body {
     z-index: -1; /* Behind content */
 }
 
+.spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(var(--blur-amount));
+    -webkit-backdrop-filter: blur(var(--blur-amount));
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1500;
+}
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 6px solid var(--accent-gold);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 /* -------------------- */
 /* --- HEADER --- */
 /* -------------------- */

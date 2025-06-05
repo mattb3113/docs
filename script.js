@@ -445,6 +445,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 nextPayDate = new Date(nextEndDate);
                 break;
         }
+
+        // Adjust pay date if it falls on a weekend
+        const dayOfWeek = nextPayDate.getDay();
+        if (dayOfWeek === 6) { // Saturday -> move to preceding Friday
+            nextPayDate.setDate(nextPayDate.getDate() - 1);
+        } else if (dayOfWeek === 0) { // Sunday -> move to following Monday
+            nextPayDate.setDate(nextPayDate.getDate() + 1);
+        }
+
         return {
             startDate: nextStartDate.toISOString().split('T')[0],
             endDate: nextEndDate.toISOString().split('T')[0],

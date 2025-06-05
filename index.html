@@ -67,51 +67,51 @@
                     <div class="grid-col-2">
                         <div class="form-group">
                             <label for="companyName">Company Name <span class="required-asterisk">*</span></label>
-                            <input type="text" id="companyName" name="companyName" required>
-                            <span class="error-message"></span>
+                            <input type="text" id="companyName" name="companyName" required aria-describedby="companyNameError" aria-required="true">
+                            <span class="error-message" id="companyNameError"></span>
                         </div>
                         <div class="form-group">
                             <label for="companyPhone">Company Phone</label>
-                            <input type="tel" id="companyPhone" name="companyPhone">
-                            <span class="error-message"></span>
+                            <input type="tel" id="companyPhone" name="companyPhone" aria-describedby="companyPhoneError">
+                            <span class="error-message" id="companyPhoneError"></span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="companyStreetAddress">Company Street Address</label>
-                        <input type="text" id="companyStreetAddress" name="companyStreetAddress">
-                        <span class="error-message"></span>
+                        <input type="text" id="companyStreetAddress" name="companyStreetAddress" aria-describedby="companyStreetAddressError">
+                        <span class="error-message" id="companyStreetAddressError"></span>
                     </div>
                     <div class="grid-col-3">
                         <div class="form-group">
                             <label for="companyCity">City</label>
-                            <input type="text" id="companyCity" name="companyCity">
-                            <span class="error-message"></span>
+                            <input type="text" id="companyCity" name="companyCity" aria-describedby="companyCityError">
+                            <span class="error-message" id="companyCityError"></span>
                         </div>
                         <div class="form-group">
                             <label for="companyState">State</label>
-                            <input type="text" id="companyState" name="companyState">
-                            <span class="error-message"></span>
+                            <input type="text" id="companyState" name="companyState" aria-describedby="companyStateError">
+                            <span class="error-message" id="companyStateError"></span>
                         </div>
                         <div class="form-group">
                             <label for="companyZip">ZIP Code</label>
-                            <input type="text" id="companyZip" name="companyZip">
-                            <span class="error-message"></span>
+                            <input type="text" id="companyZip" name="companyZip" aria-describedby="companyZipError">
+                            <span class="error-message" id="companyZipError"></span>
                         </div>
                     </div>
                      <div class="grid-col-2">
                         <div class="form-group">
                             <label for="companyEin">Company EIN</label>
-                            <input type="text" id="companyEin" name="companyEin">
-                            <span class="error-message"></span>
+                            <input type="text" id="companyEin" name="companyEin" aria-describedby="companyEinError">
+                            <span class="error-message" id="companyEinError"></span>
                         </div>
                         <div class="form-group">
                             <label for="companyLogo">Upload Company Logo</label>
-                            <input type="file" id="companyLogo" name="companyLogo" accept="image/*">
+                            <input type="file" id="companyLogo" name="companyLogo" accept="image/*" aria-describedby="companyLogoError">
                             <div class="logo-preview-container" id="companyLogoPreviewContainer">
                                 <img id="companyLogoPreview" src="#" alt="Company Logo Preview" style="display:none;">
                                 <div class="logo-placeholder-text">Logo Preview</div>
                             </div>
-                            <span class="error-message"></span>
+                            <span class="error-message" id="companyLogoError"></span>
                         </div>
                     </div>
                 </section>
@@ -121,35 +121,35 @@
                     <h3>Employee Information</h3>
                     <div class="form-group">
                         <label for="employeeFullName">Employee Full Name <span class="required-asterisk">*</span></label>
-                        <input type="text" id="employeeFullName" name="employeeFullName" required>
-                        <span class="error-message"></span>
+                        <input type="text" id="employeeFullName" name="employeeFullName" required aria-describedby="employeeFullNameError" aria-required="true">
+                        <span class="error-message" id="employeeFullNameError"></span>
                     </div>
                     <div class="form-group">
                         <label for="employeeStreetAddress">Employee Street Address</label>
-                        <input type="text" id="employeeStreetAddress" name="employeeStreetAddress">
-                        <span class="error-message"></span>
+                        <input type="text" id="employeeStreetAddress" name="employeeStreetAddress" aria-describedby="employeeStreetAddressError">
+                        <span class="error-message" id="employeeStreetAddressError"></span>
                     </div>
                     <div class="grid-col-3">
                         <div class="form-group">
                             <label for="employeeCity">City</label>
-                            <input type="text" id="employeeCity" name="employeeCity">
-                            <span class="error-message"></span>
+                            <input type="text" id="employeeCity" name="employeeCity" aria-describedby="employeeCityError">
+                            <span class="error-message" id="employeeCityError"></span>
                         </div>
                         <div class="form-group">
                             <label for="employeeState">State</label>
-                            <input type="text" id="employeeState" name="employeeState">
-                            <span class="error-message"></span>
+                            <input type="text" id="employeeState" name="employeeState" aria-describedby="employeeStateError">
+                            <span class="error-message" id="employeeStateError"></span>
                         </div>
                         <div class="form-group">
                             <label for="employeeZip">ZIP Code</label>
-                            <input type="text" id="employeeZip" name="employeeZip">
-                            <span class="error-message"></span>
+                            <input type="text" id="employeeZip" name="employeeZip" aria-describedby="employeeZipError">
+                            <span class="error-message" id="employeeZipError"></span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="employeeSsn">Employee SSN (XXX-XX-NNNN)</label>
-                        <input type="text" id="employeeSsn" name="employeeSsn" placeholder="XXX-XX-NNNN">
-                        <span class="error-message"></span>
+                        <input type="text" id="employeeSsn" name="employeeSsn" placeholder="XXX-XX-NNNN" aria-describedby="employeeSsnError">
+                        <span class="error-message" id="employeeSsnError"></span>
                     </div>
                 </section>
 
@@ -160,18 +160,18 @@
                     <div class="grid-col-3">
                         <div class="form-group">
                             <label for="payPeriodStartDate">Pay Period Start Date <span class="required-asterisk">*</span></label>
-                            <input type="date" id="payPeriodStartDate" name="payPeriodStartDate" required>
-                            <span class="error-message"></span>
+                            <input type="date" id="payPeriodStartDate" name="payPeriodStartDate" required aria-describedby="payPeriodStartDateError" aria-required="true">
+                            <span class="error-message" id="payPeriodStartDateError"></span>
                         </div>
                         <div class="form-group">
                             <label for="payPeriodEndDate">Pay Period End Date <span class="required-asterisk">*</span></label>
-                            <input type="date" id="payPeriodEndDate" name="payPeriodEndDate" required>
-                            <span class="error-message"></span>
+                            <input type="date" id="payPeriodEndDate" name="payPeriodEndDate" required aria-describedby="payPeriodEndDateError" aria-required="true">
+                            <span class="error-message" id="payPeriodEndDateError"></span>
                         </div>
                         <div class="form-group">
                             <label for="payDate">Pay Date <span class="required-asterisk">*</span></label>
-                            <input type="date" id="payDate" name="payDate" required>
-                            <span class="error-message"></span>
+                            <input type="date" id="payDate" name="payDate" required aria-describedby="payDateError" aria-required="true">
+                            <span class="error-message" id="payDateError"></span>
                         </div>
                     </div>
                 </section>
@@ -182,28 +182,28 @@
                     <div class="form-group">
                         <label>Employment Type <span class="required-asterisk">*</span></label>
                         <div class="radio-group">
-                            <label><input type="radio" name="employmentType" value="Hourly" checked> Hourly</label>
-                            <label><input type="radio" name="employmentType" value="Salaried"> Salaried</label>
+                            <label><input type="radio" name="employmentType" value="Hourly" checked aria-describedby="employmentTypeError"> Hourly</label>
+                            <label><input type="radio" name="employmentType" value="Salaried" aria-describedby="employmentTypeError"> Salaried</label>
                         </div>
-                        <span class="error-message"></span>
+                        <span class="error-message" id="employmentTypeError"></span>
                     </div>
 
                     <div id="hourlyFields">
                         <div class="grid-col-3">
                             <div class="form-group">
                                 <label for="hourlyRate">Hourly Rate <span class="required-asterisk">*</span></label>
-                                <input type="number" id="hourlyRate" name="hourlyRate" step="0.01" min="0" value="0">
-                                <span class="error-message"></span>
+                                <input type="number" id="hourlyRate" name="hourlyRate" step="0.01" min="0" value="0" aria-describedby="hourlyRateError">
+                                <span class="error-message" id="hourlyRateError"></span>
                             </div>
                             <div class="form-group">
                                 <label for="regularHours">Regular Hours (per period) <span class="required-asterisk">*</span></label>
-                                <input type="number" id="regularHours" name="regularHours" step="0.01" min="0" value="0">
-                                <span class="error-message"></span>
+                                <input type="number" id="regularHours" name="regularHours" step="0.01" min="0" value="0" aria-describedby="regularHoursError">
+                                <span class="error-message" id="regularHoursError"></span>
                             </div>
                             <div class="form-group">
                                 <label for="overtimeHours">Overtime Hours (per period)</label>
-                                <input type="number" id="overtimeHours" name="overtimeHours" step="0.01" min="0" value="0">
-                                <span class="error-message"></span>
+                                <input type="number" id="overtimeHours" name="overtimeHours" step="0.01" min="0" value="0" aria-describedby="overtimeHoursError">
+                                <span class="error-message" id="overtimeHoursError"></span>
                             </div>
                         </div>
                     </div>
@@ -212,18 +212,18 @@
                         <div class="grid-col-2">
                             <div class="form-group">
                                 <label for="annualSalary">Annual Salary <span class="required-asterisk">*</span></label>
-                                <input type="number" id="annualSalary" name="annualSalary" step="0.01" min="0" value="0">
-                                <span class="error-message"></span>
+                                <input type="number" id="annualSalary" name="annualSalary" step="0.01" min="0" value="0" aria-describedby="annualSalaryError">
+                                <span class="error-message" id="annualSalaryError"></span>
                             </div>
                             <div class="form-group">
                                 <label for="salariedPayFrequency">Pay Frequency (Salaried) <span class="required-asterisk">*</span></label>
-                                <select id="salariedPayFrequency" name="salariedPayFrequency">
+                                <select id="salariedPayFrequency" name="salariedPayFrequency" aria-describedby="salariedPayFrequencyError">
                                     <option value="Weekly">Weekly</option>
                                     <option value="Bi-Weekly" selected>Bi-Weekly</option>
                                     <option value="Semi-Monthly">Semi-Monthly</option>
                                     <option value="Monthly">Monthly</option>
                                 </select>
-                                <span class="error-message"></span>
+                                <span class="error-message" id="salariedPayFrequencyError"></span>
                             </div>
                         </div>
                     </div>
@@ -232,18 +232,18 @@
                     <div class="grid-col-3">
                          <div class="form-group">
                             <label for="bonus">Bonus</label>
-                            <input type="number" id="bonus" name="bonus" step="0.01" min="0" value="0">
-                            <span class="error-message"></span>
+                            <input type="number" id="bonus" name="bonus" step="0.01" min="0" value="0" aria-describedby="bonusError">
+                            <span class="error-message" id="bonusError"></span>
                         </div>
                         <div class="form-group">
                             <label for="miscEarningName">Miscellaneous Earning Name</label>
-                            <input type="text" id="miscEarningName" name="miscEarningName" placeholder="e.g., Commission">
-                            <span class="error-message"></span>
+                            <input type="text" id="miscEarningName" name="miscEarningName" placeholder="e.g., Commission" aria-describedby="miscEarningNameError">
+                            <span class="error-message" id="miscEarningNameError"></span>
                         </div>
                         <div class="form-group">
                             <label for="miscEarningAmount">Miscellaneous Earning Amount</label>
-                            <input type="number" id="miscEarningAmount" name="miscEarningAmount" step="0.01" min="0" value="0">
-                            <span class="error-message"></span>
+                            <input type="number" id="miscEarningAmount" name="miscEarningAmount" step="0.01" min="0" value="0" aria-describedby="miscEarningAmountError">
+                            <span class="error-message" id="miscEarningAmountError"></span>
                         </div>
                     </div>
                 </section>
@@ -254,31 +254,31 @@
                      <div class="grid-col-2">
                         <div class="form-group">
                             <label for="federalTaxAmount">Federal Tax Amount</label>
-                            <input type="number" id="federalTaxAmount" name="federalTaxAmount" step="0.01" min="0" value="0">
-                            <span class="error-message"></span>
+                            <input type="number" id="federalTaxAmount" name="federalTaxAmount" step="0.01" min="0" value="0" aria-describedby="federalTaxAmountError">
+                            <span class="error-message" id="federalTaxAmountError"></span>
                         </div>
                          <div class="form-group">
                             <label for="socialSecurityAmount">Social Security Amount</label>
-                            <input type="number" id="socialSecurityAmount" name="socialSecurityAmount" step="0.01" min="0" value="0">
-                            <span class="error-message"></span>
+                            <input type="number" id="socialSecurityAmount" name="socialSecurityAmount" step="0.01" min="0" value="0" aria-describedby="socialSecurityAmountError">
+                            <span class="error-message" id="socialSecurityAmountError"></span>
                         </div>
                     </div>
                     <div class="grid-col-2">
                         <div class="form-group">
                             <label for="stateTaxName">State Tax Name</label>
-                            <input type="text" id="stateTaxName" name="stateTaxName" placeholder="e.g., NJ State Tax">
-                            <span class="error-message"></span>
+                            <input type="text" id="stateTaxName" name="stateTaxName" placeholder="e.g., NJ State Tax" aria-describedby="stateTaxNameError">
+                            <span class="error-message" id="stateTaxNameError"></span>
                         </div>
                         <div class="form-group">
                             <label for="stateTaxAmount">State Tax Amount</label>
-                            <input type="number" id="stateTaxAmount" name="stateTaxAmount" step="0.01" min="0" value="0">
-                            <span class="error-message"></span>
+                            <input type="number" id="stateTaxAmount" name="stateTaxAmount" step="0.01" min="0" value="0" aria-describedby="stateTaxAmountError">
+                            <span class="error-message" id="stateTaxAmountError"></span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="medicareAmount">Medicare Amount</label>
-                        <input type="number" id="medicareAmount" name="medicareAmount" step="0.01" min="0" value="0">
-                        <span class="error-message"></span>
+                        <input type="number" id="medicareAmount" name="medicareAmount" step="0.01" min="0" value="0" aria-describedby="medicareAmountError">
+                        <span class="error-message" id="medicareAmountError"></span>
                     </div>
                 </section>
 
@@ -288,18 +288,18 @@
                     <div class="grid-col-3">
                         <div class="form-group">
                             <label for="njSdiAmount">NJ SDI Amount</label>
-                            <input type="number" id="njSdiAmount" name="njSdiAmount" step="0.01" min="0" value="0">
-                            <span class="error-message"></span>
+                            <input type="number" id="njSdiAmount" name="njSdiAmount" step="0.01" min="0" value="0" aria-describedby="njSdiAmountError">
+                            <span class="error-message" id="njSdiAmountError"></span>
                         </div>
                         <div class="form-group">
                             <label for="njFliAmount">NJ FLI Amount</label>
-                            <input type="number" id="njFliAmount" name="njFliAmount" step="0.01" min="0" value="0">
-                            <span class="error-message"></span>
+                            <input type="number" id="njFliAmount" name="njFliAmount" step="0.01" min="0" value="0" aria-describedby="njFliAmountError">
+                            <span class="error-message" id="njFliAmountError"></span>
                         </div>
                         <div class="form-group">
                             <label for="njUiHcWfAmount">NJ UI/HC/WF Amount</label>
-                            <input type="number" id="njUiHcWfAmount" name="njUiHcWfAmount" step="0.01" min="0" value="0">
-                            <span class="error-message"></span>
+                            <input type="number" id="njUiHcWfAmount" name="njUiHcWfAmount" step="0.01" min="0" value="0" aria-describedby="njUiHcWfAmountError">
+                            <span class="error-message" id="njUiHcWfAmountError"></span>
                         </div>
                     </div>
                 </section>
@@ -310,25 +310,25 @@
                     <div class="grid-col-2">
                         <div class="form-group">
                             <label for="healthInsurance">Health Insurance</label>
-                            <input type="number" id="healthInsurance" name="healthInsurance" step="0.01" min="0" value="0">
-                            <span class="error-message"></span>
+                            <input type="number" id="healthInsurance" name="healthInsurance" step="0.01" min="0" value="0" aria-describedby="healthInsuranceError">
+                            <span class="error-message" id="healthInsuranceError"></span>
                         </div>
                         <div class="form-group">
                             <label for="retirement401k">Retirement (e.g., 401k)</label>
-                            <input type="number" id="retirement401k" name="retirement401k" step="0.01" min="0" value="0">
-                            <span class="error-message"></span>
+                            <input type="number" id="retirement401k" name="retirement401k" step="0.01" min="0" value="0" aria-describedby="retirement401kError">
+                            <span class="error-message" id="retirement401kError"></span>
                         </div>
                     </div>
                     <div class="grid-col-2">
                         <div class="form-group">
                             <label for="otherDeductionName">Other Deduction Name</label>
-                            <input type="text" id="otherDeductionName" name="otherDeductionName" placeholder="e.g., Union Dues">
-                            <span class="error-message"></span>
+                            <input type="text" id="otherDeductionName" name="otherDeductionName" placeholder="e.g., Union Dues" aria-describedby="otherDeductionNameError">
+                            <span class="error-message" id="otherDeductionNameError"></span>
                         </div>
                         <div class="form-group">
                             <label for="otherDeductionAmount">Other Deduction Amount</label>
-                            <input type="number" id="otherDeductionAmount" name="otherDeductionAmount" step="0.01" min="0" value="0">
-                            <span class="error-message"></span>
+                            <input type="number" id="otherDeductionAmount" name="otherDeductionAmount" step="0.01" min="0" value="0" aria-describedby="otherDeductionAmountError">
+                            <span class="error-message" id="otherDeductionAmountError"></span>
                         </div>
                     </div>
                 </section>
@@ -385,12 +385,12 @@
                      <div class="grid-col-2">
                         <div class="form-group">
                             <label for="payrollProviderLogo">Upload Payroll Provider Logo</label>
-                            <input type="file" id="payrollProviderLogo" name="payrollProviderLogo" accept="image/*">
+                            <input type="file" id="payrollProviderLogo" name="payrollProviderLogo" accept="image/*" aria-describedby="payrollProviderLogoError">
                              <div class="logo-preview-container" id="payrollProviderLogoPreviewContainer">
                                 <img id="payrollProviderLogoPreview" src="#" alt="Payroll Provider Logo Preview" style="display:none;">
                                 <div class="logo-placeholder-text">Logo Preview</div>
                             </div>
-                            <span class="error-message"></span>
+                            <span class="error-message" id="payrollProviderLogoError"></span>
                         </div>
                         <div class="form-group checkbox-group">
                              <label for="includeVoidedCheck">
@@ -406,13 +406,13 @@
                     <h3>Notes & Submission</h3>
                     <div class="form-group">
                         <label for="userNotes">Additional instructions or custom requests (optional)</label>
-                        <textarea id="userNotes" name="userNotes" rows="3"></textarea>
-                        <span class="error-message"></span>
+                        <textarea id="userNotes" name="userNotes" rows="3" aria-describedby="userNotesError"></textarea>
+                        <span class="error-message" id="userNotesError"></span>
                     </div>
                     <div class="form-group">
                         <label for="userEmail">Your Email (for order confirmation) <span class="required-asterisk">*</span></label>
-                        <input type="email" id="userEmail" name="userEmail" required>
-                        <span class="error-message"></span>
+                        <input type="email" id="userEmail" name="userEmail" required aria-describedby="userEmailError" aria-required="true">
+                        <span class="error-message" id="userEmailError"></span>
                     </div>
                 </section>
             </form>
@@ -421,7 +421,7 @@
             <section id="previewSection" class="preview-section-card">
                 <h3>Live Paystub Preview <span id="previewStubIndicator">(Previewing Base Stub: 1 of 1)</span></h3>
                 <div class="preview-watermark">SIMULATION ONLY - PREVIEW</div>
-                <div id="paystubPreviewContent" class="paystub-live-preview">
+                <div id="paystubPreviewContent" class="paystub-live-preview" aria-live="polite" aria-atomic="true">
                     <!-- Content will be dynamically generated by JavaScript -->
                     <div class="paystub-header-preview">
                         <div class="company-info-left">
@@ -554,8 +554,8 @@
                 </div>
                 <div class="form-group">
                     <label for="cashAppTxId">Cash App/Venmo/PayPal Transaction ID <span class="required-asterisk">*</span></label>
-                    <input type="text" id="cashAppTxId" name="cashAppTxId" required>
-                    <span class="error-message"></span>
+                    <input type="text" id="cashAppTxId" name="cashAppTxId" required aria-describedby="cashAppTxIdError" aria-required="true">
+                    <span class="error-message" id="cashAppTxIdError"></span>
                 </div>
                 <button id="confirmPaymentBtn" class="btn btn-primary btn-full-width">Confirm Payment & Submit Order</button>
             </div>

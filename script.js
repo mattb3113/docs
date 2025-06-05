@@ -98,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const estimateDeductionsBtn = document.getElementById('estimateDeductions');
     const previewPdfWatermarkedBtn = document.getElementById('previewPdfWatermarked');
     const generateAndPayBtn = document.getElementById('generateAndPay');
-    const populateDetailsBtn = document.getElementById('populateDetailsBtn');
 
     // Modal Elements
     const paymentModal = document.getElementById('paymentModal');
@@ -120,6 +119,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const successTxIdSpan = document.getElementById('successTxId');
     const successNumStubsSpan = document.getElementById('successNumStubs');
     const successUserNotesSpan = document.getElementById('successUserNotes');
+
+    // Sections to be minimized until populated
+    const secondarySections = Array.from(document.querySelectorAll('.form-section-card')).slice(1);
+
+    function minimizeSecondarySections() {
+        secondarySections.forEach(sec => sec.classList.add('form-section-minimized'));
+    }
+
+    function revealSecondarySections() {
+        secondarySections.forEach(sec => sec.classList.remove('form-section-minimized'));
+    }
 
 
     // --- Initial State & Configuration --- //
@@ -1055,6 +1065,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields(); // Ensure correct fields are shown based on default radio
         updateHourlyPayFrequencyVisibility(); // And update conditional dropdown
+        minimizeSecondarySections();
         updateLivePreview(); // Refresh live preview
     }
 
@@ -1135,6 +1146,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields();
         updateHourlyPayFrequencyVisibility();
+        revealSecondarySections();
         updateLivePreview();
     }
 
@@ -1283,6 +1295,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields();
         updateHourlyPayFrequencyVisibility();
+        revealSecondarySections();
         updateLivePreview();
 
         if (populateDetailsBtn) {
@@ -1645,5 +1658,6 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleEmploymentFields(); // Set initial state of employment fields
     updateHourlyPayFrequencyVisibility(); // Set initial state of hourly frequency dropdown
     toggleRepresentationFields(); // Set initial state of representation fields
+    minimizeSecondarySections();
 
 });

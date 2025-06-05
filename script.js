@@ -127,28 +127,93 @@ document.addEventListener('DOMContentLoaded', () => {
     const successNumStubsSpan = document.getElementById('successNumStubs');
     const successUserNotesSpan = document.getElementById('successUserNotes');
 
-    // Sequential section progression
+    // Multi-step form setup
     const formSections = Array.from(document.querySelectorAll('.form-section-card'));
-    let nextSectionIndex = 1; // start after step 1
+    const stepGroups = [
+        [0],
+        [1],
+        [2],
+        [3,4],
+        [5,6,7],
+        [8,9,10]
+    ];
+    let currentStep = 0;
+    const progressContainer = document.getElementById('progressIndicator');
+    const progressSteps = [];
+
+    stepGroups.forEach((grp, idx) => {
+        const stepEl = document.createElement('div');
+        stepEl.className = 'progress-step' + (idx === 0 ? ' active' : '');
+        stepEl.textContent = idx + 1;
+        progressContainer.appendChild(stepEl);
+        progressSteps.push(stepEl);
+
+        const lastSection = formSections[grp[grp.length - 1]];
+        const nav = document.createElement('div');
+        nav.className = 'step-navigation';
+        if (idx > 0) {
+            const prev = document.createElement('button');
+            prev.type = 'button';
+            prev.className = 'btn btn-secondary prev-step';
+            prev.textContent = 'Previous Step';
+            prev.addEventListener('click', () => {
+                if (currentStep > 0) {
+                    currentStep--;
+                    showStep(currentStep);
+                }
+            });
+            nav.appendChild(prev);
+        }
+        const next = document.createElement('button');
+        next.type = 'button';
+        next.className = 'btn btn-primary next-step';
+        next.textContent = idx === stepGroups.length - 1 ? 'Generate & Proceed to Payment' : 'Next Step';
+        next.addEventListener('click', () => {
+            if (idx === stepGroups.length - 1) {
+                handleMainFormSubmit();
+            } else if (validateStep(idx)) {
+                currentStep++;
+                showStep(currentStep);
+            }
+        });
+        nav.appendChild(next);
+        lastSection.appendChild(nav);
+    });
+
+    function showStep(index) {
+        stepGroups.forEach((grp, idx) => {
+            grp.forEach(i => {
+                formSections[i].style.display = idx === index ? 'block' : 'none';
+            });
+            progressSteps[idx].classList.toggle('active', idx === index);
+        });
+        updateLivePreview();
+    }
+
+    function validateStep(index) {
+        let valid = true;
+        stepGroups[index].forEach(i => {
+            const inputs = formSections[i].querySelectorAll('input, select, textarea');
+            inputs.forEach(inp => { if (!validateField(inp)) valid = false; });
+        });
+        return valid;
+    }
+
+    showStep(currentStep);
 
     function minimizeSecondarySections() {
-        formSections.forEach((sec, idx) => {
-            if (idx > 0) sec.classList.add('form-section-minimized');
-        });
-        nextSectionIndex = 1;
+        showStep(0);
     }
 
     function revealAllSections() {
-        formSections.forEach(sec => sec.classList.remove('form-section-minimized'));
-        nextSectionIndex = formSections.length;
+        stepGroups.forEach(grp => grp.forEach(i => formSections[i].style.display = 'block'));
+        progressSteps.forEach(step => step.classList.add('active'));
     }
 
     function revealNextSection() {
-        while (nextSectionIndex < formSections.length) {
-            const sec = formSections[nextSectionIndex];
-            sec.classList.remove('form-section-minimized');
-            nextSectionIndex++;
-            if (sec.querySelectorAll('[required]').length > 0) break;
+        if (currentStep < stepGroups.length - 1) {
+            currentStep++;
+            showStep(currentStep);
         }
     }
 
@@ -242,21 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
     employmentTypeRadios.forEach(radio => radio.addEventListener('change', updateHourlyPayFrequencyVisibility));
     isForNjEmploymentCheckbox.addEventListener('change', handleNjEmploymentChange);
 
-    // Sequentially reveal sections once required fields are complete
-    formSections.slice(1).forEach((section, idx) => {
-        const sectionIndex = idx + 1;
-        const requiredInputs = section.querySelectorAll('[required]');
-        if (requiredInputs.length === 0) return;
-        const checkAndAdvance = () => {
-            if (sectionIndex + 1 === nextSectionIndex && isSectionComplete(sectionIndex)) {
-                revealNextSection();
-            }
-        };
-        requiredInputs.forEach(input => {
-            input.addEventListener('input', checkAndAdvance);
-            input.addEventListener('change', checkAndAdvance);
-        });
-    });
+    // Sequential reveal disabled in favor of multi-step navigation
 
 
     // Handle Logo Uploads
@@ -1231,7 +1282,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields(); // Ensure correct fields are shown based on default radio
         updateHourlyPayFrequencyVisibility(); // And update conditional dropdown
-        minimizeSecondarySections();
+        showStep(0);
         updateLivePreview(); // Refresh live preview
     }
 
@@ -1494,7 +1545,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields();
         updateHourlyPayFrequencyVisibility();
-        revealNextSection();
+        if (currentStep < stepGroups.length - 1) {
+            currentStep++;
+            showStep(currentStep);
+        }
         updateLivePreview();
 
         if (populateDetailsBtn) {
@@ -1895,6 +1949,6 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleEmploymentFields(); // Set initial state of employment fields
     updateHourlyPayFrequencyVisibility(); // Set initial state of hourly frequency dropdown
     toggleRepresentationFields(); // Set initial state of representation fields
-    minimizeSecondarySections();
+    showStep(0);
 
 });

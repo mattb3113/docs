@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About BuellDocs | The Architect</title>
+    <style>
+        /* Root variables from paystub generator */
+        :root {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #141418;
+            --bg-tertiary: #1a1a1e;
+            --accent-gold: #ae8e5d;
+            --accent-gold-hover: #c9a77d;
+            --text-primary: rgba(255,255,255,0.9);
+            --text-secondary: rgba(255,255,255,0.7);
+            --text-tertiary: rgba(255,255,255,0.4);
+            --border-color: rgba(255,255,255,0.1);
+            --border-color-light: rgba(255,255,255,0.05);
+            --font-family: 'Helvetica Neue', Arial, sans-serif;
+            --blur-amount: 10px;
+            --border-radius-sm: 4px;
+            --border-radius-md: 8px;
+            --letter-spacing-header: 1px;
+            --header-height: 70px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 16px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: -2;
+        }
+
+        .backdrop-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at top right, rgba(20,20,26,0.9) 0%, rgba(10,10,12,1) 70%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .app-header {
+            background-color: rgba(10,10,12,0.7);
+            backdrop-filter: blur(var(--blur-amount));
+            -webkit-backdrop-filter: blur(var(--blur-amount));
+            border-bottom: 1px solid var(--border-color-light);
+            padding: 10px 30px;
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .logo-text {
+            font-size: 22px;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: var(--letter-spacing-header);
+            position: relative;
+            padding-right: 15px;
+        }
+
+        .logo-text::after {
+            content: "";
+            position: absolute;
+            width: 7px;
+            height: 7px;
+            background-color: var(--accent-gold);
+            border-radius: 50%;
+            right: 0;
+            bottom: 5px;
+        }
+
+        .header-tagline {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            line-height: 1;
+            margin-top: 2px;
+        }
+
+        .header-nav .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-left: 25px;
+            font-size: 15px;
+            transition: color 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .header-nav .nav-link:hover {
+            color: var(--accent-gold);
+        }
+
+        .header-nav .nav-link.active {
+            color: var(--accent-gold);
+            border-bottom: 1px solid var(--accent-gold);
+        }
+
+        .main-content {
+            padding-top: calc(var(--header-height) + 30px);
+            padding-left: 30px;
+            padding-right: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .page-section {
+            margin-bottom: 40px;
+        }
+
+        .content-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1, h2, h3 {
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: var(--letter-spacing-header);
+        }
+
+        h1 { font-size: 28px; margin-bottom: 15px; }
+        h2 { font-size: 24px; margin-bottom: 15px; color: var(--accent-gold); }
+        h3 { font-size: 20px; margin-bottom: 10px; color: var(--accent-gold); }
+
+        p { color: var(--text-secondary); margin-bottom: 15px; }
+
+        .terminal-card {
+            background-color: #111;
+            border-radius: var(--border-radius-md);
+            padding: 20px;
+            font-family: "Courier New", Courier, monospace;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .terminal-controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .terminal-controls span {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .red { background-color: #ff5f56; }
+        .yellow { background-color: #ffbd2e; }
+        .green { background-color: #27c93f; }
+
+        .btn {
+            padding: 12px 25px;
+            font-size: 15px;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-gold);
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-gold-hover);
+            transform: translateY(-2px);
+        }
+
+        footer {
+            padding: 20px 30px;
+            border-top: 1px solid var(--border-color-light);
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .header-nav .nav-link { margin-left: 15px; font-size: 14px; }
+            .main-content { padding-left: 15px; padding-right: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="noise-overlay"></div>
+    <div class="backdrop-glow"></div>
+
+    <header class="app-header">
+        <div class="logo-container">
+            <span class="logo-text">BUELLDOCS</span>
+            <span class="header-tagline">Secure Document Services</span>
+        </div>
+        <nav class="header-nav">
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="#" class="nav-link">Services</a>
+            <a href="about_buelldocs.html" class="nav-link active">About</a>
+            <a href="#" class="nav-link">Contact</a>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <section class="about-hero page-section content-card">
+            <h1>Meet <span style="color: var(--accent-gold);">The Architect</span></h1>
+            <p>At 33, I've made it my mission to become the ultimate fixer—the Michael Clayton of documentation. After years honing my craft within rigid corporate structures, I redirected my skills to serve those who truly need them: you.</p>
+        </section>
+
+        <section class="terminal-card-section page-section">
+            <div class="terminal-card">
+                <div class="terminal-controls">
+                    <span class="red"></span>
+                    <span class="yellow"></span>
+                    <span class="green"></span>
+                </div>
+                <pre>> CLASSIFIED.DOSSIER
+> Subject: Tactical Problem Solver
+> Status: Independent Operative
+> Objective: Systemic Barrier Circumvention
+> Specialization: Documentation Engineering, Strategic Solutions
+> Clearance: ALPHA
+> Mission: Empowering clients with precision tools for life advancement</pre>
+            </div>
+        </section>
+
+        <section class="origin-mission-section page-section content-card">
+            <h3>THE ORIGIN PROTOCOL</h3>
+            <p>I've navigated both extremes—from homelessness to six-figure success. Years inside Fortune 500 organizations and federal systems taught me how to reverse-engineer bureaucracy into actionable intelligence. This journey forms the foundation of the BuellDocs operational framework.</p>
+            <h3>STRATEGIC DIRECTIVE</h3>
+            <p>Traditional employment no longer serves my operational objectives. BuellDocs represents the culmination of this mission—a precision-engineered platform delivering tactical documentation solutions for those ready to advance.</p>
+        </section>
+
+        <section class="capabilities-section page-section content-card">
+            <h3>OPERATIONAL CAPABILITIES</h3>
+            <p>I've generated six-figure incomes, launched revenue-producing enterprises, and operated under extreme duress. The problems I've resolved exceed what most individuals encounter in a lifetime. This expertise is now focused on enabling your success.</p>
+        </section>
+
+        <section class="engagement-section page-section content-card">
+            <h3>ENGAGEMENT PROTOCOL</h3>
+            <p>Identify your mission parameters. Specify your documentation requirements. No mission is impossible. No barrier is insurmountable. No system is impenetrable.</p>
+        </section>
+
+        <section class="cta-section page-section content-card" style="text-align:center;">
+            <h2>READY TO INITIATE YOUR OPERATION?</h2>
+            <p>Welcome to BuellDocs. Specify your requirements. Solutions will be deployed with precision and discretion.</p>
+            <a href="#" class="btn btn-primary">Explore Services</a>
+        </section>
+    </main>
+
+    <footer>
+        BUELLDOCS © 2025 | SYSTEM INFO
+    </footer>
+</body>
+</html>

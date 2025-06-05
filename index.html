@@ -253,6 +253,23 @@
                 <!-- Taxes (Enter Amounts per Period - Simulation Only) -->
                 <section class="form-section-card">
                     <h3>Taxes (Enter Amounts per Period - Simulation Only)</h3>
+                    <div class="grid-col-2">
+                        <div class="form-group">
+                            <label for="workState">Work State for Tax Calculation</label>
+                            <select id="workState" name="workState">
+                                <option value="">Select State</option>
+                                <option value="CA">California</option>
+                                <option value="NY">New York</option>
+                                <option value="TX">Texas</option>
+                            </select>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <label for="autoCalculateStateTax">
+                                <input type="checkbox" id="autoCalculateStateTax" name="autoCalculateStateTax">
+                                Auto-calculate State Tax?
+                            </label>
+                        </div>
+                    </div>
                      <div class="grid-col-2">
                         <div class="form-group">
                             <label for="federalTaxAmount">Federal Tax Amount</label>

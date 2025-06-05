@@ -154,6 +154,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const FEDERAL_TAX_RATE = 0.12; // Simplified flat rate for estimation
     const STATE_TAX_RATE = 0.05;   // Simplified flat rate for estimation
 
+    // New Jersey payroll tax constants - 2024 (update annually)
+    const NJ_SDI_RATE = 0.0; // 2024 employee SDI contribution
+    const NJ_SDI_WAGE_LIMIT = 160200;
+    const NJ_FLI_RATE = 0.0; // 2024 employee FLI contribution
+    const NJ_FLI_WAGE_LIMIT = 160200;
+    const NJ_UIHCWF_RATE = 0.000425; // 0.0425%
+    const NJ_UIHCWF_WAGE_LIMIT = 42300;
+
+    const NJ_TAX_BRACKETS_2024 = {
+        'Single': [
+            { limit: 20000, rate: 0.014 },
+            { limit: 35000, rate: 0.0175 },
+            { limit: 40000, rate: 0.035 },
+            { limit: 75000, rate: 0.05525 },
+            { limit: 500000, rate: 0.0637 },
+            { limit: 1000000, rate: 0.0897 },
+            { limit: Infinity, rate: 0.1075 }
+        ],
+        'Married Filing Jointly': [
+            { limit: 20000, rate: 0.014 },
+            { limit: 50000, rate: 0.0175 },
+            { limit: 70000, rate: 0.0245 },
+            { limit: 80000, rate: 0.035 },
+            { limit: 150000, rate: 0.05525 },
+            { limit: 500000, rate: 0.0637 },
+            { limit: 1000000, rate: 0.0897 },
+            { limit: Infinity, rate: 0.1075 }
+        ]
+    };
+
     // --- Event Listeners --- //
 
     // Toggle Hourly/Salaried Fields
@@ -1263,9 +1293,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const stateTax = estimateNJStateTax(grossPayPerPeriod, payFrequency, filingStatus);
             const ssTax = estimateSocialSecurity(grossPayPerPeriod, ytdSS);
             const medicareTax = estimateMedicare(grossPayPerPeriod);
-            const sdi = estimateNJ_SDI(grossPayPerPeriod);
-            const fli = estimateNJ_FLI(grossPayPerPeriod);
-            const ui = estimateNJ_UIHCWF(grossPayPerPeriod);
+            const sdi = estimateNJ_SDI(grossPayPerPeriod, payFrequency);
+            const fli = estimateNJ_FLI(grossPayPerPeriod, payFrequency);
+            const ui = estimateNJ_UIHCWF(grossPayPerPeriod, payFrequency);
 
             document.getElementById('federalTaxAmount').value = fedTax.toFixed(2);
             document.getElementById('stateTaxAmount').value = stateTax.toFixed(2);
@@ -1309,9 +1339,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function estimateNJStateTax(grossPayPerPeriod, payFrequency, status) {
-        const annual = grossPayPerPeriod * (PAY_PERIODS_PER_YEAR[payFrequency] || 1);
-        const rate = annual > 40000 ? 0.055 : 0.03;
-        return (annual * rate) / (PAY_PERIODS_PER_YEAR[payFrequency] || 1);
+        const periods = PAY_PERIODS_PER_YEAR[payFrequency] || 1;
+        const annualizedGrossNJ = grossPayPerPeriod * periods;
+        const brackets = NJ_TAX_BRACKETS_2024[status] || NJ_TAX_BRACKETS_2024['Single'];
+        let tax = 0;
+        let prev = 0;
+        for (const { limit, rate } of brackets) {
+            const taxable = Math.min(annualizedGrossNJ, limit) - prev;
+            if (taxable > 0) {
+                tax += taxable * rate;
+                prev = limit;
+            }
+        }
+        return tax / periods;
     }
 
     function estimateSocialSecurity(grossPayPerPeriod, ytdSocialSecuritySoFar) {
@@ -1325,16 +1365,25 @@ document.addEventListener('DOMContentLoaded', () => {
         return grossPayPerPeriod * MEDICARE_RATE;
     }
 
-    function estimateNJ_SDI(grossPayPerPeriod) {
-        return grossPayPerPeriod * 0.003;
+    function estimateNJ_SDI(grossPayPerPeriod, payFrequency) {
+        const periods = PAY_PERIODS_PER_YEAR[payFrequency] || 1;
+        const perPeriodLimit = NJ_SDI_WAGE_LIMIT / periods;
+        const taxable = Math.min(grossPayPerPeriod, perPeriodLimit);
+        return taxable * NJ_SDI_RATE;
     }
 
-    function estimateNJ_FLI(grossPayPerPeriod) {
-        return grossPayPerPeriod * 0.0015;
+    function estimateNJ_FLI(grossPayPerPeriod, payFrequency) {
+        const periods = PAY_PERIODS_PER_YEAR[payFrequency] || 1;
+        const perPeriodLimit = NJ_FLI_WAGE_LIMIT / periods;
+        const taxable = Math.min(grossPayPerPeriod, perPeriodLimit);
+        return taxable * NJ_FLI_RATE;
     }
 
-    function estimateNJ_UIHCWF(grossPayPerPeriod) {
-        return grossPayPerPeriod * 0.000425;
+    function estimateNJ_UIHCWF(grossPayPerPeriod, payFrequency) {
+        const periods = PAY_PERIODS_PER_YEAR[payFrequency] || 1;
+        const perPeriodLimit = NJ_UIHCWF_WAGE_LIMIT / periods;
+        const taxable = Math.min(grossPayPerPeriod, perPeriodLimit);
+        return taxable * NJ_UIHCWF_RATE;
     }
 
     function estimateAllDeductions() {
@@ -1346,9 +1395,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('federalTaxAmount').value = estimateFederalTax(calculations.grossPay, payFrequency, filingStatus).toFixed(2);
         document.getElementById('stateTaxAmount').value = estimateNJStateTax(calculations.grossPay, payFrequency, filingStatus).toFixed(2);
-        document.getElementById('njSdiAmount').value = estimateNJ_SDI(calculations.grossPay).toFixed(2);
-        document.getElementById('njFliAmount').value = estimateNJ_FLI(calculations.grossPay).toFixed(2);
-        document.getElementById('njUiHcWfAmount').value = estimateNJ_UIHCWF(calculations.grossPay).toFixed(2);
+        document.getElementById('njSdiAmount').value = estimateNJ_SDI(calculations.grossPay, payFrequency).toFixed(2);
+        document.getElementById('njFliAmount').value = estimateNJ_FLI(calculations.grossPay, payFrequency).toFixed(2);
+        document.getElementById('njUiHcWfAmount').value = estimateNJ_UIHCWF(calculations.grossPay, payFrequency).toFixed(2);
 
         autoCalculateSocialSecurityCheckbox.checked = true;
         autoCalculateMedicareCheckbox.checked = true;
@@ -1596,24 +1645,45 @@ document.addEventListener('DOMContentLoaded', () => {
         return grossPayPerPeriod * MEDICARE_RATE;
     }
 
-    // New Jersey state tax placeholder (flat 3%)
+    // New Jersey state income tax estimation using 2024 brackets
     function estimateNJStateTax(grossPayPerPeriod, payFrequency, filingStatus) {
-        return grossPayPerPeriod * 0.03; // Placeholder rate
+        const periods = PAY_PERIODS_PER_YEAR[payFrequency] || 1;
+        const annualizedGrossNJ = grossPayPerPeriod * periods;
+        const brackets = NJ_TAX_BRACKETS_2024[filingStatus] || NJ_TAX_BRACKETS_2024['Single'];
+        let tax = 0;
+        let prev = 0;
+        for (const { limit, rate } of brackets) {
+            const taxable = Math.min(annualizedGrossNJ, limit) - prev;
+            if (taxable > 0) {
+                tax += taxable * rate;
+                prev = limit;
+            }
+        }
+        return tax / periods;
     }
 
-    // New Jersey State Disability Insurance placeholder
-    function estimateNJ_SDI(grossPayPerPeriod) {
-        return grossPayPerPeriod * 0.002; // Placeholder rate
+    // New Jersey State Disability Insurance (2024)
+    function estimateNJ_SDI(grossPayPerPeriod, payFrequency) {
+        const periods = PAY_PERIODS_PER_YEAR[payFrequency] || 1;
+        const perPeriodLimit = NJ_SDI_WAGE_LIMIT / periods;
+        const taxable = Math.min(grossPayPerPeriod, perPeriodLimit);
+        return taxable * NJ_SDI_RATE;
     }
 
-    // New Jersey Family Leave Insurance placeholder
-    function estimateNJ_FLI(grossPayPerPeriod) {
-        return grossPayPerPeriod * 0.001; // Placeholder rate
+    // New Jersey Family Leave Insurance (2024)
+    function estimateNJ_FLI(grossPayPerPeriod, payFrequency) {
+        const periods = PAY_PERIODS_PER_YEAR[payFrequency] || 1;
+        const perPeriodLimit = NJ_FLI_WAGE_LIMIT / periods;
+        const taxable = Math.min(grossPayPerPeriod, perPeriodLimit);
+        return taxable * NJ_FLI_RATE;
     }
 
-    // New Jersey Unemployment/Health/Workforce placeholder
-    function estimateNJ_UIHCWF(grossPayPerPeriod) {
-        return grossPayPerPeriod * 0.0005; // Placeholder rate
+    // New Jersey Unemployment/Health/Workforce (2024)
+    function estimateNJ_UIHCWF(grossPayPerPeriod, payFrequency) {
+        const periods = PAY_PERIODS_PER_YEAR[payFrequency] || 1;
+        const perPeriodLimit = NJ_UIHCWF_WAGE_LIMIT / periods;
+        const taxable = Math.min(grossPayPerPeriod, perPeriodLimit);
+        return taxable * NJ_UIHCWF_RATE;
     }
 
     function formatCurrency(amount, includeSymbol = true) {

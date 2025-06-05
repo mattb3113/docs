@@ -895,8 +895,12 @@ input.invalid, select.invalid, textarea.invalid {
         width: 45%; /* Width of the label */
         white-space: nowrap;
     }
-    .earnings-table-preview td:last-child, .deductions-table-preview td:last-child {
-        border-bottom: 0;
-    }
+.earnings-table-preview td:last-child, .deductions-table-preview td:last-child {
+    border-bottom: 0;
+}
+
+.auto-populated {
+    background-color: rgba(174, 142, 93, 0.2);
+}
 
 }

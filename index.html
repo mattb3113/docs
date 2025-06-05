@@ -52,7 +52,7 @@
                 <button id="resetAllFields" class="btn btn-secondary btn-full-width">Reset All Fields</button>
                 <button id="saveDraft" class="btn btn-secondary btn-full-width">Save Draft</button>
                 <button id="loadDraft" class="btn btn-secondary btn-full-width">Load Draft</button>
-                <button id="estimateDeductions" class="btn btn-secondary btn-full-width">Estimate All Deductions</button>
+                <button id="estimateAllDeductionsBtn" class="btn btn-secondary btn-full-width">Estimate All Deductions</button>
                 <button id="previewPdfWatermarked" class="btn btn-secondary btn-full-width">Preview PDF (Watermarked)</button>
                 <button id="generateAndPay" class="btn btn-primary btn-full-width">Generate & Proceed to Payment</button>
             </div>
@@ -307,6 +307,12 @@
                             <input type="number" id="federalTaxAmount" name="federalTaxAmount" step="0.01" min="0" value="0" aria-describedby="federalTaxAmountError">
                             <span class="error-message" id="federalTaxAmountError"></span>
                         </div>
+                        <div class="form-group checkbox-group">
+                            <label for="autoCalculateFederalTax">
+                                <input type="checkbox" id="autoCalculateFederalTax" name="autoCalculateFederalTax" checked>
+                                Auto-calculate Federal Tax?
+                            </label>
+                        </div>
                         <div class="form-group">
                             <label for="socialSecurityAmount">Social Security Amount</label>
                             <input type="number" id="socialSecurityAmount" name="socialSecurityAmount" step="0.01" min="0" value="0" aria-describedby="socialSecurityAmountError">
@@ -314,7 +320,7 @@
                         </div>
                         <div class="form-group checkbox-group">
                             <label for="autoCalculateSocialSecurity">
-                                <input type="checkbox" id="autoCalculateSocialSecurity" name="autoCalculateSocialSecurity">
+                                <input type="checkbox" id="autoCalculateSocialSecurity" name="autoCalculateSocialSecurity" checked>
                                 Auto-calculate Social Security?
                             </label>
                         </div>
@@ -338,7 +344,7 @@
                     </div>
                     <div class="form-group checkbox-group">
                         <label for="autoCalculateMedicare">
-                            <input type="checkbox" id="autoCalculateMedicare" name="autoCalculateMedicare">
+                            <input type="checkbox" id="autoCalculateMedicare" name="autoCalculateMedicare" checked>
                             Auto-calculate Medicare?
                         </label>
                     </div>
@@ -353,15 +359,33 @@
                             <input type="number" id="njSdiAmount" name="njSdiAmount" step="0.01" min="0" value="0" aria-describedby="njSdiAmountError">
                             <span class="error-message" id="njSdiAmountError"></span>
                         </div>
+                        <div class="form-group checkbox-group">
+                            <label for="autoCalculateNjSdi">
+                                <input type="checkbox" id="autoCalculateNjSdi" name="autoCalculateNjSdi" checked>
+                                Auto-calc SDI?
+                            </label>
+                        </div>
                         <div class="form-group">
                             <label for="njFliAmount">NJ FLI Amount</label>
                             <input type="number" id="njFliAmount" name="njFliAmount" step="0.01" min="0" value="0" aria-describedby="njFliAmountError">
                             <span class="error-message" id="njFliAmountError"></span>
                         </div>
+                        <div class="form-group checkbox-group">
+                            <label for="autoCalculateNjFli">
+                                <input type="checkbox" id="autoCalculateNjFli" name="autoCalculateNjFli" checked>
+                                Auto-calc FLI?
+                            </label>
+                        </div>
                         <div class="form-group">
                             <label for="njUiHcWfAmount">NJ UI/HC/WF Amount</label>
                             <input type="number" id="njUiHcWfAmount" name="njUiHcWfAmount" step="0.01" min="0" value="0" aria-describedby="njUiHcWfAmountError">
                             <span class="error-message" id="njUiHcWfAmountError"></span>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <label for="autoCalculateNjUi">
+                                <input type="checkbox" id="autoCalculateNjUi" name="autoCalculateNjUi" checked>
+                                Auto-calc UI/HC/WF?
+                            </label>
                         </div>
                     </div>
                 </section>

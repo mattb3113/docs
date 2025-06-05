@@ -19,6 +19,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const hourlyFieldsDiv = document.getElementById('hourlyFields');
     const salariedFieldsDiv = document.getElementById('salariedFields');
 
+    // Desired Income Representation Elements
+    const desiredIncomeAmountInput = document.getElementById('desiredIncomeAmount');
+    const desiredIncomePeriodSelect = document.getElementById('desiredIncomePeriod');
+    const incomeRepresentationRadios = document.querySelectorAll('input[name="incomeRepresentationType"]');
+    const assumedHourlyHoursGroup = document.getElementById('assumedHourlyHoursGroup');
+    const assumedHourlyRegularHoursInput = document.getElementById('assumedHourlyRegularHours');
+    const isForNjEmploymentCheckbox = document.getElementById('isForNJEmployment');
+    const populateDetailsBtn = document.getElementById('populateDetailsBtn');
+
     // Logo Preview Elements
     const companyLogoInput = document.getElementById('companyLogo');
     const companyLogoPreviewContainer = document.getElementById('companyLogoPreviewContainer');
@@ -123,6 +132,10 @@ document.addEventListener('DOMContentLoaded', () => {
     employmentTypeRadios.forEach(radio => {
         radio.addEventListener('change', toggleEmploymentFields);
     });
+    incomeRepresentationRadios.forEach(radio => {
+        radio.addEventListener('change', toggleRepresentationFields);
+    });
+    populateDetailsBtn.addEventListener('click', populateDetailsFromDesiredIncome);
 
     // Update Hourly Pay Frequency Visibility
     numPaystubsSelect.addEventListener('change', updateHourlyPayFrequencyVisibility);
@@ -208,6 +221,48 @@ document.addEventListener('DOMContentLoaded', () => {
             setRequired(hourlyPayFrequencySelect, false);
         }
         updateLivePreview(); // Update stub indicator
+    }
+
+    function toggleRepresentationFields() {
+        const selected = document.querySelector('input[name="incomeRepresentationType"]:checked').value;
+        if (selected === 'Hourly') {
+            assumedHourlyHoursGroup.style.display = 'block';
+        } else {
+            assumedHourlyHoursGroup.style.display = 'none';
+        }
+    }
+
+    function populateDetailsFromDesiredIncome() {
+        const amount = parseFloat(desiredIncomeAmountInput.value) || 0;
+        const period = desiredIncomePeriodSelect.value;
+        const type = document.querySelector('input[name="incomeRepresentationType"]:checked').value;
+        const hours = parseFloat(assumedHourlyRegularHoursInput.value) || 40;
+
+        let annualAmount = amount;
+        if (period === 'Monthly') annualAmount = amount * 12;
+        else if (period === 'Weekly') annualAmount = amount * 52;
+
+        if (type === 'Salaried') {
+            document.querySelector('input[name="employmentType"][value="Salaried"]').checked = true;
+            toggleEmploymentFields();
+            document.getElementById('annualSalary').value = annualAmount.toFixed(2);
+        } else {
+            document.querySelector('input[name="employmentType"][value="Hourly"]').checked = true;
+            toggleEmploymentFields();
+            const hourlyRate = annualAmount / (hours * 52);
+            document.getElementById('hourlyRate').value = hourlyRate.toFixed(2);
+            document.getElementById('regularHours').value = hours;
+        }
+
+        if (isForNjEmploymentCheckbox.checked) {
+            const stateTaxNameInput = document.getElementById('stateTaxName');
+            if (stateTaxNameInput && !stateTaxNameInput.value) {
+                stateTaxNameInput.value = 'NJ State Tax';
+            }
+        }
+
+        updateHourlyPayFrequencyVisibility();
+        updateLivePreview();
     }
 
     function handleLogoUpload(event, previewImgElement, placeholderElement) {
@@ -1192,5 +1247,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Initial Setup Calls --- //
     toggleEmploymentFields(); // Set initial state of employment fields
     updateHourlyPayFrequencyVisibility(); // Set initial state of hourly frequency dropdown
+    toggleRepresentationFields(); // Set initial state of representation fields
 
 });

@@ -64,6 +64,42 @@
             </section>
 
             <form id="paystubForm">
+                <!-- Step 1: Desired Income Representation -->
+                <section class="form-section-card">
+                    <h3>Step 1: Define Your Desired Income Representation</h3>
+                    <div class="grid-col-2">
+                        <div class="form-group">
+                            <label for="desiredIncomeAmount">Desired Income Amount <span class="required-asterisk">*</span></label>
+                            <input type="number" id="desiredIncomeAmount" name="desiredIncomeAmount" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="desiredIncomePeriod">Income Period <span class="required-asterisk">*</span></label>
+                            <select id="desiredIncomePeriod" name="desiredIncomePeriod">
+                                <option value="Annual" selected>Annual</option>
+                                <option value="Monthly">Monthly</option>
+                                <option value="Weekly">Weekly</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Represent As <span class="required-asterisk">*</span></label>
+                        <div class="radio-group">
+                            <label><input type="radio" id="repAsSalaried" name="incomeRepresentationType" value="Salaried" checked> Salaried</label>
+                            <label><input type="radio" id="repAsHourly" name="incomeRepresentationType" value="Hourly"> Hourly</label>
+                        </div>
+                    </div>
+                    <div class="form-group" id="assumedHourlyHoursGroup" style="display:none;">
+                        <label for="assumedHourlyRegularHours">Assumed Regular Hours per Period for Representation</label>
+                        <input type="number" id="assumedHourlyRegularHours" name="assumedHourlyRegularHours" step="0.01" min="0" value="40">
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <label for="isForNJEmployment">
+                            <input type="checkbox" id="isForNJEmployment" name="isForNJEmployment" checked>
+                            This representation is for New Jersey employment (auto-populates standard NJ taxes/deductions).
+                        </label>
+                    </div>
+                    <button type="button" id="populateDetailsBtn" class="btn btn-secondary">Auto-Populate Paystub Details Based on Above</button>
+                </section>
                 <!-- Employer Information -->
                 <section class="form-section-card">
                     <h3>Employer Information</h3>

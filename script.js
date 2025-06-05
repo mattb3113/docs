@@ -624,29 +624,39 @@ document.addEventListener('DOMContentLoaded', () => {
     function generatePdfPage(doc, data, calculations, isPreviewMode, stubNum, totalStubs) {
         const pageHeight = doc.internal.pageSize.getHeight();
         const pageWidth = doc.internal.pageSize.getWidth();
-        let yPos = 15; // Initial Y position
+        let yPos = 15;
 
-        // --- Header: BUELLDOCS & Company Logo ---
+        yPos = drawHeader(doc, data, pageWidth, yPos);
+        yPos = drawTitle(doc, pageWidth, stubNum, totalStubs, yPos);
+        yPos = drawInfoTable(doc, data, yPos);
+        yPos = drawEarningsTable(doc, data, calculations, yPos);
+        yPos = drawDeductionsTable(doc, data, calculations, yPos);
+        yPos = drawSummary(doc, calculations, pageWidth, yPos);
+        drawFooter(doc, data, pageHeight, pageWidth, isPreviewMode);
+        if (isPreviewMode) drawWatermarks(doc, pageWidth, pageHeight);
+    }
+
+    function drawHeader(doc, data, pageWidth, yPos) {
         doc.setFontSize(10);
-        doc.setTextColor(174, 142, 93); // Accent Gold
-        doc.text("BUELLDOCS", 15, yPos);
-        yPos += 2; // Small gap
-
+        doc.setTextColor(174, 142, 93);
+        doc.text('BUELLDOCS', 15, yPos);
+        yPos += 2;
         if (data.companyLogoDataUrl) {
             try {
                 const imgProps = doc.getImageProperties(data.companyLogoDataUrl);
-                const imgWidth = 30; // Max width for logo
+                const imgWidth = 30;
                 const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
                 doc.addImage(data.companyLogoDataUrl, 'PNG', pageWidth - 15 - imgWidth, yPos - 8, imgWidth, imgHeight);
-            } catch (e) { console.error("Error adding company logo to PDF:", e); }
+            } catch (e) { console.error('Error adding company logo to PDF:', e); }
         }
-        yPos += 10; // Space after header elements
+        return yPos + 10;
+    }
 
-        // --- Title: EARNINGS STATEMENT ---
+    function drawTitle(doc, pageWidth, stubNum, totalStubs, yPos) {
         doc.setFontSize(16);
-        doc.setTextColor(50, 50, 50); // Dark Gray
+        doc.setTextColor(50, 50, 50);
         doc.setFont(undefined, 'bold');
-        doc.text("EARNINGS STATEMENT", pageWidth / 2, yPos, { align: 'center' });
+        doc.text('EARNINGS STATEMENT', pageWidth / 2, yPos, { align: 'center' });
         yPos += 6;
         if (totalStubs > 1) {
             doc.setFontSize(10);
@@ -656,9 +666,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             yPos += 4;
         }
+        return yPos;
+    }
 
-
-        // --- Company & Employee Info Table ---
+    function drawInfoTable(doc, data, yPos) {
         doc.setFontSize(10);
         doc.setTextColor(80, 80, 80);
         const companyInfo = [
@@ -676,7 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ['', `${data.employeeCity || ''}, ${data.employeeState || ''} ${data.employeeZip || ''}`],
             ['SSN:', data.employeeSsn ? maskSSN(data.employeeSsn) : '']
         ];
-         const payPeriodInfo = [
+        const payPeriodInfo = [
             [{ content: 'Pay Period Information', colSpan: 2, styles: { fontStyle: 'bold', fillColor: [230, 230, 230] } }],
             ['Period Start:', data.payPeriodStartDate || ''],
             ['Period End:', data.payPeriodEndDate || ''],
@@ -685,7 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const infoTableBody = [];
         const maxLength = Math.max(companyInfo.length, employeeInfo.length, payPeriodInfo.length);
-        for(let i=0; i < maxLength; i++) {
+        for (let i = 0; i < maxLength; i++) {
             const row = [];
             row.push(companyInfo[i] ? companyInfo[i][0] : '');
             row.push(companyInfo[i] ? companyInfo[i][1] : '');
@@ -696,37 +707,36 @@ document.addEventListener('DOMContentLoaded', () => {
             infoTableBody.push(row);
         }
 
-
         doc.autoTable({
             body: infoTableBody,
             startY: yPos,
             theme: 'plain',
             styles: { fontSize: 9, cellPadding: 1.5 },
             columnStyles: {
-                0: { cellWidth: 25, fontStyle: 'bold' }, 1: { cellWidth: 'auto'},
-                2: { cellWidth: 25, fontStyle: 'bold' }, 3: { cellWidth: 'auto'},
-                4: { cellWidth: 25, fontStyle: 'bold' }, 5: { cellWidth: 'auto'}
+                0: { cellWidth: 25, fontStyle: 'bold' }, 1: { cellWidth: 'auto' },
+                2: { cellWidth: 25, fontStyle: 'bold' }, 3: { cellWidth: 'auto' },
+                4: { cellWidth: 25, fontStyle: 'bold' }, 5: { cellWidth: 'auto' }
             },
-            didParseCell: function (data) { // To handle colSpan from the defined structures
+            didParseCell: function (data) {
                 if (data.cell.raw && data.cell.raw.colSpan) {
                     data.cell.colSpan = data.cell.raw.colSpan;
                 }
-                 if (data.cell.raw && data.cell.raw.styles) {
+                if (data.cell.raw && data.cell.raw.styles) {
                     Object.assign(data.cell.styles, data.cell.raw.styles);
                 }
             }
         });
-        yPos = doc.lastAutoTable.finalY + 8;
+        return doc.lastAutoTable.finalY + 8;
+    }
 
-
-        // --- Earnings Table ---
+    function drawEarningsTable(doc, data, calculations, yPos) {
         const earningsHeader = [['Description', 'Hours', 'Rate', 'Current Period', 'YTD']];
         const earningsBody = [];
         if (data.employmentType === 'Hourly') {
             earningsBody.push([
                 'Regular Pay',
                 (data.regularHours || 0).toFixed(2),
-                formatCurrency(data.hourlyRate || 0, false), // No $ for rate
+                formatCurrency(data.hourlyRate || 0, false),
                 formatCurrency(calculations.currentPeriodAmounts.regularPay),
                 formatCurrency(calculations.ytdAmounts.regularPay)
             ]);
@@ -734,19 +744,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 earningsBody.push([
                     'Overtime Pay',
                     (data.overtimeHours || 0).toFixed(2),
-                    formatCurrency((data.hourlyRate || 0) * 1.5, false), // No $ for rate
+                    formatCurrency((data.hourlyRate || 0) * 1.5, false),
                     formatCurrency(calculations.currentPeriodAmounts.overtimePay),
                     formatCurrency(calculations.ytdAmounts.overtimePay)
                 ]);
             }
-        } else { // Salaried
+        } else {
             const payFrequency = data.salariedPayFrequency;
             const periodsPerYear = PAY_PERIODS_PER_YEAR[payFrequency] || 1;
             const salaryPerPeriod = (data.annualSalary || 0) / periodsPerYear;
             earningsBody.push([
                 'Salary',
-                '1', // As per spec
-                formatCurrency(salaryPerPeriod, false), // No $ for rate
+                '1',
+                formatCurrency(salaryPerPeriod, false),
                 formatCurrency(calculations.currentPeriodAmounts.salary),
                 formatCurrency(calculations.ytdAmounts.salary)
             ]);
@@ -768,12 +778,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 1: { halign: 'right' }, 2: { halign: 'right' },
                 3: { halign: 'right' }, 4: { halign: 'right' }
             },
-            didDrawPage: function (data) { yPos = data.cursor.y; } // Update yPos
+            didDrawPage: function (data) { yPos = data.cursor.y; }
         });
-        yPos = doc.lastAutoTable.finalY + 8;
+        return doc.lastAutoTable.finalY + 8;
+    }
 
-
-        // --- Deductions & Taxes Table ---
+    function drawDeductionsTable(doc, data, calculations, yPos) {
         const deductionsHeader = [['Description', 'Current Period', 'YTD']];
         const deductionsBody = [];
         deductionsBody.push(['Federal Income Tax', formatCurrency(calculations.currentPeriodAmounts.federalTax), formatCurrency(calculations.ytdAmounts.federalTax)]);
@@ -802,61 +812,55 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             didDrawPage: function (data) { yPos = data.cursor.y; }
         });
-        yPos = doc.lastAutoTable.finalY + 10;
+        return doc.lastAutoTable.finalY + 10;
+    }
 
-        // --- Summary Section ---
+    function drawSummary(doc, calculations, pageWidth, yPos) {
         doc.setFontSize(11);
         doc.setFont(undefined, 'bold');
-        const summaryX = pageWidth - 60; // Align to the right
-        doc.text("Gross Pay:", summaryX, yPos, {align: 'left'});
-        doc.text(formatCurrency(calculations.grossPay), pageWidth - 15, yPos, {align: 'right'});
+        const summaryX = pageWidth - 60;
+        doc.text('Gross Pay:', summaryX, yPos, { align: 'left' });
+        doc.text(formatCurrency(calculations.grossPay), pageWidth - 15, yPos, { align: 'right' });
         yPos += 7;
-        doc.text("Total Deductions:", summaryX, yPos, {align: 'left'});
-        doc.text(formatCurrency(calculations.totalDeductions), pageWidth - 15, yPos, {align: 'right'});
+        doc.text('Total Deductions:', summaryX, yPos, { align: 'left' });
+        doc.text(formatCurrency(calculations.totalDeductions), pageWidth - 15, yPos, { align: 'right' });
         yPos += 7;
-        doc.text("Net Pay:", summaryX, yPos, {align: 'left'});
-        doc.text(formatCurrency(calculations.netPay), pageWidth - 15, yPos, {align: 'right'});
-        yPos += 15;
+        doc.text('Net Pay:', summaryX, yPos, { align: 'left' });
+        doc.text(formatCurrency(calculations.netPay), pageWidth - 15, yPos, { align: 'right' });
+        return yPos + 15;
+    }
 
-        // --- Optional Payroll Provider Logo & Voided Check ---
-        let bottomContentY = pageHeight - 15; // Start from bottom for these elements
-
-        if (data.includeVoidedCheck && isPreviewMode) { // Only show voided check in preview mode as per current setup
-            // Placeholder for voided check - jsPDF doesn't directly render complex CSS mockups.
-            // This would require drawing lines/text or embedding an image of the check.
-            // For simplicity here, we'll just add a text placeholder.
+    function drawFooter(doc, data, pageHeight, pageWidth, isPreviewMode) {
+        const bottomContentY = pageHeight - 15;
+        if (data.includeVoidedCheck && isPreviewMode) {
             doc.setFontSize(8);
             doc.setTextColor(150, 150, 150);
-            doc.text("[Sample Voided Check Area - Appears in HTML Preview]", 15, bottomContentY - 20);
-            // In a real scenario, you might generate the voided check as an image and add it here.
+            doc.text('[Sample Voided Check Area - Appears in HTML Preview]', 15, bottomContentY - 20);
         }
-         if (data.payrollProviderLogoDataUrl) {
+        if (data.payrollProviderLogoDataUrl) {
             try {
                 const imgProps = doc.getImageProperties(data.payrollProviderLogoDataUrl);
                 const imgWidth = 25;
                 const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
                 doc.addImage(data.payrollProviderLogoDataUrl, 'PNG', 15, bottomContentY - imgHeight - 5, imgWidth, imgHeight);
-            } catch (e) { console.error("Error adding payroll provider logo to PDF:", e); }
+            } catch (e) { console.error('Error adding payroll provider logo to PDF:', e); }
         }
+    }
 
+    function drawWatermarks(doc, pageWidth, pageHeight) {
+        doc.setFontSize(50);
+        doc.setTextColor(200, 0, 0, 0.2);
+        doc.setFont(undefined, 'bold');
+        const centerX = pageWidth / 2;
+        const centerY = pageHeight / 2;
+        doc.text('PREVIEW', centerX, centerY, null, 45, 'center');
+        doc.text('SIMULATION ONLY', centerX, centerY + 20, null, 45, 'center');
 
-        // --- Watermarks & Disclaimer (if preview mode) ---
-        if (isPreviewMode) {
-            doc.setFontSize(50);
-            doc.setTextColor(200, 0, 0, 0.2); // Semi-transparent red for watermark
-            doc.setFont(undefined, 'bold');
-            // Diagonal watermark
-            const centerX = pageWidth / 2;
-            const centerY = pageHeight / 2;
-            doc.text("PREVIEW", centerX, centerY, null, 45, "center");
-            doc.text("SIMULATION ONLY", centerX, centerY + 20, null, 45, "center");
-
-            doc.setFontSize(8);
-            doc.setTextColor(128, 128, 128); // Gray for disclaimer
-            doc.setFont(undefined, 'normal');
-            const disclaimer = "For educational or entertainment purposes only. This is a simulated document.";
-            doc.text(disclaimer, pageWidth / 2, pageHeight - 10, { align: 'center' });
-        }
+        doc.setFontSize(8);
+        doc.setTextColor(128, 128, 128);
+        doc.setFont(undefined, 'normal');
+        const disclaimer = 'For educational or entertainment purposes only. This is a simulated document.';
+        doc.text(disclaimer, pageWidth / 2, pageHeight - 10, { align: 'center' });
     }
 
 

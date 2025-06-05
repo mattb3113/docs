@@ -78,6 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetAllFieldsBtn = document.getElementById('resetAllFields');
     const saveDraftBtn = document.getElementById('saveDraft');
     const loadDraftBtn = document.getElementById('loadDraft');
+    const loadDraftBtnV2 = document.getElementById('loadDraftBtn');
     const estimateDeductionsBtn = document.getElementById('estimateDeductions');
     const previewPdfWatermarkedBtn = document.getElementById('previewPdfWatermarked');
     const generateAndPayBtn = document.getElementById('generateAndPay');
@@ -163,6 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
     resetAllFieldsBtn.addEventListener('click', resetAllFormFields);
     saveDraftBtn.addEventListener('click', saveDraft);
     loadDraftBtn.addEventListener('click', loadDraft);
+    if (loadDraftBtnV2) loadDraftBtnV2.addEventListener('click', loadDraftFromLocalStorage);
     estimateDeductionsBtn.addEventListener('click', estimateAllDeductions);
     previewPdfWatermarkedBtn.addEventListener('click', () => generateAndDownloadPdf(true));
     generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
@@ -1092,6 +1094,70 @@ document.addEventListener('DOMContentLoaded', () => {
             payrollProviderLogoPreviewImg.src = '#';
             payrollProviderLogoPreviewImg.style.display = 'none';
             payrollProviderLogoPlaceholder.style.display = 'block';
+        }
+
+        toggleEmploymentFields();
+        updateHourlyPayFrequencyVisibility();
+        updateLivePreview();
+    }
+
+    function loadDraftFromLocalStorage() {
+        const draftStr = localStorage.getItem('buellDocsPaystubDraft_v2');
+        if (!draftStr) {
+            if (loadDraftBtnV2) {
+                const originalText = loadDraftBtnV2.textContent;
+                loadDraftBtnV2.textContent = 'No Draft Found';
+                setTimeout(() => {
+                    loadDraftBtnV2.textContent = originalText;
+                }, 1500);
+            } else {
+                showNotificationModal('No Draft Found', 'There is no saved draft to load.');
+            }
+            return;
+        }
+
+        let data;
+        try {
+            data = JSON.parse(draftStr);
+        } catch (e) {
+            console.error('Failed to parse draft', e);
+            showNotificationModal('Error', 'Failed to load saved draft.');
+            return;
+        }
+
+        for (const [key, value] of Object.entries(data)) {
+            const el = paystubForm.elements[key];
+            if (!el) continue;
+            if (el.type === 'radio') {
+                const radio = document.querySelector(`input[name="${key}"][value="${value}"]`);
+                if (radio) radio.checked = true;
+            } else if (el.type === 'checkbox') {
+                el.checked = !!value;
+            } else if (el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+                el.value = value;
+            } else if (el.type !== 'file') {
+                el.value = value;
+            }
+        }
+
+        if (data.companyLogoDataUrl) {
+            companyLogoPreviewImg.src = data.companyLogoDataUrl;
+            companyLogoPreviewImg.style.display = 'block';
+            if (companyLogoPlaceholder) companyLogoPlaceholder.style.display = 'none';
+        } else {
+            companyLogoPreviewImg.src = '#';
+            companyLogoPreviewImg.style.display = 'none';
+            if (companyLogoPlaceholder) companyLogoPlaceholder.style.display = 'block';
+        }
+
+        if (data.payrollProviderLogoDataUrl) {
+            payrollProviderLogoPreviewImg.src = data.payrollProviderLogoDataUrl;
+            payrollProviderLogoPreviewImg.style.display = 'block';
+            if (payrollProviderLogoPlaceholder) payrollProviderLogoPlaceholder.style.display = 'none';
+        } else {
+            payrollProviderLogoPreviewImg.src = '#';
+            payrollProviderLogoPreviewImg.style.display = 'none';
+            if (payrollProviderLogoPlaceholder) payrollProviderLogoPlaceholder.style.display = 'block';
         }
 
         toggleEmploymentFields();

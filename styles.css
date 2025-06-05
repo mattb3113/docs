@@ -801,6 +801,15 @@ input.invalid, select.invalid, textarea.invalid {
     font-style: italic;
 }
 
+#netIncomeAdjustmentNote {
+    color: var(--text-secondary);
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    padding: 6px 8px;
+    border-radius: var(--border-radius-sm);
+    margin-top: 5px;
+}
+
 /* -------------------- */
 /* --- RESPONSIVE DESIGN --- */
 /* -------------------- */

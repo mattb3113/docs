@@ -23,9 +23,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const desiredIncomeAmountInput = document.getElementById('desiredIncomeAmount');
     const desiredIncomePeriodSelect = document.getElementById('desiredIncomePeriod');
     const incomeRepresentationRadios = document.querySelectorAll('input[name="incomeRepresentationType"]');
+    const desiredIncomeTypeRadios = document.querySelectorAll('input[name="desiredIncomeType"]');
     const assumedHourlyHoursGroup = document.getElementById('assumedHourlyHoursGroup');
     const assumedHourlyRegularHoursInput = document.getElementById('assumedHourlyRegularHours');
     const isForNjEmploymentCheckbox = document.getElementById('isForNJEmployment');
+    const netIncomeAdjustmentNote = document.getElementById('netIncomeAdjustmentNote');
     const populateDetailsBtn = document.getElementById('populateDetailsBtn');
 
     function enablePopulateBtn() {
@@ -36,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     [desiredIncomeAmountInput, desiredIncomePeriodSelect, assumedHourlyRegularHoursInput,
-     isForNjEmploymentCheckbox, ...incomeRepresentationRadios].forEach(el => {
+     isForNjEmploymentCheckbox, ...incomeRepresentationRadios, ...desiredIncomeTypeRadios].forEach(el => {
         el.addEventListener('input', enablePopulateBtn);
         el.addEventListener('change', enablePopulateBtn);
     });
@@ -137,7 +139,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'Weekly': 52,
         'Bi-Weekly': 26,
         'Semi-Monthly': 24,
-        'Monthly': 12
+        'Monthly': 12,
+        'Annual': 1
     };
 
     const PRICING = {
@@ -361,7 +364,9 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let [key, value] of formData.entries()) {
             const inputElement = paystubForm.elements[key];
             if (inputElement) {
-                 if (inputElement.type === 'radio') {
+                if (inputElement instanceof RadioNodeList) {
+                    data[key] = value;
+                } else if (inputElement.type === 'radio') {
                     if (inputElement.checked) {
                         data[key] = value;
                     }
@@ -606,9 +611,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    function updateLivePreview() {
-        const data = gatherFormData();
-        const calculations = calculateCurrentPeriodPay(data); // For the base stub
+   function updateLivePreview() {
+       const data = gatherFormData();
+       const calculations = calculateCurrentPeriodPay(data); // For the base stub
+        if (netIncomeAdjustmentNote && netIncomeAdjustmentNote.textContent.trim() !== '') {
+            netIncomeAdjustmentNote.style.display = 'block';
+        }
 
         if (data.autoCalculateSocialSecurity) {
             socialSecurityAmountInput.value = calculations.currentPeriodAmounts.socialSecurity.toFixed(2);
@@ -1082,6 +1090,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function resetAllFormFields() {
         paystubForm.reset();
+        if (netIncomeAdjustmentNote) {
+            netIncomeAdjustmentNote.textContent = '';
+            netIncomeAdjustmentNote.style.display = 'none';
+        }
+        const grossRadio = document.getElementById('desiredIncomeTypeGross');
+        if (grossRadio) grossRadio.checked = true;
         // Reset logo previews
         [companyLogoPreviewImg, payrollProviderLogoPreviewImg].forEach(img => {
             img.src = '#';
@@ -1245,22 +1259,55 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function autoPopulateFromDesiredIncome() {
-        const amount = parseFloat(document.getElementById('desiredIncomeAmount').value);
-        const period = document.getElementById('desiredIncomePeriod').value;
-        const repType = document.getElementById('incomeRepresentationType').value;
-        const assumedHours = parseFloat(document.getElementById('assumedHourlyRegularHours').value) || 40;
-        const forNJ = document.getElementById('isForNJEmployment').checked;
+        const amount = parseFloat(desiredIncomeAmountInput.value);
+        const period = desiredIncomePeriodSelect.value;
+        const repType = document.querySelector('input[name="incomeRepresentationType"]:checked').value;
+        const desiredIncomeType = document.querySelector('input[name="desiredIncomeType"]:checked').value;
+        const assumedHours = parseFloat(assumedHourlyRegularHoursInput.value) || 40;
+        const forNJ = isForNjEmploymentCheckbox.checked;
+
+        if (netIncomeAdjustmentNote) {
+            netIncomeAdjustmentNote.textContent = '';
+            netIncomeAdjustmentNote.style.display = 'none';
+        }
 
         if (isNaN(amount) || amount <= 0) {
             showNotificationModal('Invalid Input', 'Desired income amount must be greater than 0.');
             return;
         }
 
-        const periodsMap = { ...PAY_PERIODS_PER_YEAR, 'Annual': 1, 'Hourly': PAY_PERIODS_PER_YEAR['Weekly'] };
+        const periodsMap = { ...PAY_PERIODS_PER_YEAR, 'Annual': 1 };
+        let grossIncomeForCalculations = amount;
+
+        if (desiredIncomeType === 'Net') {
+            const targetNetIncome = amount;
+            let estimatedGross = targetNetIncome / 0.7;
+            const payFreq = period;
+            const filingStatusEl = document.querySelector('input[name="federalFilingStatus"]:checked') || document.getElementById('federalFilingStatus');
+            const filingStatus = filingStatusEl ? filingStatusEl.value : 'Single';
+            const ytdGross = parseFloat(document.getElementById('initialYtdGrossPay').value) || 0;
+            const tolerance = Math.max(1, targetNetIncome * 0.005);
+            for (let i = 0; i < 15; i++) {
+                const gp = estimatedGross;
+                let totalD = estimateFederalTax(gp, payFreq, filingStatus) + estimateSocialSecurity(gp, ytdGross) + estimateMedicare(gp);
+                if (forNJ) {
+                    totalD += estimateNJStateTax(gp, payFreq, filingStatus) + estimateNJ_SDI(gp, payFreq) + estimateNJ_FLI(gp, payFreq) + estimateNJ_UIHCWF(gp, payFreq);
+                }
+                const net = gp - totalD;
+                const diff = net - targetNetIncome;
+                if (Math.abs(diff) <= tolerance) break;
+                estimatedGross -= diff * 0.5;
+                if (estimatedGross <= 0) { estimatedGross = gp; break; }
+            }
+            grossIncomeForCalculations = estimatedGross;
+            if (netIncomeAdjustmentNote) {
+                netIncomeAdjustmentNote.textContent = `To achieve your target net income of approximately ${formatCurrency(targetNetIncome)}, we've estimated a required gross income of ${formatCurrency(estimatedGross)} per ${period.toLowerCase()}. Paystub details below are based on this gross amount.`;
+                netIncomeAdjustmentNote.style.display = 'block';
+            }
+        }
+
         const periods = periodsMap[period] || 1;
-        const effectiveAnnualSalary = period === 'Hourly'
-            ? amount * assumedHours * PAY_PERIODS_PER_YEAR['Weekly']
-            : amount * periods;
+        const effectiveAnnualSalary = grossIncomeForCalculations * periods;
 
         let payFrequency = 'Bi-Weekly';
         let grossPayPerPeriod = 0;

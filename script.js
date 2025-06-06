@@ -72,12 +72,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const autoCalculateNjFliCheckbox = document.getElementById('autoCalculateNjFli');
     const autoCalculateNjUiCheckbox = document.getElementById('autoCalculateNjUi');
 
-    const estimateAllDeductionsBtn = document.getElementById('estimateAllDeductionsBtn');
 
     // New Federal Tax Elements
     const federalFilingStatusSelect = document.getElementById('federalFilingStatus');
-    const autoCalculateFederalTaxCheckbox = document.getElementById('autoCalculateFederalTax');
-    const federalTaxAmountInput = document.getElementById('federalTaxAmount');
 
     // Live Preview Elements
     const livePreviewContent = document.getElementById('paystubPreviewContent');
@@ -113,15 +110,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Buttons
-    const resetAllFieldsBtn = document.getElementById('resetAllFields');
-    const saveDraftBtn = document.getElementById('saveDraft');
-    const loadDraftBtn = document.getElementById('loadDraft');
-    const loadDraftBtnV2 = document.getElementById('loadDraftBtn');
-    const estimateDeductionsBtn = document.getElementById('estimateAllDeductionsBtn');
-    const estimateDeductionsBtn = document.getElementById('estimateDeductions');
+    const resetAllFieldsBtn = document.getElementById('resetAllFieldsBtn');
+    const saveDraftBtn = document.getElementById('saveDraftBtn');
+    const loadDraftBtn = document.getElementById('loadDraftBtn');
     const estimateAllDeductionsBtn = document.getElementById('estimateAllDeductionsBtn');
-    const previewPdfWatermarkedBtn = document.getElementById('previewPdfWatermarked');
-    const generateAndPayBtn = document.getElementById('generateAndPay');
+    const previewPdfWatermarkedBtn = document.getElementById('previewPdfWatermarkedBtn');
+    const generateAndPayBtn = document.getElementById('generateAndPayBtn');
     const copyKeyDataBtn = document.getElementById('copyKeyData');
     const sharePdfEmailLink = document.getElementById('sharePdfEmail');
     const sharePdfInstructions = document.getElementById('sharePdfInstructions');
@@ -233,6 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
         5: { price: 125.00, note: "$25 each - Bulk rate applied!" }
     };
     const SOCIAL_SECURITY_WAGE_LIMIT_2024 = 168600; // 2024 limit
+    const SOCIAL_SECURITY_RATE = 0.062;
     const MEDICARE_RATE = 0.0145;
     const FEDERAL_TAX_RATE = 0.12; // Simplified flat rate for estimation
     const STATE_TAX_RATE = 0.05;   // Simplified flat rate for estimation
@@ -310,8 +305,8 @@ document.addEventListener('DOMContentLoaded', () => {
     employmentTypeRadios.forEach(radio => radio.addEventListener('change', updateHourlyPayFrequencyVisibility));
     isForNjEmploymentCheckbox.addEventListener('change', handleNjEmploymentChange);
     if (autoCalculateFederalTaxCheckbox) autoCalculateFederalTaxCheckbox.addEventListener('change', updateAutoCalculatedFields);
-    if (autoCalculateSocialSecurityCheckbox) autoCalculateSocialSecurityCheckbox.addEventListener('change', updateAutoCalculatedFields);
-    if (autoCalculateMedicareCheckbox) autoCalculateMedicareCheckbox.addEventListener('change', updateAutoCalculatedFields);
+    if (autoCalculateSocialSecurityCheckbox) autoCalculateSocialSecurityCheckbox.addEventListener('change', handleSocialSecurityAutoCalcChange);
+    if (autoCalculateMedicareCheckbox) autoCalculateMedicareCheckbox.addEventListener('change', handleMedicareAutoCalcChange);
     if (autoCalculateNjSdiCheckbox) autoCalculateNjSdiCheckbox.addEventListener('change', updateAutoCalculatedFields);
     if (autoCalculateNjFliCheckbox) autoCalculateNjFliCheckbox.addEventListener('change', updateAutoCalculatedFields);
     if (autoCalculateNjUiCheckbox) autoCalculateNjUiCheckbox.addEventListener('change', updateAutoCalculatedFields);
@@ -367,14 +362,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Sidebar Button Actions
-    resetAllFieldsBtn.addEventListener('click', resetAllFormFields);
-    saveDraftBtn.addEventListener('click', saveDraftToLocalStorage);
-    loadDraftBtn.addEventListener('click', loadDraft);
-    if (loadDraftBtnV2) loadDraftBtnV2.addEventListener('click', loadDraftFromLocalStorage);
-    if (estimateDeductionsBtn) estimateDeductionsBtn.addEventListener('click', estimateAllStandardDeductions);
-    previewPdfWatermarkedBtn.addEventListener('click', () => generateAndDownloadPdf(true));
+    if (resetAllFieldsBtn) resetAllFieldsBtn.addEventListener('click', resetAllFormFields);
+    if (saveDraftBtn) saveDraftBtn.addEventListener('click', saveDraftToLocalStorage);
+    if (loadDraftBtn) loadDraftBtn.addEventListener('click', loadDraftFromLocalStorage);
+    if (estimateAllDeductionsBtn) estimateAllDeductionsBtn.addEventListener('click', estimateAllStandardDeductions);
+    if (previewPdfWatermarkedBtn) previewPdfWatermarkedBtn.addEventListener('click', handleWatermarkedPreview);
     if (copyKeyDataBtn) copyKeyDataBtn.addEventListener('click', copyKeyPaystubData);
-    generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
+    if (generateAndPayBtn) generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
 
     // Modal Interactions
     closePaymentModalBtn.addEventListener('click', () => paymentModal.style.display = 'none');
@@ -804,7 +798,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = gatherFormData();
         const numStubs = parseInt(numPaystubsSelect.value) || 1;
 
-        let displayDataForStub = { ...formData };
+        // Initialize running YTDs with any starting values from the form
         let runningYtdData = {
             grossPay: formData.initialYtdGrossPay,
             federalTax: formData.initialYtdFederalTax,
@@ -827,74 +821,45 @@ document.addEventListener('DOMContentLoaded', () => {
         if (formData.retirement401k > 0) runningYtdData.retirement401k = 0;
         if (formData.otherDeductionName) runningYtdData[formData.otherDeductionName] = 0;
 
-        const ssInput = document.getElementById('socialSecurityAmount');
-        const medicareInput = document.getElementById('medicareAmount');
-        const autoSs = document.getElementById('autoCalculateSocialSecurity').checked;
-        const autoMed = document.getElementById('autoCalculateMedicare').checked;
+        let currentPeriodStartDate = formData.payPeriodStartDate;
+        let currentPeriodEndDate = formData.payPeriodEndDate;
+        let currentPayDate = formData.payDate;
+        let calculations = calculateCurrentPeriodPay({
+            ...formData,
+            payPeriodStartDate: currentPeriodStartDate,
+            payPeriodEndDate: currentPeriodEndDate,
+            payDate: currentPayDate
+        }, runningYtdData);
+        runningYtdData = { ...calculations.ytdAmounts };
 
-        if(autoSs) {
-            ssInput.value = calculations.estimatedSocialSecurity.toFixed(2);
-            ssInput.readOnly = true;
-            ssInput.classList.add('auto-calc-readonly');
-        } else {
-            ssInput.readOnly = false;
-            ssInput.classList.remove('auto-calc-readonly');
-        }
+        // Iterate through stubs up to the one being previewed
+        for (let i = 1; i <= currentPreviewStubIndex; i++) {
+            const frequencyForDateCalc = formData.employmentType === 'Hourly'
+                ? hourlyPayFrequencySelect.value
+                : formData.salariedPayFrequency;
+            const nextPeriod = getNextPayPeriod(currentPeriodStartDate, currentPeriodEndDate, currentPayDate, frequencyForDateCalc);
+            currentPeriodStartDate = nextPeriod.startDate;
+            currentPeriodEndDate = nextPeriod.endDate;
+            currentPayDate = nextPeriod.payDate;
 
-        if(autoMed) {
-            medicareInput.value = calculations.estimatedMedicare.toFixed(2);
-            medicareInput.readOnly = true;
-            medicareInput.classList.add('auto-calc-readonly');
-        } else {
-            medicareInput.readOnly = false;
-            medicareInput.classList.remove('auto-calc-readonly');
-        }
-
-        if (data.autoCalculateFederalTax) {
-            federalTaxAmountInput.value = calculations.currentPeriodAmounts.federalTax.toFixed(2);
-            federalTaxAmountInput.readOnly = true;
-        } else {
-            federalTaxAmountInput.readOnly = false;
-        }
-
-        // Update stub indicator
-        const totalStubs = parseInt(numPaystubsSelect.value) || 1;
-        livePreviewStubIndicator.textContent = `(Previewing Base Stub: 1 of ${totalStubs})`;
-        livePreviewStubXofY.textContent = `Stub 1 of ${totalStubs}`;
-
-        for (let i = 0; i <= currentPreviewStubIndex; i++) {
-            displayDataForStub.payPeriodStartDate = currentPeriodStartDate;
-            displayDataForStub.payPeriodEndDate = currentPeriodEndDate;
-            displayDataForStub.payDate = currentPayDate;
-
-            calculations = calculateCurrentPeriodPay(displayDataForStub, runningYtdData);
+            calculations = calculateCurrentPeriodPay({
+                ...formData,
+                payPeriodStartDate: currentPeriodStartDate,
+                payPeriodEndDate: currentPeriodEndDate,
+                payDate: currentPayDate
+            }, runningYtdData);
             runningYtdData = { ...calculations.ytdAmounts };
-
-            if (i < currentPreviewStubIndex) {
-                const frequencyForDateCalc = formData.employmentType === 'Hourly' ? hourlyPayFrequencySelect.value : formData.salariedPayFrequency;
-                const nextPeriod = getNextPayPeriod(currentPeriodStartDate, currentPeriodEndDate, currentPayDate, frequencyForDateCalc);
-                currentPeriodStartDate = nextPeriod.startDate;
-                currentPeriodEndDate = nextPeriod.endDate;
-                currentPayDate = nextPeriod.payDate;
-            }
         }
 
-        if (currentPreviewStubIndex === 0) {
-            if (formData.autoCalculateSocialSecurity) {
-                socialSecurityAmountInput.value = calculations.currentPeriodAmounts.socialSecurity.toFixed(2);
-                socialSecurityAmountInput.readOnly = true;
-            } else {
-                socialSecurityAmountInput.readOnly = false;
-            }
-            if (formData.autoCalculateMedicare) {
-                medicareAmountInput.value = calculations.currentPeriodAmounts.medicare.toFixed(2);
-                medicareAmountInput.readOnly = true;
-            } else {
-                medicareAmountInput.readOnly = false;
-            }
-        }
-
-        const totalStubs = numStubs;
+        const displayDataForStub = {
+            ...formData,
+            payPeriodStartDate: currentPeriodStartDate,
+            payPeriodEndDate: currentPeriodEndDate,
+            payDate: currentPayDate
+        };
+        // Update stub indicator
+        livePreviewStubIndicator.textContent = `(Previewing Stub: ${currentPreviewStubIndex + 1} of ${numStubs})`;
+        livePreviewStubXofY.textContent = `Stub ${currentPreviewStubIndex + 1} of ${numStubs}`;
         livePreviewStubIndicator.textContent = `(Previewing Stub: ${currentPreviewStubIndex + 1} of ${totalStubs})`;
         livePreviewStubXofY.textContent = `Stub ${currentPreviewStubIndex + 1} of ${totalStubs}`;
 
@@ -1366,6 +1331,15 @@ document.addEventListener('DOMContentLoaded', () => {
         modalOrderSuccessMessageDiv.style.display = 'block';
     }
 
+    function handleWatermarkedPreview() {
+        const originalText = previewPdfWatermarkedBtn.textContent;
+        previewPdfWatermarkedBtn.textContent = 'Generating Preview...';
+        generateAndDownloadPdf(true);
+        setTimeout(() => {
+            previewPdfWatermarkedBtn.textContent = originalText;
+        }, 1500);
+    }
+
     function resetAllFormFields() {
         paystubForm.reset();
         if (sharePdfEmailLink) sharePdfEmailLink.style.display = 'none';
@@ -1392,6 +1366,11 @@ document.addEventListener('DOMContentLoaded', () => {
         updateHourlyPayFrequencyVisibility(); // And update conditional dropdown
         showFormStep(0);
         updateLivePreview(); // Refresh live preview
+        if (resetAllFieldsBtn) {
+            const originalText = resetAllFieldsBtn.textContent;
+            resetAllFieldsBtn.textContent = 'Form Cleared';
+            setTimeout(() => { resetAllFieldsBtn.textContent = originalText; }, 1500);
+        }
     }
 
     function saveDraft() {
@@ -1483,11 +1462,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadDraftFromLocalStorage() {
         const draftStr = localStorage.getItem('buellDocsPaystubDraft_v2');
         if (!draftStr) {
-            if (loadDraftBtnV2) {
-                const originalText = loadDraftBtnV2.textContent;
-                loadDraftBtnV2.textContent = 'No Draft Found';
+            if (loadDraftBtn) {
+                const originalText = loadDraftBtn.textContent;
+                loadDraftBtn.textContent = 'No Draft Found';
                 setTimeout(() => {
-                    loadDraftBtnV2.textContent = originalText;
+                    loadDraftBtn.textContent = originalText;
                 }, 1500);
             } else {
                 showNotificationModal('No Draft Found', 'There is no saved draft to load.');
@@ -1719,7 +1698,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateAutoCalculatedFields() {
         const data = gatherFormData();
         const calculations = calculateCurrentPeriodPay(data);
-        const grossPay = calculations.grossPay;
+        const gross = calculations.grossPay;
 
         const payFrequency = data.employmentType === 'Hourly'
             ? (hourlyPayFrequencySelect.value || 'Weekly')
@@ -1739,6 +1718,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const filingStatus = data.federalFilingStatus || data.filingStatus || 'Single';
         const gross = calculations.grossPay;
         const ytdGross = data.initialYtdGrossPay || 0;
+        const isForNJ = data.isForNJEmployment || false;
 
         if (autoCalculateFederalTaxCheckbox && autoCalculateFederalTaxCheckbox.checked) {
             const val = estimateFederalTax(gross, payFrequency, filingStatus);
@@ -1779,79 +1759,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (autoCalculateNjSdiCheckbox) {
                 njSdiAmountInput.readOnly = false;
                 njSdiAmountInput.classList.remove('auto-calculated-field');
-
-        const fedInput = document.getElementById('federalTaxAmount');
-        if (fedInput && typeof estimateFederalTax === 'function') {
-            const fed = estimateFederalTax(gross, payFrequency, filingStatus);
-            fedInput.value = fed.toFixed(2);
-            fedInput.readOnly = true;
-            fedInput.classList.add('auto-calculated-field');
-          
-            if (autoCalculateFederalTaxCheckbox) autoCalculateFederalTaxCheckbox.checked = true;
-        }
-
-        if (typeof estimateSocialSecurity === 'function') {
-            const ytdSS = parseFloat(document.getElementById('initialYtdSocialSecurity')?.value) || 0;
-            const ss = estimateSocialSecurity(grossPay, ytdSS);
-            socialSecurityAmountInput.value = ss.toFixed(2);
-            socialSecurityAmountInput.classList.add('auto-calculated-field');
-            socialSecurityAmountInput.readOnly = true;
-            const ssInput = document.getElementById('socialSecurityAmount');
-            if (ssInput) {
-                const ss = estimateSocialSecurity(gross, payFrequency);
-                ssInput.value = ss.toFixed(2);
-                ssInput.readOnly = true;
-                ssInput.classList.add('auto-calculated-field');
-            }
-            if (autoCalculateSocialSecurityCheckbox) autoCalculateSocialSecurityCheckbox.checked = true;
-        }
-
-        if (typeof estimateMedicare === 'function') {
-            const med = estimateMedicare(grossPay);
-            medicareAmountInput.value = med.toFixed(2);
-            medicareAmountInput.classList.add('auto-calculated-field');
-            medicareAmountInput.readOnly = true;
-            if (autoCalculateMedicareCheckbox) autoCalculateMedicareCheckbox.checked = true;
-        }
-
-        if (isForNJ) {
-            if (typeof estimateNJStateTax === 'function') {
-                const stateTax = estimateNJStateTax(grossPay, payFrequency, filingStatus);
-                const stateAmountInput = document.getElementById('stateTaxAmount');
-                const stateNameInput = document.getElementById('stateTaxName');
-                if (stateAmountInput) {
-                    stateAmountInput.value = stateTax.toFixed(2);
-                    stateAmountInput.classList.add('auto-calculated-field');
-                    stateAmountInput.readOnly = true;
-                }
-                if (stateNameInput && !stateNameInput.value) stateNameInput.value = 'NJ State Tax';
-            }
-
-            const sdiInput = document.getElementById('njSdiAmount');
-            if (sdiInput && typeof estimateNJ_SDI === 'function') {
-                sdiInput.value = estimateNJ_SDI(grossPay).toFixed(2);
-                sdiInput.classList.add('auto-calculated-field');
-                sdiInput.readOnly = true;
-            }
-
-            const fliInput = document.getElementById('njFliAmount');
-            if (fliInput && typeof estimateNJ_FLI === 'function') {
-                fliInput.value = estimateNJ_FLI(grossPay).toFixed(2);
-                fliInput.classList.add('auto-calculated-field');
-                fliInput.readOnly = true;
-            }
-
-            const uiInput = document.getElementById('njUiHcWfAmount');
-            if (uiInput && typeof estimateNJ_UIHCWF === 'function') {
-                uiInput.value = estimateNJ_UIHCWF(grossPay).toFixed(2);
-                uiInput.classList.add('auto-calculated-field');
-                uiInput.readOnly = true;
-            const medInput = document.getElementById('medicareAmount');
-            if (medInput) {
-                const med = estimateMedicare(gross);
-                medInput.value = med.toFixed(2);
-                medInput.readOnly = true;
-                medInput.classList.add('auto-calculated-field');
             }
 
             if (autoCalculateNjFliCheckbox && autoCalculateNjFliCheckbox.checked) {
@@ -1912,6 +1819,37 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAutoCalculatedFields();
     }
 
+    function handleSocialSecurityAutoCalcChange() {
+        if (autoCalculateSocialSecurityCheckbox.checked) {
+            const data = gatherFormData();
+            const gross = calculateCurrentPeriodPay(data).grossPay;
+            const ytd = parseFloat(document.getElementById('initialYtdSocialSecurity')?.value) || 0;
+            const val = estimateSocialSecurity(gross, ytd);
+            socialSecurityAmountInput.value = val.toFixed(2);
+            socialSecurityAmountInput.readOnly = true;
+            socialSecurityAmountInput.classList.add('auto-calculated-field');
+        } else {
+            socialSecurityAmountInput.readOnly = false;
+            socialSecurityAmountInput.classList.remove('auto-calculated-field');
+        }
+        updateLivePreview();
+    }
+
+    function handleMedicareAutoCalcChange() {
+        if (autoCalculateMedicareCheckbox.checked) {
+            const data = gatherFormData();
+            const gross = calculateCurrentPeriodPay(data).grossPay;
+            const val = estimateMedicare(gross);
+            medicareAmountInput.value = val.toFixed(2);
+            medicareAmountInput.readOnly = true;
+            medicareAmountInput.classList.add('auto-calculated-field');
+        } else {
+            medicareAmountInput.readOnly = false;
+            medicareAmountInput.classList.remove('auto-calculated-field');
+        }
+        updateLivePreview();
+    }
+
 
     // --- Validation Functions --- //
     function validateAllFormFields() {
@@ -1943,9 +1881,9 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage = 'Please enter a valid email address.';
         }
 
-        if (isValid && field.name === 'employeeSsn' && value && !/^\d{4}$/.test(value)) {
+        if (isValid && field.name === "employeeSsn" && value && !/^\d{3}-?\d{2}-?\d{4}$/.test(value)) {
             isValid = false;
-            errorMessage = 'Please enter the last 4 digits of the SSN.';
+            errorMessage = "Please enter a valid SSN (123-45-6789 or 123456789).";
         }
 
         if (isValid && field.type === 'number' && parseFloat(value) < 0) {
@@ -2225,5 +2163,6 @@ document.addEventListener('DOMContentLoaded', () => {
     showFormStep(0);
     if (sharePdfEmailLink) sharePdfEmailLink.style.display = 'none';
     if (sharePdfInstructions) sharePdfInstructions.style.display = 'none';
+    showStep(0);
 
 });

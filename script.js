@@ -427,29 +427,6 @@ document.addEventListener('DOMContentLoaded', () => {
     populateDetailsBtn.addEventListener('click', autoPopulateFromDesiredIncome);
 
     // --- Preview Navigation Helpers --- //
-    function updatePreviewNavButtons() {
-        const numStubs = parseInt(numPaystubsSelect.value) || 1;
-        if (previewNavControls) previewNavControls.style.display = numStubs > 1 ? 'block' : 'none';
-        if (prevStubBtn) prevStubBtn.disabled = currentPreviewStubIndex === 0;
-        if (nextStubBtn) nextStubBtn.disabled = currentPreviewStubIndex >= numStubs - 1;
-    }
-
-    function goToNextStub() {
-        const numStubs = parseInt(numPaystubsSelect.value) || 1;
-        if (currentPreviewStubIndex < numStubs - 1) {
-            currentPreviewStubIndex++;
-            updateLivePreview();
-        }
-        updatePreviewNavButtons();
-    }
-
-    function goToPreviousStub() {
-        if (currentPreviewStubIndex > 0) {
-            currentPreviewStubIndex--;
-            updateLivePreview();
-        }
-        updatePreviewNavButtons();
-    }
 
     // Update Hourly Pay Frequency Visibility and preview navigation when number of stubs changes
     numPaystubsSelect.addEventListener('change', () => {
@@ -459,9 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const numStubs = parseInt(numPaystubsSelect.value) || 1;
         if (previewNavControls) previewNavControls.style.display = numStubs > 1 ? 'block' : 'none';
         updatePreviewNavButtons(numStubs);
-
         updateLivePreview();
-        updatePreviewNavButtons();
     });
     // Also trigger on employment type change
     employmentTypeRadios.forEach(radio => radio.addEventListener('change', updateHourlyPayFrequencyVisibility));
@@ -516,18 +491,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (nextStubBtn && prevStubBtn) {
         nextStubBtn.addEventListener('click', showNextPreviewStub);
         prevStubBtn.addEventListener('click', showPreviousPreviewStub);
+    }
 
     const debouncedTotalsUpdate = debounce(updatePaystubTotals, 300);
     formInputs.forEach(input => {
         input.addEventListener('input', debouncedTotalsUpdate);
         input.addEventListener('change', debouncedTotalsUpdate);
     });
-
-    if (nextStubBtn && prevStubBtn) {
-        nextStubBtn.addEventListener('click', goToNextStub);
-        prevStubBtn.addEventListener('click', goToPreviousStub);
-
-    }
     // Initial preview update
     updateLivePreview();
     updatePaystubTotals();
@@ -1196,13 +1166,6 @@ document.addEventListener('DOMContentLoaded', () => {
             updateLivePreview();
         }
         updatePreviewNavButtons(numStubs);
-
-        updatePreviewNavButtons();
-
-        if (prevStubBtn && nextStubBtn) {
-            prevStubBtn.disabled = currentPreviewStubIndex === 0;
-            nextStubBtn.disabled = currentPreviewStubIndex >= numStubs - 1;
-        }
 
         // Ensure summary totals reflect latest input
         updatePayPreviewTotals();

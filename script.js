@@ -40,10 +40,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    [desiredIncomeAmountInput, desiredIncomePeriodSelect, assumedHourlyRegularHoursInput,
+    function clearNetIncomeAdjustmentNote() {
+        if (netIncomeAdjustmentNote) {
+            netIncomeAdjustmentNote.textContent = '';
+            netIncomeAdjustmentNote.style.display = 'none';
+        }
+    }
+
+[desiredIncomeAmountInput, desiredIncomePeriodSelect, assumedHourlyRegularHoursInput,
      isForNjEmploymentCheckbox, ...incomeRepresentationRadios, ...desiredIncomeTypeRadios].forEach(el => {
         el.addEventListener('input', enablePopulateBtn);
         el.addEventListener('change', enablePopulateBtn);
+    });
+
+    // Clear net-to-gross note only when the desired amount or type is altered
+    desiredIncomeAmountInput.addEventListener('input', clearNetIncomeAdjustmentNote);
+    desiredIncomeTypeRadios.forEach(radio => {
+        radio.addEventListener('change', clearNetIncomeAdjustmentNote);
     });
 
     // Logo Preview Elements

@@ -1772,6 +1772,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
+   function handleMainFormSubmit() {
     async function handleMainFormSubmit() {
         if (generateAndPayBtn) generateAndPayBtn.disabled = true;
         clearSummaryError();
@@ -1802,7 +1803,27 @@ document.addEventListener('DOMContentLoaded', () => {
             showNotificationModal('Payment Error', 'Unable to initiate payment.');
             if (generateAndPayBtn) generateAndPayBtn.disabled = false;
         }
-    }
+
+        const numStubs = parseInt(numPaystubsSelect.value);
+        const pricingInfo = PRICING[numStubs] || PRICING[1];
+        const formData = gatherFormData();
+
+        fetch('/api/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ formData, amount: pricingInfo.price })
+        })
+            .then(res => res.json())
+            .then(data => {
+                const stripe = Stripe(window.STRIPE_PUBLISHABLE_KEY);
+                return stripe.redirectToCheckout({ sessionId: data.sessionId });
+            })
+            .catch(err => {
+                console.error('Checkout error', err);
+                showNotificationModal('Error', 'Unable to initiate payment.');
+                if (generateAndPayBtn) generateAndPayBtn.disabled = false;
+            });
+   }
 
     // TODO (Future Backend): When a real backend is implemented, ensure all data submitted from the client (especially if it includes any sensitive form details beyond just TXID and email for manual processing) is transmitted over HTTPS and handled securely on the server according to best practices for data protection and encryption at rest.
     function handlePaymentConfirmationSubmit() {

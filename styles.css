@@ -163,6 +163,8 @@ label, input, select, textarea, button {
 /* -------------------- */
 .main-wrapper {
     display: flex;
+    align-items: flex-start;
+    gap: 30px;
     padding-top: var(--header-height); /* Account for fixed header */
     min-height: calc(100vh - var(--header-height));
 }
@@ -206,7 +208,8 @@ label, input, select, textarea, button {
 /* --- MAIN CONTENT --- */
 /* -------------------- */
 .main-content {
-    flex: 1;
+    flex: 1 1 0;
+    min-width: 0;
     padding: 40px;
     overflow-y: auto; /* Allows main content to scroll independently if needed */
 }
@@ -1002,6 +1005,16 @@ input.invalid, select.invalid, textarea.invalid {
     .main-content {
         padding: 20px;
     }
+    .main-wrapper {
+        flex-direction: column;
+        gap: 20px;
+    }
+    .sidebar {
+        width: 100%;
+        position: static;
+        height: auto;
+        margin-bottom: 20px;
+    }
     .app-header {
         padding: 12px 20px;
     }
@@ -1044,6 +1057,7 @@ input.invalid, select.invalid, textarea.invalid {
 
     .main-wrapper {
         flex-direction: column;
+        gap: 20px;
     }
     .sidebar {
         width: 100%;

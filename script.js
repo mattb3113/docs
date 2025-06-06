@@ -1539,16 +1539,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function saveDraft() {
-        const data = gatherFormData();
-        try {
-            localStorage.setItem('buellDocsPaystubDraft', JSON.stringify(data));
-            alert('Draft saved!');
-        } catch (e) {
-            console.error('Failed to save draft', e);
-        }
-    }
-
     // New draft save logic for v2
     function saveDraftToLocalStorage() {
         const data = gatherFormData();
@@ -1569,61 +1559,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.error('Failed to save draft', e);
         }
-    }
-
-    function loadDraft() {
-        const draftStr = localStorage.getItem('buellDocsPaystubDraft');
-        if (!draftStr) {
-            alert('No draft found.');
-            return;
-        }
-        let data;
-        try {
-            data = JSON.parse(draftStr);
-        } catch (e) {
-            console.error('Failed to parse draft', e);
-            return;
-        }
-
-        for (const [key, value] of Object.entries(data)) {
-            const el = paystubForm.elements[key];
-            if (!el) continue;
-            if (el.type === 'radio') {
-                const radio = document.querySelector(`input[name="${key}"][value="${value}"]`);
-                if (radio) radio.checked = true;
-            } else if (el.type === 'checkbox') {
-                el.checked = !!value;
-            } else if (el.tagName === 'SELECT') {
-                el.value = value;
-            } else if (el.type !== 'file') {
-                el.value = value;
-            }
-        }
-
-        if (data.companyLogoDataUrl) {
-            companyLogoPreviewImg.src = data.companyLogoDataUrl;
-            companyLogoPreviewImg.style.display = 'block';
-            companyLogoPlaceholder.style.display = 'none';
-        } else {
-            companyLogoPreviewImg.src = '#';
-            companyLogoPreviewImg.style.display = 'none';
-            companyLogoPlaceholder.style.display = 'block';
-        }
-
-        if (data.payrollProviderLogoDataUrl) {
-            payrollProviderLogoPreviewImg.src = data.payrollProviderLogoDataUrl;
-            payrollProviderLogoPreviewImg.style.display = 'block';
-            payrollProviderLogoPlaceholder.style.display = 'none';
-        } else {
-            payrollProviderLogoPreviewImg.src = '#';
-            payrollProviderLogoPreviewImg.style.display = 'none';
-            payrollProviderLogoPlaceholder.style.display = 'block';
-        }
-
-        toggleEmploymentFields();
-        updateHourlyPayFrequencyVisibility();
-        showFormStep(0);
-        updateLivePreview();
     }
 
     function loadDraftFromLocalStorage() {

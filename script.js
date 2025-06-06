@@ -12,6 +12,22 @@
 'use strict';
 
 const DEBUG_MODE = true;
+const PREVIEW_PLACEHOLDERS = {
+    companyName: "Your Company Name",
+    companyAddress1: "123 Main St",
+    companyCity: "Anytown",
+    companyState: "ST",
+    companyZip: "12345",
+    companyPhone: "Phone: (555) 123-4567",
+    companyEin: "EIN: XX-XXXXXXX",
+    employeeName: "Employee Name",
+    employeeAddress1: "456 Employee Ave",
+    employeeCity: "Workville",
+    employeeState: "ST",
+    employeeZip: "67890",
+    employeeSsn: "SSN: XXX-XX-1234",
+    date: "YYYY-MM-DD"
+};
 
 document.addEventListener('DOMContentLoaded', () => {
     if (DEBUG_MODE) console.log('Initialization sequence started');
@@ -1481,6 +1497,11 @@ document.addEventListener('DOMContentLoaded', () => {
         livePreviewStubXofY.textContent = `Stub ${currentPreviewStubIndex + 1} of ${numStubs}`;
 
         // Company Info
+        livePreviewCompanyName.textContent = displayDataForStub.companyName || PREVIEW_PLACEHOLDERS.companyName;
+        livePreviewCompanyAddress1.textContent = displayDataForStub.companyStreetAddress || PREVIEW_PLACEHOLDERS.companyAddress1;
+        livePreviewCompanyAddress2.textContent = `${displayDataForStub.companyCity || PREVIEW_PLACEHOLDERS.companyCity}, ${displayDataForStub.companyState || PREVIEW_PLACEHOLDERS.companyState} ${displayDataForStub.companyZip || PREVIEW_PLACEHOLDERS.companyZip}`;
+        livePreviewCompanyPhone.textContent = displayDataForStub.companyPhone ? `Phone: ${displayDataForStub.companyPhone}` : PREVIEW_PLACEHOLDERS.companyPhone;
+        livePreviewCompanyEin.textContent = displayDataForStub.companyEin ? `EIN: ${displayDataForStub.companyEin}` : PREVIEW_PLACEHOLDERS.companyEin;
         livePreviewCompanyName.textContent = displayDataForStub.companyName || defaults.companyName;
         livePreviewCompanyAddress1.textContent = displayDataForStub.companyStreetAddress || defaults.companyStreetAddress;
         livePreviewCompanyAddress2.textContent = `${displayDataForStub.companyCity || defaults.companyCity}, ${displayDataForStub.companyState || defaults.companyState} ${displayDataForStub.companyZip || defaults.companyZip}`;
@@ -1494,6 +1515,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Employee Info
+        livePreviewEmployeeName.textContent = displayDataForStub.employeeFullName || PREVIEW_PLACEHOLDERS.employeeName;
+        livePreviewEmployeeAddress1.textContent = displayDataForStub.employeeStreetAddress || PREVIEW_PLACEHOLDERS.employeeAddress1;
+        livePreviewEmployeeAddress2.textContent = `${displayDataForStub.employeeCity || PREVIEW_PLACEHOLDERS.employeeCity}, ${displayDataForStub.employeeState || PREVIEW_PLACEHOLDERS.employeeState} ${displayDataForStub.employeeZip || PREVIEW_PLACEHOLDERS.employeeZip}`;
+        livePreviewEmployeeSsn.textContent = displayDataForStub.employeeSsn ? `SSN: ${maskSSN(displayDataForStub.employeeSsn)}` : PREVIEW_PLACEHOLDERS.employeeSsn;
+
+        livePreviewPayPeriodStart.textContent = displayDataForStub.payPeriodStartDate || PREVIEW_PLACEHOLDERS.date;
+        livePreviewPayPeriodEnd.textContent = displayDataForStub.payPeriodEndDate || PREVIEW_PLACEHOLDERS.date;
+        livePreviewPayDate.textContent = displayDataForStub.payDate || PREVIEW_PLACEHOLDERS.date;
         livePreviewEmployeeName.textContent = displayDataForStub.employeeFullName || defaults.employeeFullName;
         livePreviewEmployeeAddress1.textContent = displayDataForStub.employeeStreetAddress || defaults.employeeStreetAddress;
         livePreviewEmployeeAddress2.textContent = `${displayDataForStub.employeeCity || defaults.employeeCity}, ${displayDataForStub.employeeState || defaults.employeeState} ${displayDataForStub.employeeZip || defaults.employeeZip}`;

@@ -1,14 +1,4 @@
 {
-  "name": "paystub-backend",
-  "version": "1.0.0",
-  "main": "index.js",
-  "type": "module",
-  "dependencies": {
-    "express": "^4.19.2",
-    "stripe": "^18.2.1",
-    "nodemailer": "^6.9.7",
-    "body-parser": "^1.20.2",
-    "dotenv": "^16.4.5"
   "name": "buelldocs-server",
   "version": "1.0.0",
   "description": "Server for BuellDocs with Stripe payment integration",

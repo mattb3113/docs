@@ -764,7 +764,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const debouncedPreview = debounce(updateLivePreview, 300);
     formInputs.forEach(input => {
         input.addEventListener('input', debouncedPreview);
-        input.addEventListener('change', debouncedPreview); // For selects, radios, checkboxes
+        if (input.tagName === 'SELECT' || input.type === 'checkbox' || input.type === 'radio') {
+            input.addEventListener('change', debouncedPreview);
+        }
         input.addEventListener('blur', () => validateField(input));
         input.addEventListener('input', () => {
             if (input.classList.contains('invalid')) {
@@ -2968,7 +2970,12 @@ document.addEventListener('DOMContentLoaded', () => {
     initStepNavigation();
     showActiveStep(0);
     const allFormInputs = document.querySelectorAll('#paystubForm input, #paystubForm select, #paystubForm textarea');
-    allFormInputs.forEach(inp => inp.addEventListener('input', updateLivePreview));
+    allFormInputs.forEach(inp => {
+        inp.addEventListener('input', debouncedPreview);
+        if (inp.tagName === 'SELECT' || inp.type === 'checkbox' || inp.type === 'radio') {
+            inp.addEventListener('change', debouncedPreview);
+        }
+    });
 
     const annualSalaryInput = document.getElementById('annualSalary');
     if (annualSalaryInput) {

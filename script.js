@@ -141,6 +141,82 @@ document.addEventListener('DOMContentLoaded', () => {
     const successNumStubsSpan = document.getElementById('successNumStubs');
     const successUserNotesSpan = document.getElementById('successUserNotes');
 
+    // Accessibility: Modal focus management
+    const focusableSelector = 'a[href], area[href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    let activeModal = null;
+    let lastFocusedElement = null;
+
+    function trapFocus(e) {
+        if (!activeModal) return;
+        const focusableEls = activeModal.querySelectorAll(focusableSelector);
+        if (e.key === 'Escape') {
+            if (activeModal === paymentModal) {
+                closePaymentModal();
+            } else if (activeModal === notificationModal) {
+                closeNotificationModal();
+            }
+        } else if (e.key === 'Tab') {
+            if (focusableEls.length === 0) return;
+            const first = focusableEls[0];
+            const last = focusableEls[focusableEls.length - 1];
+            if (e.shiftKey) {
+                if (document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                }
+            } else {
+                if (document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            }
+        }
+    }
+
+    function openModal(modal) {
+        lastFocusedElement = document.activeElement;
+        activeModal = modal;
+        modal.style.display = 'flex';
+        const focusableEls = modal.querySelectorAll(focusableSelector);
+        if (focusableEls.length) focusableEls[0].focus();
+        document.addEventListener('keydown', trapFocus);
+    }
+
+    function closeModal(modal) {
+        modal.style.display = 'none';
+        document.removeEventListener('keydown', trapFocus);
+        activeModal = null;
+        if (lastFocusedElement) {
+            lastFocusedElement.focus();
+            lastFocusedElement = null;
+        }
+    }
+
+    function openPaymentModal() {
+        paymentInstructionsDiv.style.display = 'block';
+        modalOrderSuccessMessageDiv.style.display = 'none';
+        openModal(paymentModal);
+    }
+
+    function closePaymentModal() {
+        const wasSuccess = modalOrderSuccessMessageDiv.style.display !== 'none';
+        closeModal(paymentModal);
+        if (wasSuccess) {
+            paymentInstructionsDiv.style.display = 'block';
+            modalOrderSuccessMessageDiv.style.display = 'none';
+            cashAppTxIdInput.value = '';
+            clearError(cashAppTxIdInput);
+        }
+    }
+
+    function openNotificationModal() {
+        openModal(notificationModal);
+    }
+
+    function closeNotificationModal() {
+        closeModal(notificationModal);
+    }
+
     // Multi-step form setup (v2)
     let currentFormStep = 0;
     const formSteps = Array.from(document.querySelectorAll('.form-step'));
@@ -371,25 +447,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (generateAndPayBtn) generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
 
     // Modal Interactions
-    closePaymentModalBtn.addEventListener('click', () => paymentModal.style.display = 'none');
-    closeSuccessMessageBtn.addEventListener('click', () => {
-        paymentModal.style.display = 'none';
-        // Reset modal to initial state for next time
-        paymentInstructionsDiv.style.display = 'block';
-        modalOrderSuccessMessageDiv.style.display = 'none';
-        cashAppTxIdInput.value = '';
-        clearError(cashAppTxIdInput);
-    });
+    closePaymentModalBtn.addEventListener('click', closePaymentModal);
+    closeSuccessMessageBtn.addEventListener('click', closePaymentModal);
     confirmPaymentBtn.addEventListener('click', handlePaymentConfirmationSubmit);
 
-    closeNotificationModalBtn.addEventListener("click", () => notificationModal.style.display = "none");
+    closeNotificationModalBtn.addEventListener("click", closeNotificationModal);
     // Close modal if clicked outside of modal-content
     window.addEventListener('click', (event) => {
         if (event.target === paymentModal) {
-            paymentModal.style.display = 'none';
+            closePaymentModal();
         }
         if (event.target === notificationModal) {
-            notificationModal.style.display = 'none';
+            closeNotificationModal();
         }
     });
     // --- Core Logic Functions --- //
@@ -1300,9 +1369,7 @@ document.addEventListener('DOMContentLoaded', () => {
             totalPaymentAmountSpan.textContent = formatCurrency(pricingInfo.price);
             paymentDiscountNoteSpan.textContent = pricingInfo.note;
 
-            paymentModal.style.display = 'flex'; // Use flex for centering
-            paymentInstructionsDiv.style.display = 'block';
-            modalOrderSuccessMessageDiv.style.display = 'none';
+            openPaymentModal();
         } else {
             showSummaryError('Please review the highlighted fields below.');
             const firstError = paystubForm.querySelector('.invalid');
@@ -2143,7 +2210,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function showNotificationModal(title, message) {
         notificationModalTitle.textContent = title;
         notificationModalMessage.textContent = message;
-        notificationModal.style.display = "flex";
+        openNotificationModal();
     }
 
 

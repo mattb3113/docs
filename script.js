@@ -412,8 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPreviewStubIndex = 0;
         const numStubs = parseInt(numPaystubsSelect.value) || 1;
         if (previewNavControls) previewNavControls.style.display = numStubs > 1 ? 'block' : 'none';
-        if (prevStubBtn) prevStubBtn.disabled = true;
-        if (nextStubBtn) nextStubBtn.disabled = numStubs <= 1;
+        updatePreviewNavButtons(numStubs);
         updateLivePreview();
     });
     // Also trigger on employment type change
@@ -466,33 +465,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (nextStubBtn && prevStubBtn) {
-        nextStubBtn.addEventListener('click', () => {
-            const numStubs = parseInt(numPaystubsSelect.value) || 1;
-            if (currentPreviewStubIndex < numStubs - 1) {
-                currentPreviewStubIndex++;
-                updateLivePreview();
-            }
-            prevStubBtn.disabled = currentPreviewStubIndex === 0;
-            nextStubBtn.disabled = currentPreviewStubIndex >= numStubs - 1;
-        });
-
-        prevStubBtn.addEventListener('click', () => {
-            const numStubs = parseInt(numPaystubsSelect.value) || 1;
-            if (currentPreviewStubIndex > 0) {
-                currentPreviewStubIndex--;
-                updateLivePreview();
-            }
-            prevStubBtn.disabled = currentPreviewStubIndex === 0;
-            nextStubBtn.disabled = currentPreviewStubIndex >= numStubs - 1;
-        });
+        nextStubBtn.addEventListener('click', showNextPreviewStub);
+        prevStubBtn.addEventListener('click', showPreviousPreviewStub);
     }
     // Initial preview update
     updateLivePreview();
 
     const initialNumStubs = parseInt(numPaystubsSelect.value) || 1;
     if (previewNavControls) previewNavControls.style.display = initialNumStubs > 1 ? 'block' : 'none';
-    if (prevStubBtn) prevStubBtn.disabled = true;
-    if (nextStubBtn) nextStubBtn.disabled = initialNumStubs <= 1;
+    updatePreviewNavButtons(initialNumStubs);
 
 
     // Sidebar Button Actions
@@ -1085,10 +1066,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         livePreviewVoidedCheckContainer.style.display = displayDataForStub.includeVoidedCheck ? 'block' : 'none';
 
-        if (prevStubBtn && nextStubBtn) {
-            prevStubBtn.disabled = currentPreviewStubIndex === 0;
-            nextStubBtn.disabled = currentPreviewStubIndex >= numStubs - 1;
+
+        updatePreviewNavButtons(numStubs);
+    }
+
+    function updatePreviewNavButtons(numStubs = parseInt(numPaystubsSelect.value) || 1) {
+        if (!prevStubBtn || !nextStubBtn) return;
+        prevStubBtn.disabled = currentPreviewStubIndex === 0;
+        nextStubBtn.disabled = currentPreviewStubIndex >= numStubs - 1;
+    }
+
+    function showNextPreviewStub() {
+        const numStubs = parseInt(numPaystubsSelect.value) || 1;
+        if (currentPreviewStubIndex < numStubs - 1) {
+            currentPreviewStubIndex++;
+            updateLivePreview();
         }
+        updatePreviewNavButtons(numStubs);
+    }
+
+    function showPreviousPreviewStub() {
+        const numStubs = parseInt(numPaystubsSelect.value) || 1;
+        if (currentPreviewStubIndex > 0) {
+            currentPreviewStubIndex--;
+            updateLivePreview();
+        }
+        updatePreviewNavButtons(numStubs);
     }
 
     function addEarningRow(description, hours, rate, current, ytd) {

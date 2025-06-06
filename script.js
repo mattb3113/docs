@@ -120,6 +120,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const sharePdfEmailLink = document.getElementById('sharePdfEmail');
     const sharePdfInstructions = document.getElementById('sharePdfInstructions');
 
+    // Ensure tooltip text is accessible to screen readers
+    document.querySelectorAll('.tooltip-icon[data-tooltip]').forEach((icon, idx) => {
+        if (!icon.hasAttribute('aria-describedby')) {
+            const tooltipId = `tooltipText${idx}`;
+            const hiddenSpan = document.createElement('span');
+            hiddenSpan.id = tooltipId;
+            hiddenSpan.className = 'visually-hidden';
+            hiddenSpan.textContent = icon.getAttribute('data-tooltip');
+            icon.setAttribute('aria-describedby', tooltipId);
+            icon.after(hiddenSpan);
+        }
+    });
+
     // Modal Elements
     const paymentModal = document.getElementById('paymentModal');
     const closePaymentModalBtn = document.getElementById('closePaymentModalBtn');

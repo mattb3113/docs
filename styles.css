@@ -377,6 +377,60 @@ input.auto-calc-readonly[readonly] {
     margin-left: 2px;
 }
 
+/* Tooltip icon for help messages */
+.tooltip-icon {
+    color: var(--accent-gold);
+    margin-left: 4px;
+    cursor: help;
+    position: relative;
+    display: inline-block;
+    font-size: 0.9em;
+}
+.tooltip-icon:focus {
+    outline: 2px solid var(--accent-gold);
+    outline-offset: 2px;
+}
+.tooltip-icon::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--accent-gold);
+    padding: 6px 8px;
+    border-radius: var(--border-radius-sm);
+    white-space: nowrap;
+    font-size: 12px;
+    opacity: 0;
+    visibility: hidden;
+    z-index: 1000;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+.tooltip-icon::before {
+    content: '';
+    position: absolute;
+    bottom: 115%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: var(--bg-tertiary) transparent transparent transparent;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease;
+    z-index: 1000;
+}
+.tooltip-icon:hover::after,
+.tooltip-icon:focus::after,
+.tooltip-icon:hover::before,
+.tooltip-icon:focus::before {
+    opacity: 1;
+    visibility: visible;
+}
+
 .error-message {
     display: block;
     color: var(--error-color);

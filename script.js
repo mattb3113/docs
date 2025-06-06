@@ -84,6 +84,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const autoCalculateNjSdiCheckbox = document.getElementById('autoCalculateNjSdi');
     const autoCalculateNjFliCheckbox = document.getElementById('autoCalculateNjFli');
     const autoCalculateNjUiCheckbox = document.getElementById('autoCalculateNjUi');
+    function createDeductionRow(name = "", amount = 0) {
+        const row = document.createElement("div");
+        row.className = "deduction-row grid-col-2";
+        row.innerHTML = `<div class="form-group"><label>Description</label><input type="text" name="otherDeductionName[]" class="deduction-name" value="${name}"></div><div class="form-group"><label>Amount</label><input type="number" name="otherDeductionAmount[]" class="deduction-amount amount-input" step="0.01" min="0" value="${amount}"></div><button type="button" class="btn btn-secondary btn-sm remove-deduction-btn">Remove</button>`;
+        row.querySelector(".remove-deduction-btn").addEventListener("click", () => { row.remove(); updateLivePreview(); });
+        row.querySelectorAll("input").forEach(inp => inp.addEventListener("input", updateLivePreview));
+        return row;
+    }
+    function addCustomDeductionRow(name = "", amount = 0) {
+        if (!customDeductionsContainer) return;
+        const row = createDeductionRow(name, amount);
+        customDeductionsContainer.appendChild(row);
+    }
+    if (customDeductionsContainer) addCustomDeductionRow();
+    if (addDeductionBtn) addDeductionBtn.addEventListener("click", () => addCustomDeductionRow());
 
 
     // New Federal Tax Elements
@@ -746,6 +761,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // Gather dynamic other deductions
+        const otherNames = formData.getAll('otherDeductionName[]');
+        const otherAmounts = formData.getAll('otherDeductionAmount[]');
+        data.otherDeductions = otherNames.map((n, idx) => ({
+            description: n.trim(),
+            amount: parseFloat(otherAmounts[idx]) || 0
+        })).filter(d => d.description || d.amount);
+
         // Add logo data if available
         data.companyLogoDataUrl = companyLogoPreviewImg.style.display !== 'none' ? companyLogoPreviewImg.src : null;
         data.payrollProviderLogoDataUrl = payrollProviderLogoPreviewImg.style.display !== 'none' ? payrollProviderLogoPreviewImg.src : null;
@@ -755,7 +778,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'hourlyRate', 'regularHours', 'overtimeHours', 'annualSalary', 'bonus', 'miscEarningAmount',
             'federalTaxAmount', 'stateTaxAmount', 'socialSecurityAmount', 'medicareAmount',
             'njSdiAmount', 'njFliAmount', 'njUiHcWfAmount',
-            'healthInsurance', 'retirement401k', 'otherDeductionAmount',
+            'healthInsurance', 'retirement401k',
             'initialYtdGrossPay', 'initialYtdFederalTax', 'initialYtdStateTax',
             'initialYtdSocialSecurity', 'initialYtdMedicare', 'initialYtdNjSdi',
             'initialYtdNjFli', 'initialYtdNjUiHcWf'
@@ -792,9 +815,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function calculateTotalDeductions(data) {
         const fields = [
             'federalTaxAmount','stateTaxAmount','socialSecurityAmount','medicareAmount',
-            'njSdiAmount','njFliAmount','njUiHcWfAmount','healthInsurance','retirement401k','otherDeductionAmount'
+            'njSdiAmount','njFliAmount','njUiHcWfAmount','healthInsurance','retirement401k'
         ];
-        return fields.reduce((sum, f) => sum + (parseFloat(data[f]) || 0), 0);
+        let sum = fields.reduce((acc, f) => acc + (parseFloat(data[f]) || 0), 0);
+        if (Array.isArray(data.otherDeductions)) {
+            sum += data.otherDeductions.reduce((a, d) => a + (parseFloat(d.amount) || 0), 0);
+        }
+        return sum;
     }
 
     function calculateNetPay(data) {
@@ -895,11 +922,21 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Calculate Total Other Deductions for Period ---
         results.totalOtherDeductions += (data.healthInsurance || 0);
         results.totalOtherDeductions += (data.retirement401k || 0);
-        results.totalOtherDeductions += (data.otherDeductionAmount || 0);
+        if (Array.isArray(data.otherDeductions)) {
+            data.otherDeductions.forEach(d => {
+                results.totalOtherDeductions += d.amount || 0;
+            });
+        }
 
         if(data.healthInsurance > 0) results.currentPeriodAmounts.healthInsurance = data.healthInsurance;
         if(data.retirement401k > 0) results.currentPeriodAmounts.retirement401k = data.retirement401k;
-        if(data.otherDeductionAmount > 0 && data.otherDeductionName) results.currentPeriodAmounts[data.otherDeductionName || 'otherDeduction'] = data.otherDeductionAmount;
+        if (Array.isArray(data.otherDeductions)) {
+            data.otherDeductions.forEach(d => {
+                if (d.amount > 0 && d.description) {
+                    results.currentPeriodAmounts[d.description] = d.amount;
+                }
+            });
+        }
 
 
         // --- Total Deductions & Net Pay ---
@@ -923,10 +960,14 @@ document.addEventListener('DOMContentLoaded', () => {
             miscEarning: 0,
             // Add other deduction YTDs if they were inputted as initial YTD
         };
-        if(initialYtdData && data.otherDeductionName && initialYtdData[data.otherDeductionName]) {
-            ytdBase[data.otherDeductionName] = initialYtdData[data.otherDeductionName];
-        } else if (data.otherDeductionName) {
-             ytdBase[data.otherDeductionName] = 0; // Default to 0 if not in initialYtdData
+        if (Array.isArray(data.otherDeductions)) {
+            data.otherDeductions.forEach(d => {
+                if (initialYtdData && initialYtdData[d.description] != null) {
+                    ytdBase[d.description] = initialYtdData[d.description];
+                } else {
+                    ytdBase[d.description] = 0;
+                }
+            });
         }
         if(initialYtdData && data.miscEarningName && initialYtdData[data.miscEarningName]) {
              ytdBase[data.miscEarningName] = initialYtdData[data.miscEarningName];
@@ -960,8 +1001,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if(results.currentPeriodAmounts.healthInsurance) results.ytdAmounts.healthInsurance = (ytdBase.healthInsurance || 0) + results.currentPeriodAmounts.healthInsurance;
         if(results.currentPeriodAmounts.retirement401k) results.ytdAmounts.retirement401k = (ytdBase.retirement401k || 0) + results.currentPeriodAmounts.retirement401k;
         
-        if(data.otherDeductionName && results.currentPeriodAmounts[data.otherDeductionName]) {
-            results.ytdAmounts[data.otherDeductionName] = (ytdBase[data.otherDeductionName] || 0) + results.currentPeriodAmounts[data.otherDeductionName];
+        if (Array.isArray(data.otherDeductions)) {
+            data.otherDeductions.forEach(d => {
+                if (results.currentPeriodAmounts[d.description]) {
+                    results.ytdAmounts[d.description] = (ytdBase[d.description] || 0) + results.currentPeriodAmounts[d.description];
+                }
+            });
         }
 
 
@@ -1064,7 +1109,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (formData.miscEarningName) runningYtdData[formData.miscEarningName] = 0;
         if (formData.healthInsurance > 0) runningYtdData.healthInsurance = 0;
         if (formData.retirement401k > 0) runningYtdData.retirement401k = 0;
-        if (formData.otherDeductionName) runningYtdData[formData.otherDeductionName] = 0;
+        if (Array.isArray(formData.otherDeductions)) {
+            formData.otherDeductions.forEach(d => {
+                if (d.description) runningYtdData[d.description] = 0;
+            });
+        }
 
         let currentPeriodStartDate = formData.payPeriodStartDate;
         let currentPeriodEndDate = formData.payPeriodEndDate;
@@ -1160,8 +1209,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (displayDataForStub.njUiHcWfAmount > 0) addDeductionRow('NJ UI/HC/WF', calculations.currentPeriodAmounts.njUiHcWf, calculations.ytdAmounts.njUiHcWf);
         if (displayDataForStub.healthInsurance > 0) addDeductionRow('Health Insurance', calculations.currentPeriodAmounts.healthInsurance, calculations.ytdAmounts.healthInsurance);
         if (displayDataForStub.retirement401k > 0) addDeductionRow('Retirement (401k)', calculations.currentPeriodAmounts.retirement401k, calculations.ytdAmounts.retirement401k);
-        if (displayDataForStub.otherDeductionAmount > 0 && displayDataForStub.otherDeductionName) {
-            addDeductionRow(displayDataForStub.otherDeductionName, calculations.currentPeriodAmounts[displayDataForStub.otherDeductionName], calculations.ytdAmounts[displayDataForStub.otherDeductionName]);
+        if (Array.isArray(displayDataForStub.otherDeductions)) {
+            displayDataForStub.otherDeductions.forEach(d => {
+                if (d.amount > 0 && d.description) {
+                    addDeductionRow(d.description, calculations.currentPeriodAmounts[d.description], calculations.ytdAmounts[d.description]);
+                }
+            });
         }
 
         livePreviewGrossPay.textContent = formatCurrency(calculations.grossPay);
@@ -1301,7 +1354,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if(formData.miscEarningName) runningYtdData[formData.miscEarningName] = 0;
         if(formData.healthInsurance > 0) runningYtdData.healthInsurance = 0;
         if(formData.retirement401k > 0) runningYtdData.retirement401k = 0;
-        if(formData.otherDeductionName) runningYtdData[formData.otherDeductionName] = 0;
+        if (Array.isArray(formData.otherDeductions)) {
+            formData.otherDeductions.forEach(d => {
+                if (d.description) runningYtdData[d.description] = 0;
+            });
+        }
 
 
         let currentPeriodStartDate = formData.payPeriodStartDate;
@@ -1543,8 +1600,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.njUiHcWfAmount > 0) deductionsBody.push(['NJ UI/HC/WF', formatCurrency(calculations.currentPeriodAmounts.njUiHcWf), formatCurrency(calculations.ytdAmounts.njUiHcWf)]);
         if (data.healthInsurance > 0) deductionsBody.push(['Health Insurance', formatCurrency(calculations.currentPeriodAmounts.healthInsurance), formatCurrency(calculations.ytdAmounts.healthInsurance)]);
         if (data.retirement401k > 0) deductionsBody.push(['Retirement (401k)', formatCurrency(calculations.currentPeriodAmounts.retirement401k), formatCurrency(calculations.ytdAmounts.retirement401k)]);
-        if (data.otherDeductionAmount > 0 && data.otherDeductionName) {
-            deductionsBody.push([data.otherDeductionName, formatCurrency(calculations.currentPeriodAmounts[data.otherDeductionName]), formatCurrency(calculations.ytdAmounts[data.otherDeductionName])]);
+        if (Array.isArray(data.otherDeductions)) {
+            data.otherDeductions.forEach(d => {
+                if (d.amount > 0 && d.description) {
+                    deductionsBody.push([d.description, formatCurrency(calculations.currentPeriodAmounts[d.description]), formatCurrency(calculations.ytdAmounts[d.description])]);
+                }
+            });
         }
 
         doc.autoTable({
@@ -1711,6 +1772,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
         clearSummaryError();
 
+        if (customDeductionsContainer) {
+            customDeductionsContainer.innerHTML = '';
+            addCustomDeductionRow();
+        }
+
         toggleEmploymentFields(); // Ensure correct fields are shown based on default radio
         updateHourlyPayFrequencyVisibility(); // And update conditional dropdown
         showFormStep(0);
@@ -1780,6 +1846,12 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (el.type !== 'file') {
                 el.value = value;
             }
+        }
+        if (customDeductionsContainer) {
+            customDeductionsContainer.innerHTML = '';
+            const dedArr = Array.isArray(data.otherDeductions) ? data.otherDeductions : [];
+            if (dedArr.length === 0) addCustomDeductionRow();
+            else dedArr.forEach(d => addCustomDeductionRow(d.description, d.amount));
         }
 
         if (data.companyLogoDataUrl) {
@@ -2171,20 +2243,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        const otherDeductionAmount = parseFloat(document.getElementById('otherDeductionAmount').value);
-        const otherDeductionNameInput = document.getElementById('otherDeductionName');
-        if (otherDeductionNameInput) {
-            if (!isNaN(otherDeductionAmount) && otherDeductionAmount > 0) {
-                if (!otherDeductionNameInput.value.trim()) {
-                    showError(otherDeductionNameInput, 'Name required if amount is entered.');
+        const deductionRows = customDeductionsContainer ? customDeductionsContainer.querySelectorAll('.deduction-row') : [];
+        deductionRows.forEach(row => {
+            const amountInput = row.querySelector('input[name="otherDeductionAmount[]"]');
+            const nameInput = row.querySelector('input[name="otherDeductionName[]"]');
+            const amount = parseFloat(amountInput.value);
+            if (!isNaN(amount) && amount > 0) {
+                if (!nameInput.value.trim()) {
+                    showError(nameInput, 'Name required if amount is entered.');
                     isValid = false;
                 } else {
-                    clearError(otherDeductionNameInput);
+                    clearError(nameInput);
                 }
             } else {
-                clearError(otherDeductionNameInput);
+                clearError(nameInput);
             }
-        }
+        });
 
         const miscEarningAmount = parseFloat(document.getElementById('miscEarningAmount').value);
         const miscEarningNameInput = document.getElementById('miscEarningName');

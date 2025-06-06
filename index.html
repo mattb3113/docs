@@ -461,18 +461,8 @@
                             <span class="error-message" id="retirement401kError"></span>
                         </div>
                     </div>
-                    <div class="grid-col-2">
-                        <div class="form-group">
-                            <label for="otherDeductionName">Other Deduction Name</label>
-                            <input type="text" id="otherDeductionName" name="otherDeductionName" placeholder="e.g., Union Dues" aria-describedby="otherDeductionNameError">
-                            <span class="error-message" id="otherDeductionNameError"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="otherDeductionAmount">Other Deduction Amount</label>
-                            <input type="number" id="otherDeductionAmount" name="otherDeductionAmount" step="0.01" min="0" value="0" aria-describedby="otherDeductionAmountError">
-                            <span class="error-message" id="otherDeductionAmountError"></span>
-                        </div>
-                    </div>
+                    <div id="customDeductionsContainer" class="custom-deductions"></div>
+                    <button type="button" id="addDeductionBtn" class="btn btn-secondary btn-sm">Add Deduction</button>
                 </section>
 
                 <!-- Initial Year-to-Date (YTD) Figures -->

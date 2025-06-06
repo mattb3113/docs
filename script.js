@@ -1619,25 +1619,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    function handleMainFormSubmit() {
+   function handleMainFormSubmit() {
         if (generateAndPayBtn) generateAndPayBtn.disabled = true;
         clearSummaryError();
-        if (validateAllFormFields()) {
-            // Update dynamic pricing in modal
-            const numStubs = parseInt(numPaystubsSelect.value);
-            const pricingInfo = PRICING[numStubs] || PRICING[1];
-            totalPaymentAmountSpan.textContent = formatCurrency(pricingInfo.price);
-            paymentDiscountNoteSpan.textContent = pricingInfo.note;
-
-            openPaymentModal();
-        } else {
+        if (!validateAllFormFields()) {
             showSummaryError('Please review the highlighted fields below.');
             const firstError = paystubForm.querySelector('.invalid');
             if (firstError) firstError.focus();
             showNotificationModal('Validation Error', 'Please correct the errors in the form.');
             if (generateAndPayBtn) generateAndPayBtn.disabled = false;
+            return;
         }
-    }
+
+        const numStubs = parseInt(numPaystubsSelect.value);
+        const pricingInfo = PRICING[numStubs] || PRICING[1];
+        const formData = gatherFormData();
+
+        fetch('/api/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ formData, amount: pricingInfo.price })
+        })
+            .then(res => res.json())
+            .then(data => {
+                const stripe = Stripe(window.STRIPE_PUBLISHABLE_KEY);
+                return stripe.redirectToCheckout({ sessionId: data.sessionId });
+            })
+            .catch(err => {
+                console.error('Checkout error', err);
+                showNotificationModal('Error', 'Unable to initiate payment.');
+                if (generateAndPayBtn) generateAndPayBtn.disabled = false;
+            });
+   }
 
     // TODO (Future Backend): When a real backend is implemented, ensure all data submitted from the client (especially if it includes any sensitive form details beyond just TXID and email for manual processing) is transmitted over HTTPS and handled securely on the server according to best practices for data protection and encryption at rest.
     function handlePaymentConfirmationSubmit() {

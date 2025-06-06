@@ -371,6 +371,48 @@ document.addEventListener('DOMContentLoaded', () => {
         stepTitles.push(heading ? heading.textContent.trim() : `Step ${idx + 1}`);
     });
 
+    let currentStepIndex = 0;
+
+    function showActiveStep(index) {
+        if (index < 0 || index >= formSteps.length) return;
+        currentStepIndex = index;
+        formSteps.forEach((step, i) => {
+            step.style.display = i === index ? 'block' : 'none';
+            step.classList.toggle('active', i === index);
+        });
+        progressSteps.forEach((el, i) => {
+            el.classList.toggle('active', i === index);
+            el.classList.toggle('completed', i < index);
+        });
+        updateProgressIndicator(index + 1);
+        updateLivePreview();
+    }
+
+    function validateStepInputs(index) {
+        const stepEl = formSteps[index];
+        if (!stepEl) return true;
+        let valid = true;
+        stepEl.querySelectorAll('input, select, textarea').forEach(inp => {
+            if (!validateField(inp)) valid = false;
+        });
+        return valid;
+    }
+
+    function initStepNavigation() {
+        document.querySelectorAll('.next-step').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (validateStepInputs(currentStepIndex)) {
+                    showActiveStep(Math.min(currentStepIndex + 1, formSteps.length - 1));
+                }
+            });
+        });
+        document.querySelectorAll('.prev-step').forEach(btn => {
+            btn.addEventListener('click', () => {
+                showActiveStep(Math.max(currentStepIndex - 1, 0));
+            });
+        });
+    }
+
     function updateProgressIndicator(currentStepNumber) {
         const indicators = document.querySelectorAll('.progress-step');
         console.log('Current step:', currentStepNumber);
@@ -2893,11 +2935,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateNjUiCheckbox) autoCalculateNjUiCheckbox.checked = true;
     }
     updateAutoCalculatedFields();
-    initializeFirstStep();
-    setupDelegatedButtonListeners();
-    initializeAllInputHandlers();
-    showFormStep(1);
-    showFormStep(0);
+    initStepNavigation();
+    showActiveStep(0);
     const allFormInputs = document.querySelectorAll('#paystubForm input, #paystubForm select, #paystubForm textarea');
     allFormInputs.forEach(inp => inp.addEventListener('input', updateLivePreview));
 

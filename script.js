@@ -16,8 +16,9 @@ const DEBUG_MODE = true;
 document.addEventListener('DOMContentLoaded', () => {
     if (DEBUG_MODE) console.log('Initialization sequence started');
     let currentPreviewStubIndex = 0;
+    let previewStubData = [];
     let currentFormStep = 0;
-    let currentFormStep = 1;
+    currentFormStep = 1;
     // --- DOM Elements --- //
     const paystubForm = document.getElementById('paystubForm');
     if (!paystubForm && DEBUG_MODE) console.error('Missing form element: paystubForm');
@@ -1412,7 +1413,11 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         const numStubs = parseInt(numPaystubsSelect.value) || 1;
 
-        // Initialize running YTDs with any starting values from the form
+        if (previewNavControls) previewNavControls.style.display = numStubs > 1 ? 'block' : 'none';
+
+        // Build data for each stub in advance
+        previewStubData = [];
+
         let runningYtdData = {
             grossPay: formData.initialYtdGrossPay,
             federalTax: formData.initialYtdFederalTax,
@@ -1442,39 +1447,37 @@ document.addEventListener('DOMContentLoaded', () => {
         let currentPeriodStartDate = formData.payPeriodStartDate;
         let currentPeriodEndDate = formData.payPeriodEndDate;
         let currentPayDate = formData.payDate;
-        let calculations = calculateCurrentPeriodPay({
-            ...formData,
-            payPeriodStartDate: currentPeriodStartDate,
-            payPeriodEndDate: currentPeriodEndDate,
-            payDate: currentPayDate
-        }, runningYtdData);
-        runningYtdData = { ...calculations.ytdAmounts };
 
-        // Iterate through stubs up to the one being previewed
-        for (let i = 1; i <= currentPreviewStubIndex; i++) {
-            const frequencyForDateCalc = formData.employmentType === 'Hourly'
-                ? hourlyPayFrequencySelect.value
-                : formData.salariedPayFrequency;
-            const nextPeriod = getNextPayPeriod(currentPeriodStartDate, currentPeriodEndDate, currentPayDate, frequencyForDateCalc);
-            currentPeriodStartDate = nextPeriod.startDate;
-            currentPeriodEndDate = nextPeriod.endDate;
-            currentPayDate = nextPeriod.payDate;
-
-            calculations = calculateCurrentPeriodPay({
+        for (let i = 0; i < numStubs; i++) {
+            const stubData = {
                 ...formData,
                 payPeriodStartDate: currentPeriodStartDate,
                 payPeriodEndDate: currentPeriodEndDate,
                 payDate: currentPayDate
-            }, runningYtdData);
+            };
+
+            const calculations = calculateCurrentPeriodPay(stubData, runningYtdData);
+            previewStubData.push({ data: stubData, calculations });
             runningYtdData = { ...calculations.ytdAmounts };
+
+            if (i < numStubs - 1) {
+                const frequencyForDateCalc = formData.employmentType === 'Hourly'
+                    ? hourlyPayFrequencySelect.value
+                    : formData.salariedPayFrequency;
+                const nextPeriod = getNextPayPeriod(currentPeriodStartDate, currentPeriodEndDate, currentPayDate, frequencyForDateCalc);
+                currentPeriodStartDate = nextPeriod.startDate;
+                currentPeriodEndDate = nextPeriod.endDate;
+                currentPayDate = nextPeriod.payDate;
+            }
         }
 
-        const displayDataForStub = {
-            ...formData,
-            payPeriodStartDate: currentPeriodStartDate,
-            payPeriodEndDate: currentPeriodEndDate,
-            payDate: currentPayDate
-        };
+        if (DEBUG_MODE) console.log('previewStubData generated:', previewStubData);
+
+        if (currentPreviewStubIndex >= previewStubData.length) {
+            currentPreviewStubIndex = previewStubData.length - 1;
+        }
+
+        const { data: displayDataForStub, calculations } = previewStubData[currentPreviewStubIndex] || { data: formData, calculations: calculateCurrentPeriodPay(formData, runningYtdData) };
         if (DEBUG_MODE) console.log('displayDataForStub:', displayDataForStub);
         // Update stub indicator
         livePreviewStubIndicator.textContent = `(Previewing Stub: ${currentPreviewStubIndex + 1} of ${numStubs})`;
@@ -1565,12 +1568,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!prevStubBtn || !nextStubBtn) return;
         prevStubBtn.disabled = currentPreviewStubIndex === 0;
         nextStubBtn.disabled = currentPreviewStubIndex >= numStubs - 1;
+        if (previewNavControls) previewNavControls.style.display = numStubs > 1 ? 'block' : 'none';
     }
 
     function showNextPreviewStub() {
         const numStubs = parseInt(numPaystubsSelect.value) || 1;
         if (currentPreviewStubIndex < numStubs - 1) {
             currentPreviewStubIndex++;
+            if (DEBUG_MODE) console.log('Navigating to next stub', currentPreviewStubIndex + 1);
             updateLivePreview();
         }
         updatePreviewNavButtons(numStubs);
@@ -1580,6 +1585,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const numStubs = parseInt(numPaystubsSelect.value) || 1;
         if (currentPreviewStubIndex > 0) {
             currentPreviewStubIndex--;
+            if (DEBUG_MODE) console.log('Navigating to previous stub', currentPreviewStubIndex + 1);
             updateLivePreview();
         }
         updatePreviewNavButtons(numStubs);

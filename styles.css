@@ -1160,8 +1160,13 @@ input.auto-calc-readonly[readonly] {
         border-radius: var(--border-radius-md);
         margin-bottom: 20px;
     }
-    .grid-col-2, .grid-col-3 {
+    .grid-col-2,
+    .grid-col-3 {
         grid-template-columns: 1fr;
+    }
+    /* Stack two-column layouts vertically on small screens */
+    .grid-col-2 {
+        display: block;
     }
 
     .main-wrapper {
@@ -1279,7 +1284,8 @@ input.auto-calc-readonly[readonly] {
 /* --- GENERIC PAGE STYLES --- */
 .centered-main {
     padding-top: calc(var(--header-height) + 40px);
-=======
+}
+
 /* -------------------- */
 /* --- ABOUT PAGE --- */
 /* -------------------- */
@@ -1344,12 +1350,7 @@ footer {
 
 @media (max-width: 768px) {
     .centered-main { padding-left: 15px; padding-right: 15px; }
-}
-
-    .about-content {
-        padding-left: 20px;
-        padding-right: 20px;
-    }
+    .about-content { padding-left: 20px; padding-right: 20px; }
 }
 
 .custom-deductions .deduction-row {

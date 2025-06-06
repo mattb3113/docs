@@ -8,14 +8,21 @@
 */
 /* TODO (Build Process): For production deployment, consider minifying this file to reduce its size and improve load times. */
 
+
 'use strict';
 
+const DEBUG_MODE = true;
+
 document.addEventListener('DOMContentLoaded', () => {
+    if (DEBUG_MODE) console.log('Initialization sequence started');
     let currentPreviewStubIndex = 0;
     // --- DOM Elements --- //
     const paystubForm = document.getElementById('paystubForm');
+    if (!paystubForm && DEBUG_MODE) console.error('Missing form element: paystubForm');
     const formSummaryError = document.getElementById('formSummaryError');
+    if (!formSummaryError && DEBUG_MODE) console.error('Missing form element: formSummaryError');
     const numPaystubsSelect = document.getElementById('numPaystubs');
+    if (!numPaystubsSelect && DEBUG_MODE) console.error('Missing form element: numPaystubs');
     const hourlyPayFrequencyGroup = document.getElementById('hourlyPayFrequencyGroup');
     const hourlyPayFrequencySelect = document.getElementById('hourlyPayFrequency');
     const employmentTypeRadios = document.querySelectorAll('input[name="employmentType"]');
@@ -39,6 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const firstNextBtn = document.querySelector('.form-step .next-step');
 
     function parseCurrencyValue(val) {
+        if (typeof val !== 'string') {
+            if (DEBUG_MODE) console.error('Invalid data type for currency value', val);
+            return NaN;
+        }
         if (!val) return NaN;
         const cleaned = val.replace(/[^0-9.]/g, '');
         return parseFloat(cleaned);
@@ -175,6 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Live Preview Elements
     const livePreviewContent = document.getElementById('paystubPreviewContent');
+    if (!livePreviewContent && DEBUG_MODE) console.error('Missing form element: paystubPreviewContent');
     const livePreviewStubIndicator = document.getElementById('previewStubIndicator');
     const livePreviewCompanyLogo = document.getElementById('livePreviewCompanyLogo');
     const livePreviewCompanyName = document.getElementById('livePreviewCompanyName');
@@ -416,6 +428,9 @@ document.addEventListener('DOMContentLoaded', () => {
         updateLivePreview();
     }
 
+    function validateFormStep(stepIndex) {
+        if (DEBUG_MODE) console.log(`Attempting to validate step ${stepIndex}`);
+        const stepEl = formSteps[stepIndex];
 
     function validateStep(stepIndex) {
         console.log('validateStep', stepIndex);
@@ -435,6 +450,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const inputs = stepEl.querySelectorAll('input, select, textarea');
             inputs.forEach(inp => { if (!validateField(inp)) valid = false; });
         }
+        if (DEBUG_MODE) console.log(`Step ${stepIndex} validation ${valid ? 'passed' : 'failed'}`);
+        return valid;
         return true;
     }
 
@@ -450,9 +467,29 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } else {
             btn.addEventListener('click', function () {
+                if (DEBUG_MODE) console.log(`Attempting to validate step ${currentFormStep}`);
+                if (validateFormStep(currentFormStep)) {
+                    if (DEBUG_MODE) console.log(`Step ${currentFormStep} validation passed`);
                 if (validateStep(currentFormStep)) {
                     currentFormStep = Math.min(currentFormStep + 1, formSteps.length - 1);
+                    if (DEBUG_MODE) console.log(`Navigating to step ${currentFormStep}`);
                     showFormStep(currentFormStep);
+                } else {
+                    if (DEBUG_MODE) console.log(`Step ${currentFormStep} validation failed`);
+                }
+            });
+        }
+    }
+
+    const prevButtons = document.querySelectorAll('.prev-step-btn');
+    for (let i = 0; i < prevButtons.length; i++) {
+        const btn = prevButtons[i];
+        btn.addEventListener('click', function () {
+            if (DEBUG_MODE) console.log(`Attempting to navigate to previous step from step ${currentFormStep}`);
+            if (currentFormStep > 0) {
+                currentFormStep--;
+                if (DEBUG_MODE) console.log(`Navigating to step ${currentFormStep}`);
+                showFormStep(currentFormStep);
 
             } else {
                 const current = getCurrentStep();
@@ -874,6 +911,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function gatherFormData() {
+        if (!paystubForm) {
+            if (DEBUG_MODE) console.error('Missing form element: paystubForm');
+            return {};
+        }
         const formData = new FormData(paystubForm);
         const data = {};
         for (let [key, value] of formData.entries()) {
@@ -1225,6 +1266,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateLivePreview() {
         const formData = gatherFormData();
+        if (!livePreviewContent) {
+            if (DEBUG_MODE) console.error('Null preview element: livePreviewContent');
+            return;
+        }
+        if (DEBUG_MODE) console.log('Updating preview with data:', formData);
         const numStubs = parseInt(numPaystubsSelect.value) || 1;
 
         // Initialize running YTDs with any starting values from the form
@@ -2842,5 +2888,6 @@ document.addEventListener('DOMContentLoaded', () => {
     validateDesiredIncome();
     if (sharePdfEmailLink) sharePdfEmailLink.style.display = 'none';
     if (sharePdfInstructions) sharePdfInstructions.style.display = 'none';
+    if (DEBUG_MODE) console.log('Initialization sequence completed');
 
 });

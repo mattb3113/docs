@@ -34,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPreviewStubIndex = 0;
     let previewStubData = [];
     let currentFormStep = 0;
-    currentFormStep = 1;
     // --- DOM Elements --- //
     const paystubForm = document.getElementById('paystubForm');
     if (!paystubForm && DEBUG_MODE) console.error('Missing form element: paystubForm');
@@ -395,226 +394,58 @@ document.addEventListener('DOMContentLoaded', () => {
         stepTitles.push(heading ? heading.textContent.trim() : `Step ${idx + 1}`);
     });
 
-    let currentStepIndex = 0;
-
-    function showActiveStep(index) {
-        if (index < 0 || index >= formSteps.length) return;
-        currentStepIndex = index;
+    function showFormStep(stepIndex) {
+        if (stepIndex < 0) stepIndex = 0;
+        if (stepIndex >= formSteps.length) stepIndex = formSteps.length - 1;
+        console.log('Navigating to Step:', stepIndex + 1);
+        currentFormStep = stepIndex;
         formSteps.forEach((step, i) => {
-            step.style.display = i === index ? 'block' : 'none';
-            step.classList.toggle('active', i === index);
+            step.style.display = i === stepIndex ? 'block' : 'none';
+            step.classList.toggle('active', i === stepIndex);
+            const prevBtn = step.querySelector('.prev-step');
+            if (prevBtn) prevBtn.disabled = stepIndex === 0;
         });
         progressSteps.forEach((el, i) => {
-            el.classList.toggle('active', i === index);
-            el.classList.toggle('completed', i < index);
+            el.classList.toggle('active', i === stepIndex);
+            el.classList.toggle('completed', i < stepIndex);
         });
-        updateProgressIndicator(index + 1);
-        updateLivePreview();
     }
 
-    function validateStepInputs(index) {
-        const stepEl = formSteps[index];
+    function validateStepInputs(stepIndex) {
+        const stepEl = formSteps[stepIndex];
         if (!stepEl) return true;
         let valid = true;
-        stepEl.querySelectorAll('input, select, textarea').forEach(inp => {
-            if (!validateField(inp)) valid = false;
+        stepEl.querySelectorAll('input, select, textarea').forEach(input => {
+            if (!validateField(input)) valid = false;
         });
         return valid;
     }
 
-    function initStepNavigation() {
-        document.querySelectorAll('.next-step').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (validateStepInputs(currentStepIndex)) {
-                    showActiveStep(Math.min(currentStepIndex + 1, formSteps.length - 1));
-                }
-            });
-        });
-        document.querySelectorAll('.prev-step').forEach(btn => {
-            btn.addEventListener('click', () => {
-                showActiveStep(Math.max(currentStepIndex - 1, 0));
-            });
-        });
-    }
-
-    function updateProgressIndicator(currentStepNumber) {
-        const indicators = document.querySelectorAll('.progress-step');
-        console.log('Current step:', currentStepNumber);
-        indicators.forEach(step => {
-            const stepNum = parseInt(step.textContent, 10);
-            console.log(`Step ${stepNum} initial classes:`, step.className);
-            step.classList.remove('completed', 'active');
-            if (stepNum < currentStepNumber) {
-                step.classList.add('completed');
-            } else if (stepNum === currentStepNumber) {
-                step.classList.add('active');
-            }
-            console.log(`Step ${stepNum} updated classes:`, step.className);
-        });
-    }
-
-    function getCurrentStep() {
-        const steps = document.querySelectorAll('.form-step');
-        for (const step of steps) {
-            const visible = step.style.display === 'block';
-            if (visible && step.classList.contains('active')) {
-                return parseInt(step.dataset.step, 10);
-            }
-        }
-        const byClass = document.querySelector('.form-step.active');
-        if (byClass) return parseInt(byClass.dataset.step, 10);
-        const byDisplay = Array.from(steps).find(s => s.style.display === 'block');
-        if (byDisplay) return parseInt(byDisplay.dataset.step, 10);
-        return 1;
-    }
-
-    function showFormStep(stepIndex) {
-        formSteps.forEach((step, i) => {
-            step.classList.toggle('active', i === stepIndex);
-        });
-        progressSteps.forEach((el, i) => {
-            const active = i === stepIndex;
-            el.classList.toggle('active', active);
-            if (active) {
-                el.setAttribute('aria-current', 'step');
-            } else {
-                el.removeAttribute('aria-current');
-            }
-    function showFormStep(stepNumber) {
-        if (isNaN(stepNumber)) return;
-        if (stepNumber < 1) stepNumber = 1;
-        if (stepNumber > totalSteps) stepNumber = totalSteps;
-        currentFormStep = stepNumber;
-
-        formSteps.forEach((step, idx) => {
-            const active = idx + 1 === stepNumber;
-            step.style.display = active ? 'block' : 'none';
-            step.classList.toggle('active', active);
-            const prevBtn = step.querySelector('.prev-step');
-            if (prevBtn) prevBtn.disabled = stepNumber === 1;
-        });
-
-        updateProgressIndicator(stepNumber);
-
-        if (formProgressIndicator) {
-            const idx = stepIndex;
-            formProgressIndicator.setAttribute('aria-label',
-                `Step ${stepIndex + 1} of ${progressSteps.length}: ${stepTitles[idx]}`);
-        }
-        const stepEl = document.querySelector(`.form-step[data-step="${stepIndex + 1}"]`);
-        if (stepEl) {
-            const prevBtn = stepEl.querySelector('.prev-step');
-            if (prevBtn) prevBtn.disabled = stepIndex === 0;
-        }
-        const prevBtn = formSteps[stepIndex].querySelector('.prev-step-btn');
-            const idx = stepNumber - 1;
-            formProgressIndicator.setAttribute(
-                'aria-label',
-                `Step ${stepNumber} of ${progressSteps.length}: ${stepTitles[idx]}`
-            );
-        }
-        const prevBtn = formSteps[stepIndex].querySelector('.prev-step');
-        if (prevBtn) prevBtn.disabled = stepIndex === 0;
-        currentFormStep = stepIndex;
-        updateProgressIndicator(stepIndex + 1);
-
-        updateLivePreview();
-    }
-
-    function validateFormStep(stepIndex) {
-        if (DEBUG_MODE) console.log(`Attempting to validate step ${stepIndex}`);
-        const stepEl = formSteps[stepIndex];
-
-    function validateStep(stepIndex) {
-        console.log('validateStep', stepIndex);
-        if (stepIndex === 0) {
-            const val = annualSalaryInput ? annualSalaryInput.value : '';
-            const valid = isValidSalary(val);
-            console.log('Step 1 salary valid', valid);
-            if (!valid) {
-                alert('Please enter a valid salary.');
-                if (annualSalaryInput) annualSalaryInput.classList.add('invalid');
-            }
-            return valid;
-    function validateFormStep(stepNumber) {
-        const stepEl = document.querySelector(`.form-step[data-step="${stepNumber}"]`);
-        let valid = true;
-        if (stepEl) {
-            const inputs = stepEl.querySelectorAll('input, select, textarea');
-            inputs.forEach(inp => { if (!validateField(inp)) valid = false; });
-        }
-        if (DEBUG_MODE) console.log(`Step ${stepIndex} validation ${valid ? 'passed' : 'failed'}`);
-        return valid;
-        return true;
-    }
-    function handleDelegatedStepButtons(e) {
-        const nextBtn = e.target.closest('.next-step');
-        const prevBtn = e.target.closest('.prev-step');
-
-        if (nextBtn) {
-            clearSummaryError();
-            if (nextBtn.id === 'generateAndPay') {
-                if (validateAllFormFields()) {
+    document.querySelectorAll('.next-step').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.preventDefault();
+            if (btn.id === 'generateAndPay') {
+                if (validateStepInputs(currentFormStep)) {
                     handleMainFormSubmit();
                 } else {
-                    showSummaryError('Please review the highlighted fields.');
+                    console.error('Validation failed for Step', currentFormStep + 1);
                 }
                 return;
             }
-
-            if (validateFormStep(currentFormStep)) {
-                currentFormStep = Math.min(currentFormStep + 1, formSteps.length - 1);
-                showFormStep(currentFormStep);
+            if (validateStepInputs(currentFormStep)) {
+                showFormStep(currentFormStep + 1);
             } else {
-                showSummaryError('Please review the highlighted fields.');
-            }
-        }
-
-        if (prevBtn) {
-            if (currentFormStep > 0) {
-                currentFormStep--;
-                showFormStep(currentFormStep);
-            }
-        } else if (prevBtn) {
-            const current = getCurrentStep();
-            showFormStep(current - 1);
-        }
-    }
-
-    const prevButtons = document.querySelectorAll('.prev-step');
-    for (let i = 0; i < prevButtons.length; i++) {
-        const btn = prevButtons[i];
-        btn.addEventListener('click', function () {
-            if (DEBUG_MODE) console.log(`Attempting to navigate to previous step from step ${currentFormStep}`);
-            if (currentFormStep > 0) {
-                currentFormStep--;
-                if (DEBUG_MODE) console.log(`Navigating to step ${currentFormStep}`);
-                showFormStep(currentFormStep);
-            } else {
-                const current = getCurrentStep();
-                if (validateFormStep(current)) {
-                    showFormStep(current + 1);
-                }
+                console.error('Validation failed for Step', currentFormStep + 1);
             }
         });
-    }
+    });
 
-    function setupDelegatedButtonListeners() {
-        document.addEventListener('click', handleDelegatedStepButtons);
-    }
-
-    function initializeFirstStep() {
-        currentPreviewStubIndex = 0;
-        currentFormStep = 0;
-        showFormStep(0);
-        showFormStep(1);
-    }
-
-    function initializeAllInputHandlers() {
-        setupActionButtons();
-    }
-
-    showFormStep(1);
+    document.querySelectorAll('.prev-step').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.preventDefault();
+            showFormStep(currentFormStep - 1);
+        });
+    });
 
 
     // --- Initial State & Configuration --- //
@@ -2201,7 +2032,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields(); // Ensure correct fields are shown based on default radio
         updateHourlyPayFrequencyVisibility(); // And update conditional dropdown
-        showFormStep(1);
+        showFormStep(0);
         updateLivePreview(); // Refresh live preview
         if (resetAllFieldsBtn) {
             const originalText = resetAllFieldsBtn.textContent;
@@ -2399,9 +2230,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields();
         updateHourlyPayFrequencyVisibility();
-        const currentStep = getCurrentStep();
-        if (currentStep < totalSteps) {
-            showFormStep(currentStep + 1);
+        if (currentFormStep < formSteps.length - 1) {
+            showFormStep(currentFormStep + 1);
         }
         updateLivePreview();
 
@@ -3054,12 +2884,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateNjUiCheckbox) autoCalculateNjUiCheckbox.checked = true;
     }
     updateAutoCalculatedFields();
-    initializeFirstStep();
-    setupDelegatedButtonListeners();
-    initializeAllInputHandlers();
-    showFormStep(1);
-    initStepNavigation();
-    showActiveStep(0);
+    showFormStep(0);
     const allFormInputs = document.querySelectorAll('#paystubForm input, #paystubForm select, #paystubForm textarea');
     allFormInputs.forEach(inp => {
         inp.addEventListener('input', debouncedPreview);

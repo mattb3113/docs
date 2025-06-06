@@ -147,106 +147,73 @@ document.addEventListener('DOMContentLoaded', () => {
     const successNumStubsSpan = document.getElementById('successNumStubs');
     const successUserNotesSpan = document.getElementById('successUserNotes');
 
-    // Multi-step form setup
-    const formSections = Array.from(document.querySelectorAll('.form-section-card'));
-    const stepGroups = [
-        [0],
-        [1],
-        [2],
-        [3,4],
-        [5,6,7],
-        [8,9,10]
-    ];
-    let currentStep = 0;
-    const progressContainer = document.getElementById('progressIndicator');
+    // Multi-step form setup (v2)
+    let currentFormStep = 0;
+    const formSteps = Array.from(document.querySelectorAll('.form-step'));
+    const formProgressIndicator = document.getElementById('formProgressIndicator');
     const progressSteps = [];
 
-    stepGroups.forEach((grp, idx) => {
-        const stepEl = document.createElement('div');
-        stepEl.className = 'progress-step' + (idx === 0 ? ' active' : '');
-        stepEl.textContent = idx + 1;
-        progressContainer.appendChild(stepEl);
-        progressSteps.push(stepEl);
-
-        const lastSection = formSections[grp[grp.length - 1]];
-        const nav = document.createElement('div');
-        nav.className = 'step-navigation';
-        if (idx > 0) {
-            const prev = document.createElement('button');
-            prev.type = 'button';
-            prev.className = 'btn btn-secondary prev-step';
-            prev.textContent = 'Previous Step';
-            prev.addEventListener('click', () => {
-                if (currentStep > 0) {
-                    currentStep--;
-                    showStep(currentStep);
-                }
-            });
-            nav.appendChild(prev);
-        }
-        const next = document.createElement('button');
-        next.type = 'button';
-        next.className = 'btn btn-primary next-step';
-        next.textContent = idx === stepGroups.length - 1 ? 'Generate & Proceed to Payment' : 'Next Step';
-        next.addEventListener('click', () => {
-            if (idx === stepGroups.length - 1) {
-                handleMainFormSubmit();
-            } else if (validateStep(idx)) {
-                currentStep++;
-                showStep(currentStep);
-            }
-        });
-        nav.appendChild(next);
-        lastSection.appendChild(nav);
+    formSteps.forEach((step, idx) => {
+        const indicator = document.createElement('div');
+        indicator.className = 'progress-step' + (idx === 0 ? ' active' : '');
+        indicator.textContent = idx + 1;
+        if (formProgressIndicator) formProgressIndicator.appendChild(indicator);
+        progressSteps.push(indicator);
     });
 
-    function showStep(index) {
-        stepGroups.forEach((grp, idx) => {
-            grp.forEach(i => {
-                formSections[i].style.display = idx === index ? 'block' : 'none';
-            });
-            progressSteps[idx].classList.toggle('active', idx === index);
+    function showFormStep(stepIndex) {
+        formSteps.forEach((step, i) => {
+            step.style.display = i === stepIndex ? 'block' : 'none';
         });
+        progressSteps.forEach((el, i) => {
+            el.classList.toggle('active', i === stepIndex);
+        });
+        const prevBtn = formSteps[stepIndex].querySelector('.prev-step-btn');
+        if (prevBtn) prevBtn.disabled = stepIndex === 0;
         updateLivePreview();
     }
 
-    function validateStep(index) {
+    function validateFormStep(stepIndex) {
+        const stepEl = formSteps[stepIndex];
         let valid = true;
-        stepGroups[index].forEach(i => {
-            const inputs = formSections[i].querySelectorAll('input, select, textarea');
+        if (stepEl) {
+            const inputs = stepEl.querySelectorAll('input, select, textarea');
             inputs.forEach(inp => { if (!validateField(inp)) valid = false; });
-        });
+        }
         return valid;
     }
 
-    showStep(currentStep);
-
-    function minimizeSecondarySections() {
-        showStep(0);
-    }
-
-    function revealAllSections() {
-        stepGroups.forEach(grp => grp.forEach(i => formSections[i].style.display = 'block'));
-        progressSteps.forEach(step => step.classList.add('active'));
-    }
-
-    function revealNextSection() {
-        if (currentStep < stepGroups.length - 1) {
-            currentStep++;
-            showStep(currentStep);
+    const nextButtons = document.querySelectorAll('.next-step-btn');
+    nextButtons.forEach(btn => {
+        if (btn.id === 'generateAndPay') {
+            btn.addEventListener('click', () => {
+                if (validateAllFormFields()) {
+                    handleMainFormSubmit();
+                } else {
+                    showSummaryError('Please review the highlighted fields.');
+                }
+            });
+        } else {
+            btn.addEventListener('click', () => {
+                if (validateFormStep(currentFormStep)) {
+                    currentFormStep = Math.min(currentFormStep + 1, formSteps.length - 1);
+                    showFormStep(currentFormStep);
+                }
+            });
         }
-    }
+    });
 
-    function isSectionComplete(index) {
-        const sec = formSections[index];
-        const requiredInputs = sec.querySelectorAll('[required]');
-        for (const input of requiredInputs) {
-            if (input.offsetParent !== null && !input.value.trim()) {
-                return false;
+    const prevButtons = document.querySelectorAll('.prev-step-btn');
+    prevButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (currentFormStep > 0) {
+                currentFormStep--;
+                showFormStep(currentFormStep);
             }
-        }
-        return true;
-    }
+        });
+    });
+
+    showFormStep(0);
 
 
     // --- Initial State & Configuration --- //
@@ -1423,7 +1390,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields(); // Ensure correct fields are shown based on default radio
         updateHourlyPayFrequencyVisibility(); // And update conditional dropdown
-        showStep(0);
+        showFormStep(0);
         updateLivePreview(); // Refresh live preview
     }
 
@@ -1509,7 +1476,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields();
         updateHourlyPayFrequencyVisibility();
-        revealAllSections();
+        showFormStep(0);
         updateLivePreview();
     }
 
@@ -1667,9 +1634,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields();
         updateHourlyPayFrequencyVisibility();
-        if (currentStep < stepGroups.length - 1) {
-            currentStep++;
-            showStep(currentStep);
+        if (currentFormStep < formSteps.length - 1) {
+            currentFormStep++;
+            showFormStep(currentFormStep);
         }
         updateLivePreview();
 
@@ -1769,7 +1736,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 fedInput.classList.add('auto-calculated-field');
                 fedInput.readOnly = true;
             }
-=======
         const filingStatus = data.federalFilingStatus || data.filingStatus || 'Single';
         const gross = calculations.grossPay;
         const ytdGross = data.initialYtdGrossPay || 0;
@@ -2256,10 +2222,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateNjUiCheckbox) autoCalculateNjUiCheckbox.checked = true;
     }
     updateAutoCalculatedFields();
-    minimizeSecondarySections();
+    showFormStep(0);
     if (sharePdfEmailLink) sharePdfEmailLink.style.display = 'none';
     if (sharePdfInstructions) sharePdfInstructions.style.display = 'none';
-=======
-    showStep(0);
 
 });

@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPreviewStubIndex = 0;
     // --- DOM Elements --- //
     const paystubForm = document.getElementById('paystubForm');
+    const formSummaryError = document.getElementById('formSummaryError');
     const numPaystubsSelect = document.getElementById('numPaystubs');
     const hourlyPayFrequencyGroup = document.getElementById('hourlyPayFrequencyGroup');
     const hourlyPayFrequencySelect = document.getElementById('hourlyPayFrequency');
@@ -73,6 +74,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const estimateAllDeductionsBtn = document.getElementById('estimateAllDeductionsBtn');
 
+    // New Federal Tax Elements
+    const federalFilingStatusSelect = document.getElementById('federalFilingStatus');
+    const autoCalculateFederalTaxCheckbox = document.getElementById('autoCalculateFederalTax');
+    const federalTaxAmountInput = document.getElementById('federalTaxAmount');
+
     // Live Preview Elements
     const livePreviewContent = document.getElementById('paystubPreviewContent');
     const livePreviewStubIndicator = document.getElementById('previewStubIndicator');
@@ -112,6 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadDraftBtn = document.getElementById('loadDraft');
     const loadDraftBtnV2 = document.getElementById('loadDraftBtn');
     const estimateDeductionsBtn = document.getElementById('estimateAllDeductionsBtn');
+    const estimateDeductionsBtn = document.getElementById('estimateDeductions');
+    const estimateAllDeductionsBtn = document.getElementById('estimateAllDeductionsBtn');
     const previewPdfWatermarkedBtn = document.getElementById('previewPdfWatermarked');
     const generateAndPayBtn = document.getElementById('generateAndPay');
     const copyKeyDataBtn = document.getElementById('copyKeyData');
@@ -292,6 +300,24 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     };
 
+    // Simplified federal tax brackets for quick estimation
+    const FEDERAL_TAX_BRACKETS = {
+        'Single': [
+            { upto: 10000, rate: 0.10 },
+            { upto: 40000, rate: 0.12 },
+            { upto: 85000, rate: 0.22 },
+            { upto: 160000, rate: 0.24 },
+            { upto: Infinity, rate: 0.32 }
+        ],
+        'Married Filing Jointly': [
+            { upto: 20000, rate: 0.10 },
+            { upto: 80000, rate: 0.12 },
+            { upto: 170000, rate: 0.22 },
+            { upto: 320000, rate: 0.24 },
+            { upto: Infinity, rate: 0.32 }
+        ]
+    };
+
     // --- Event Listeners --- //
 
     // Toggle Hourly/Salaried Fields
@@ -335,6 +361,12 @@ document.addEventListener('DOMContentLoaded', () => {
     formInputs.forEach(input => {
         input.addEventListener('input', debounce(updateLivePreview, 300));
         input.addEventListener('change', debounce(updateLivePreview, 300)); // For selects, radios, checkboxes
+        input.addEventListener('blur', () => validateField(input));
+        input.addEventListener('input', () => {
+            if (input.classList.contains('invalid')) {
+                validateField(input);
+            }
+        });
     });
 
     if (nextStubBtn && prevStubBtn) {
@@ -630,7 +662,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const medicareUsed = data.autoCalculateMedicare ? calculatedMedicare : (data.medicareAmount || 0);
 
         // --- Calculate Total Taxes for Period ---
-        results.totalTaxes += (data.federalTaxAmount || 0);
+        let federalTaxForPeriod = data.federalTaxAmount || 0;
+        if (data.autoCalculateFederalTax) {
+            const freq = data.employmentType === 'Salaried'
+                ? data.salariedPayFrequency
+                : (data.hourlyPayFrequency || 'Weekly');
+            federalTaxForPeriod = estimateFederalTax(results.grossPay, freq, data.federalFilingStatus || 'Single');
+        }
+        results.totalTaxes += federalTaxForPeriod;
         results.totalTaxes += (data.stateTaxAmount || 0);
         results.totalTaxes += socialSecurityAmount;
         results.totalTaxes += medicareAmount;
@@ -638,7 +677,7 @@ document.addEventListener('DOMContentLoaded', () => {
         results.totalTaxes += (data.njFliAmount || 0);
         results.totalTaxes += (data.njUiHcWfAmount || 0);
 
-        results.currentPeriodAmounts.federalTax = data.federalTaxAmount || 0;
+        results.currentPeriodAmounts.federalTax = federalTaxForPeriod;
         if (data.stateTaxName) results.currentPeriodAmounts[data.stateTaxName || 'stateTax'] = data.stateTaxAmount || 0;
         else results.currentPeriodAmounts.stateTax = data.stateTaxAmount || 0;
         results.currentPeriodAmounts.socialSecurity = socialSecurityAmount;
@@ -691,7 +730,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         results.ytdAmounts.grossPay = (ytdBase.grossPay || 0) + results.grossPay;
-        results.ytdAmounts.federalTax = (ytdBase.federalTax || 0) + (data.federalTaxAmount || 0);
+        results.ytdAmounts.federalTax = (ytdBase.federalTax || 0) + federalTaxForPeriod;
         results.ytdAmounts.stateTax = (ytdBase.stateTax || 0) + (data.stateTaxAmount || 0);
         results.ytdAmounts.socialSecurity = (ytdBase.socialSecurity || 0) + socialSecurityAmount;
         results.ytdAmounts.medicare = (ytdBase.medicare || 0) + medicareAmount;
@@ -844,6 +883,13 @@ document.addEventListener('DOMContentLoaded', () => {
             medicareInput.classList.remove('auto-calc-readonly');
         }
 
+        if (data.autoCalculateFederalTax) {
+            federalTaxAmountInput.value = calculations.currentPeriodAmounts.federalTax.toFixed(2);
+            federalTaxAmountInput.readOnly = true;
+        } else {
+            federalTaxAmountInput.readOnly = false;
+        }
+
         // Update stub indicator
         const totalStubs = parseInt(numPaystubsSelect.value) || 1;
         livePreviewStubIndicator.textContent = `(Previewing Base Stub: 1 of ${totalStubs})`;
@@ -991,7 +1037,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function generateAndDownloadPdf(isPreviewMode) {
+        clearSummaryError();
         if (!validateAllFormFields()) {
+            showSummaryError('Please review the highlighted fields below.');
+            const firstError = paystubForm.querySelector('.invalid');
+            if (firstError) firstError.focus();
+            showNotificationModal('Validation Error', 'Please fix the errors in the form before generating the PDF.'); // Replace with custom modal later
             showNotificationModal('Validation Error', 'Please fix the errors in the form before generating the PDF.');
             return;
         }
@@ -1309,6 +1360,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function handleMainFormSubmit() {
+        clearSummaryError();
         if (validateAllFormFields()) {
             // Update dynamic pricing in modal
             const numStubs = parseInt(numPaystubsSelect.value);
@@ -1320,7 +1372,9 @@ document.addEventListener('DOMContentLoaded', () => {
             paymentInstructionsDiv.style.display = 'block';
             modalOrderSuccessMessageDiv.style.display = 'none';
         } else {
-            // Consider a more elegant way to show this, e.g., scroll to first error
+            showSummaryError('Please review the highlighted fields below.');
+            const firstError = paystubForm.querySelector('.invalid');
+            if (firstError) firstError.focus();
             showNotificationModal('Validation Error', 'Please correct the errors in the form.');
         }
     }
@@ -1365,6 +1419,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Clear all error messages
         document.querySelectorAll('.error-message').forEach(span => span.textContent = '');
         document.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
+        clearSummaryError();
 
         toggleEmploymentFields(); // Ensure correct fields are shown based on default radio
         updateHourlyPayFrequencyVisibility(); // And update conditional dropdown
@@ -1697,9 +1752,24 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateAutoCalculatedFields() {
         const data = gatherFormData();
         const calculations = calculateCurrentPeriodPay(data);
+        const grossPay = calculations.grossPay;
+
         const payFrequency = data.employmentType === 'Hourly'
             ? (hourlyPayFrequencySelect.value || 'Weekly')
             : (data.salariedPayFrequency || 'Bi-Weekly');
+
+        const filingStatus = data.federalFilingStatus || data.filingStatus || 'Single';
+        const isForNJ = data.isForNJEmployment || false;
+
+        if (typeof estimateFederalTax === 'function') {
+            const fedTax = estimateFederalTax(grossPay, payFrequency, filingStatus);
+            const fedInput = document.getElementById('federalTaxAmount');
+            if (fedInput) {
+                fedInput.value = fedTax.toFixed(2);
+                fedInput.classList.add('auto-calculated-field');
+                fedInput.readOnly = true;
+            }
+=======
         const filingStatus = data.federalFilingStatus || data.filingStatus || 'Single';
         const gross = calculations.grossPay;
         const ytdGross = data.initialYtdGrossPay || 0;
@@ -1743,6 +1813,79 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (autoCalculateNjSdiCheckbox) {
                 njSdiAmountInput.readOnly = false;
                 njSdiAmountInput.classList.remove('auto-calculated-field');
+
+        const fedInput = document.getElementById('federalTaxAmount');
+        if (fedInput && typeof estimateFederalTax === 'function') {
+            const fed = estimateFederalTax(gross, payFrequency, filingStatus);
+            fedInput.value = fed.toFixed(2);
+            fedInput.readOnly = true;
+            fedInput.classList.add('auto-calculated-field');
+          
+            if (autoCalculateFederalTaxCheckbox) autoCalculateFederalTaxCheckbox.checked = true;
+        }
+
+        if (typeof estimateSocialSecurity === 'function') {
+            const ytdSS = parseFloat(document.getElementById('initialYtdSocialSecurity')?.value) || 0;
+            const ss = estimateSocialSecurity(grossPay, ytdSS);
+            socialSecurityAmountInput.value = ss.toFixed(2);
+            socialSecurityAmountInput.classList.add('auto-calculated-field');
+            socialSecurityAmountInput.readOnly = true;
+            const ssInput = document.getElementById('socialSecurityAmount');
+            if (ssInput) {
+                const ss = estimateSocialSecurity(gross, payFrequency);
+                ssInput.value = ss.toFixed(2);
+                ssInput.readOnly = true;
+                ssInput.classList.add('auto-calculated-field');
+            }
+            if (autoCalculateSocialSecurityCheckbox) autoCalculateSocialSecurityCheckbox.checked = true;
+        }
+
+        if (typeof estimateMedicare === 'function') {
+            const med = estimateMedicare(grossPay);
+            medicareAmountInput.value = med.toFixed(2);
+            medicareAmountInput.classList.add('auto-calculated-field');
+            medicareAmountInput.readOnly = true;
+            if (autoCalculateMedicareCheckbox) autoCalculateMedicareCheckbox.checked = true;
+        }
+
+        if (isForNJ) {
+            if (typeof estimateNJStateTax === 'function') {
+                const stateTax = estimateNJStateTax(grossPay, payFrequency, filingStatus);
+                const stateAmountInput = document.getElementById('stateTaxAmount');
+                const stateNameInput = document.getElementById('stateTaxName');
+                if (stateAmountInput) {
+                    stateAmountInput.value = stateTax.toFixed(2);
+                    stateAmountInput.classList.add('auto-calculated-field');
+                    stateAmountInput.readOnly = true;
+                }
+                if (stateNameInput && !stateNameInput.value) stateNameInput.value = 'NJ State Tax';
+            }
+
+            const sdiInput = document.getElementById('njSdiAmount');
+            if (sdiInput && typeof estimateNJ_SDI === 'function') {
+                sdiInput.value = estimateNJ_SDI(grossPay).toFixed(2);
+                sdiInput.classList.add('auto-calculated-field');
+                sdiInput.readOnly = true;
+            }
+
+            const fliInput = document.getElementById('njFliAmount');
+            if (fliInput && typeof estimateNJ_FLI === 'function') {
+                fliInput.value = estimateNJ_FLI(grossPay).toFixed(2);
+                fliInput.classList.add('auto-calculated-field');
+                fliInput.readOnly = true;
+            }
+
+            const uiInput = document.getElementById('njUiHcWfAmount');
+            if (uiInput && typeof estimateNJ_UIHCWF === 'function') {
+                uiInput.value = estimateNJ_UIHCWF(grossPay).toFixed(2);
+                uiInput.classList.add('auto-calculated-field');
+                uiInput.readOnly = true;
+            const medInput = document.getElementById('medicareAmount');
+            if (medInput) {
+                const med = estimateMedicare(gross);
+                medInput.value = med.toFixed(2);
+                medInput.readOnly = true;
+                medInput.classList.add('auto-calculated-field');
             }
 
             if (autoCalculateNjFliCheckbox && autoCalculateNjFliCheckbox.checked) {
@@ -1889,6 +2032,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         inputElement.classList.remove('invalid');
     }
+
+    function showSummaryError(message) {
+        if (formSummaryError) {
+            formSummaryError.textContent = message;
+            formSummaryError.classList.add('active');
+        }
+    }
+
+    function clearSummaryError() {
+        if (formSummaryError) {
+            formSummaryError.textContent = '';
+            formSummaryError.classList.remove('active');
+        }
+    }
     function setRequired(element, isRequired) {
         if (isRequired) {
             element.setAttribute('required', 'required');
@@ -1896,6 +2053,22 @@ document.addEventListener('DOMContentLoaded', () => {
             element.removeAttribute('required');
             clearError(element); // Clear any errors if it's no longer required
         }
+    }
+
+    // Estimate federal tax using a simplified bracket model
+    function estimateFederalTax(grossPayPerPeriod, payFrequency, filingStatus) {
+        const periods = PAY_PERIODS_PER_YEAR[payFrequency] || 1;
+        const annualIncome = grossPayPerPeriod * periods;
+        const brackets = FEDERAL_TAX_BRACKETS[filingStatus] || FEDERAL_TAX_BRACKETS['Single'];
+        let tax = 0;
+        let prev = 0;
+        for (const { upto, rate } of brackets) {
+            const limit = Math.min(annualIncome, upto);
+            if (limit > prev) tax += (limit - prev) * rate;
+            if (annualIncome <= upto) break;
+            prev = upto;
+        }
+        return parseFloat((tax / periods).toFixed(2));
     }
 
 

@@ -68,6 +68,7 @@
             </section>
 
             <form id="paystubForm">
+                <div id="formSummaryError" class="form-summary-error" aria-live="polite"></div>
                 <div id="progressIndicator" class="progress-indicator"></div>
                 <!-- Step 1: Desired Income Representation -->
                 <section class="form-section-card">
@@ -206,6 +207,14 @@
                         <span class="error-message" id="employeeSsnError"></span>
                         <p class="info-text ssn-info">SSN is used for display on the paystub and is not stored by BuellDocs for this generator tool. See our <a href='privacy_policy.html'>Privacy Policy</a>.</p>
                     </div>
+                    <div class="form-group">
+                        <label for="federalFilingStatus">Federal Filing Status <span class="required-asterisk">*</span></label>
+                        <select id="federalFilingStatus" name="federalFilingStatus" required aria-required="true" aria-describedby="federalFilingStatusError">
+                            <option value="Single" selected>Single</option>
+                            <option value="Married Filing Jointly">Married Filing Jointly</option>
+                        </select>
+                        <span class="error-message" id="federalFilingStatusError"></span>
+                    </div>
                 </section>
 
                 <!-- Pay Period & Dates (For First/Base Stub) -->
@@ -319,6 +328,9 @@
                             </label>
                         </div>
                         <div class="form-group">
+                            <label><input type="checkbox" id="autoCalculateFederalTax" name="autoCalculateFederalTax"> Auto-calculate Federal Tax?</label>
+                        </div>
+                         <div class="form-group">
                             <label for="socialSecurityAmount">Social Security Amount</label>
                             <input type="number" id="socialSecurityAmount" name="socialSecurityAmount" step="0.01" min="0" value="0" aria-describedby="socialSecurityAmountError">
                             <span class="error-message" id="socialSecurityAmountError"></span>

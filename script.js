@@ -454,9 +454,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Form input changes for live preview (debounced)
     const formInputs = paystubForm.querySelectorAll('input, select, textarea');
+    const debouncedPreview = debounce(updateLivePreview, 300);
     formInputs.forEach(input => {
-        input.addEventListener('input', debounce(updateLivePreview, 300));
-        input.addEventListener('change', debounce(updateLivePreview, 300)); // For selects, radios, checkboxes
+        input.addEventListener('input', debouncedPreview);
+        input.addEventListener('change', debouncedPreview); // For selects, radios, checkboxes
         input.addEventListener('blur', () => validateField(input));
         input.addEventListener('input', () => {
             if (input.classList.contains('invalid')) {
@@ -694,6 +695,45 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         return data;
+    }
+
+    function calculateGrossPay(data) {
+        let gross = 0;
+        if (data.employmentType === 'Hourly') {
+            const rate = data.hourlyRate || 0;
+            const regular = data.regularHours || 0;
+            const overtime = data.overtimeHours || 0;
+            gross = (rate * regular) + (rate * overtime * 1.5);
+        } else {
+            const freq = data.salariedPayFrequency;
+            const periods = PAY_PERIODS_PER_YEAR[freq] || 1;
+            gross = (data.annualSalary || 0) / periods;
+        }
+        gross += (data.bonus || 0);
+        gross += (data.miscEarningAmount || 0);
+        return gross;
+    }
+
+    function calculateTotalDeductions(data) {
+        const fields = [
+            'federalTaxAmount','stateTaxAmount','socialSecurityAmount','medicareAmount',
+            'njSdiAmount','njFliAmount','njUiHcWfAmount','healthInsurance','retirement401k','otherDeductionAmount'
+        ];
+        return fields.reduce((sum, f) => sum + (parseFloat(data[f]) || 0), 0);
+    }
+
+    function calculateNetPay(data) {
+        return calculateGrossPay(data) - calculateTotalDeductions(data);
+    }
+
+    function updatePayPreviewTotals() {
+        const data = gatherFormData();
+        const gross = calculateGrossPay(data);
+        const deductions = calculateTotalDeductions(data);
+        const net = gross - deductions;
+        livePreviewGrossPay.textContent = formatCurrency(gross);
+        livePreviewTotalDeductions.textContent = formatCurrency(deductions);
+        livePreviewNetPay.textContent = formatCurrency(net);
     }
 
     function calculateCurrentPeriodPay(data, initialYtdData = null) {
@@ -1068,6 +1108,9 @@ document.addEventListener('DOMContentLoaded', () => {
             prevStubBtn.disabled = currentPreviewStubIndex === 0;
             nextStubBtn.disabled = currentPreviewStubIndex >= numStubs - 1;
         }
+
+        // Ensure summary totals reflect latest input
+        updatePayPreviewTotals();
     }
 
     function addEarningRow(description, hours, rate, current, ytd) {

@@ -166,11 +166,16 @@
                     </div>
                      <div class="grid-col-2">
                         <div class="form-group">
+
+                            <label for="companyEin">Company EIN <span class="tooltip-icon" tabindex="0" data-tooltip="Employer Identification Number (Federal Tax ID)" aria-describedby="einTooltipText">ℹ️</span><span id="einTooltipText" class="visually-hidden">Employer Identification Number (Federal Tax ID)</span></label>
+                            <input type="text" id="companyEin" name="companyEin" aria-describedby="companyEinError">
+
                             <label for="companyEin">Company EIN <span class="tooltip-icon" tabindex="0" data-tooltip="Employer Identification Number (Federal Tax ID)">ℹ️</span></label>
 
                             <input type="text" id="companyEin" name="companyEin" placeholder="XX-XXXXXXX" aria-describedby="companyEinError">
 
                             <input type="text" id="companyEin" name="companyEin" aria-describedby="companyEinError" maxlength="10">
+
 
                             <span class="error-message" id="companyEinError"></span>
                         </div>
@@ -421,7 +426,7 @@
                             </label>
                         </div>
                         <div class="form-group">
-                            <label for="njUiHcWfAmount">NJ UI/HC/WF Amount <span class="tooltip-icon" tabindex="0" data-tooltip="New Jersey unemployment, health care and workforce tax">ℹ️</span></label>
+                            <label for="njUiHcWfAmount">NJ UI/HC/WF Amount <span class="tooltip-icon" tabindex="0" data-tooltip="New Jersey unemployment, health care and workforce tax" aria-describedby="njUiHcWfTooltipText">ℹ️</span><span id="njUiHcWfTooltipText" class="visually-hidden">New Jersey unemployment, health care and workforce tax</span></label>
                             <input type="number" id="njUiHcWfAmount" name="njUiHcWfAmount" step="0.01" min="0" value="0" aria-describedby="njUiHcWfAmountError">
                             <span class="error-message" id="njUiHcWfAmountError"></span>
                         </div>
@@ -476,7 +481,7 @@
                     <p class="info-text">Enter totals from before this batch. They accumulate with each stub.</p>
                     <div class="grid-col-2">
                         <div class="form-group">
-                            <label for="initialYtdGrossPay">Initial YTD Gross Pay (before this batch) <span class="tooltip-icon" tabindex="0" data-tooltip="Totals accrued prior to generating these stubs">ℹ️</span></label>
+                            <label for="initialYtdGrossPay">Initial YTD Gross Pay (before this batch) <span class="tooltip-icon" tabindex="0" data-tooltip="Totals accrued prior to generating these stubs" aria-describedby="initialYtdGrossPayTooltipText">ℹ️</span><span id="initialYtdGrossPayTooltipText" class="visually-hidden">Totals accrued prior to generating these stubs</span></label>
                             <input type="number" id="initialYtdGrossPay" name="initialYtdGrossPay" step="0.01" min="0" value="0">
                         </div>
                         <div class="form-group">

@@ -54,6 +54,9 @@
                 <button id="loadDraft" class="btn btn-secondary btn-full-width">Load Draft</button>
                 <button id="estimateDeductions" class="btn btn-secondary btn-full-width">Estimate All Deductions</button>
                 <button id="previewPdfWatermarked" class="btn btn-secondary btn-full-width">Preview PDF (Watermarked)</button>
+                <button id="copyKeyData" class="btn btn-secondary btn-full-width">Copy Key Paystub Data</button>
+                <a id="sharePdfEmail" class="btn btn-secondary btn-full-width" style="display:none;" href="mailto:?subject=BuellDocs Paystub Preview&amp;body=Please find my generated paystub preview attached. (Note: You will need to manually attach the PDF downloaded from BuellDocs.)">Share PDF via Email</a>
+                <p id="sharePdfInstructions" class="info-text" style="display:none;">First, download the PDF, then click here to open your email client. You'll need to manually attach the downloaded PDF.</p>
                 <button id="generateAndPay" class="btn btn-primary btn-full-width">Generate & Proceed to Payment</button>
             </div>
         </aside>
@@ -65,6 +68,7 @@
             </section>
 
             <form id="paystubForm">
+                <div id="progressIndicator" class="progress-indicator"></div>
                 <!-- Step 1: Desired Income Representation -->
                 <section class="form-section-card">
                     <h3>Step 1: Define Your Desired Income Representation</h3>
@@ -197,9 +201,10 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="employeeSsn">Employee SSN (XXX-XX-NNNN)</label>
-                        <input type="text" id="employeeSsn" name="employeeSsn" placeholder="XXX-XX-NNNN" aria-describedby="employeeSsnError">
+                    <label for="employeeSsn">Employee SSN (Last 4 Digits Only)</label>
+                        <input type="text" id="employeeSsn" name="employeeSsn" placeholder="1234" aria-describedby="employeeSsnError">
                         <span class="error-message" id="employeeSsnError"></span>
+                        <p class="info-text ssn-info">SSN is used for display on the paystub and is not stored by BuellDocs for this generator tool. See our <a href='privacy_policy.html'>Privacy Policy</a>.</p>
                     </div>
                 </section>
 
@@ -336,11 +341,19 @@
                         <input type="number" id="medicareAmount" name="medicareAmount" step="0.01" min="0" value="0" aria-describedby="medicareAmountError">
                         <span class="error-message" id="medicareAmountError"></span>
                     </div>
-                    <div class="form-group checkbox-group">
-                        <label for="autoCalculateMedicare">
-                            <input type="checkbox" id="autoCalculateMedicare" name="autoCalculateMedicare">
-                            Auto-calculate Medicare?
-                        </label>
+                    <div class="grid-col-2">
+                        <div class="form-group checkbox-group">
+                            <label for="autoCalculateSocialSecurity">
+                                <input type="checkbox" id="autoCalculateSocialSecurity" name="autoCalculateSocialSecurity" checked>
+                                Auto-calculate Social Security?
+                            </label>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <label for="autoCalculateMedicare">
+                                <input type="checkbox" id="autoCalculateMedicare" name="autoCalculateMedicare" checked>
+                                Auto-calculate Medicare?
+                            </label>
+                        </div>
                     </div>
                 </section>
 
@@ -516,7 +529,7 @@
                             <div id="livePreviewEmployeeName">Employee Name</div>
                             <div id="livePreviewEmployeeAddress1">456 Employee Ave</div>
                             <div id="livePreviewEmployeeAddress2">Workville, ST 67890</div>
-                            <div id="livePreviewEmployeeSsn">SSN: XXX-XX-NNNN</div>
+                            <div id="livePreviewEmployeeSsn">SSN: XXX-XX-1234</div>
                         </div>
                         <div class="pay-period-info-preview">
                             <h4>Pay Period</h4>
@@ -656,6 +669,9 @@
             <p id="notificationModalMessage"></p>
         </div>
     </div>
+    <footer>
+        BUELLDOCS © 2025 | SYSTEM INFO | <a href='privacy_policy.html'>Privacy Policy</a>
+    </footer>
     <script src="script.js"></script>
 </body>
 </html>

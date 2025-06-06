@@ -33,6 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const netIncomeAdjustmentNote = document.getElementById('netIncomeAdjustmentNote');
     const populateDetailsBtn = document.getElementById('populateDetailsBtn');
 
+    const annualSalaryInput = document.getElementById('annualSalary');
+
     const firstNextBtn = document.querySelector('.form-step .next-step-btn');
 
     function parseCurrencyValue(val) {
@@ -50,6 +52,13 @@ document.addEventListener('DOMContentLoaded', () => {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         }).format(num);
+    }
+
+    function isValidSalary(val) {
+        const num = parseCurrencyValue(val);
+        const valid = !isNaN(num) && num > 0;
+        console.log('isValidSalary', val, valid);
+        return valid;
     }
 
     function validateDesiredIncome() {
@@ -96,6 +105,27 @@ document.addEventListener('DOMContentLoaded', () => {
     desiredIncomeTypeRadios.forEach(radio => {
         radio.addEventListener('change', clearNetIncomeAdjustmentNote);
     });
+
+    if (annualSalaryInput) {
+        annualSalaryInput.addEventListener('input', () => {
+            if (!isValidSalary(annualSalaryInput.value)) {
+                annualSalaryInput.classList.add('invalid');
+            } else {
+                annualSalaryInput.classList.remove('invalid');
+            }
+            updateLivePreview();
+            console.log('Salary input changed');
+        });
+        annualSalaryInput.addEventListener('blur', () => {
+            if (isValidSalary(annualSalaryInput.value)) {
+                annualSalaryInput.value = formatCurrencyInput(annualSalaryInput.value);
+                annualSalaryInput.classList.remove('invalid');
+            } else {
+                annualSalaryInput.classList.add('invalid');
+            }
+            updateLivePreview();
+        });
+    }
 
     // Logo Preview Elements
     const companyLogoInput = document.getElementById('companyLogo');
@@ -335,14 +365,20 @@ document.addEventListener('DOMContentLoaded', () => {
         updateLivePreview();
     }
 
-    function validateFormStep(stepIndex) {
-        const stepEl = formSteps[stepIndex];
-        let valid = true;
-        if (stepEl) {
-            const inputs = stepEl.querySelectorAll('input, select, textarea');
-            inputs.forEach(inp => { if (!validateField(inp)) valid = false; });
+
+    function validateStep(stepIndex) {
+        console.log('validateStep', stepIndex);
+        if (stepIndex === 0) {
+            const val = annualSalaryInput ? annualSalaryInput.value : '';
+            const valid = isValidSalary(val);
+            console.log('Step 1 salary valid', valid);
+            if (!valid) {
+                alert('Please enter a valid salary.');
+                if (annualSalaryInput) annualSalaryInput.classList.add('invalid');
+            }
+            return valid;
         }
-        return valid;
+        return true;
     }
 
     const nextButtons = document.querySelectorAll('.next-step-btn');
@@ -358,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } else {
             btn.addEventListener('click', function () {
-                if (validateFormStep(currentFormStep)) {
+                if (validateStep(currentFormStep)) {
                     currentFormStep = Math.min(currentFormStep + 1, formSteps.length - 1);
                     showFormStep(currentFormStep);
                 }

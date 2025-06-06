@@ -505,15 +505,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if (generateAndPayBtn) generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
 
     // Modal Interactions
+
+    closePaymentModalBtn.addEventListener('click', () => {
+        paymentModal.style.display = 'none';
+        if (generateAndPayBtn) generateAndPayBtn.disabled = false;
+    });
+    closeSuccessMessageBtn.addEventListener('click', () => {
+        paymentModal.style.display = 'none';
+        // Reset modal to initial state for next time
+        paymentInstructionsDiv.style.display = 'block';
+        modalOrderSuccessMessageDiv.style.display = 'none';
+        cashAppTxIdInput.value = '';
+        clearError(cashAppTxIdInput);
+        if (generateAndPayBtn) generateAndPayBtn.disabled = false;
+    });
+
     closePaymentModalBtn.addEventListener('click', closePaymentModal);
     closeSuccessMessageBtn.addEventListener('click', closePaymentModal);
+
     confirmPaymentBtn.addEventListener('click', handlePaymentConfirmationSubmit);
 
     closeNotificationModalBtn.addEventListener("click", closeNotificationModal);
     // Close modal if clicked outside of modal-content
     window.addEventListener('click', (event) => {
         if (event.target === paymentModal) {
+
+            paymentModal.style.display = 'none';
+            if (generateAndPayBtn) generateAndPayBtn.disabled = false;
+
             closePaymentModal();
+
         }
         if (event.target === notificationModal) {
             closeNotificationModal();
@@ -1462,6 +1483,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function handleMainFormSubmit() {
+        if (generateAndPayBtn) generateAndPayBtn.disabled = true;
         clearSummaryError();
         if (validateAllFormFields()) {
             // Update dynamic pricing in modal
@@ -1476,6 +1498,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const firstError = paystubForm.querySelector('.invalid');
             if (firstError) firstError.focus();
             showNotificationModal('Validation Error', 'Please correct the errors in the form.');
+            if (generateAndPayBtn) generateAndPayBtn.disabled = false;
         }
     }
 

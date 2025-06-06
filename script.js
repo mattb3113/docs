@@ -2036,6 +2036,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // Optional pattern hints
+        if (field.id === 'companyPhone') {
+            if (value && !/^[\d\s()+-]{7,20}$/.test(value)) {
+                showError(field, 'Format e.g. (555) 123-4567');
+            } else {
+                clearError(field);
+            }
+            return true;
+        }
+
+        if (field.id === 'companyEin') {
+            if (value && !/^\d{2}-?\d{7}$/.test(value)) {
+                showError(field, 'Format e.g. 12-3456789');
+            } else {
+                clearError(field);
+            }
+            return true;
+        }
+
 
         if (!isValid) {
             showError(field, errorMessage);

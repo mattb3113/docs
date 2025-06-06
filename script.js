@@ -65,6 +65,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const estimateAllDeductionsBtn = document.getElementById('estimateAllDeductionsBtn');
 
+    // New Federal Tax Elements
+    const federalFilingStatusSelect = document.getElementById('federalFilingStatus');
+    const autoCalculateFederalTaxCheckbox = document.getElementById('autoCalculateFederalTax');
+    const federalTaxAmountInput = document.getElementById('federalTaxAmount');
+
     // Live Preview Elements
     const livePreviewContent = document.getElementById('paystubPreviewContent');
     const livePreviewStubIndicator = document.getElementById('previewStubIndicator');
@@ -281,6 +286,24 @@ document.addEventListener('DOMContentLoaded', () => {
             { limit: 500000, rate: 0.0637 },
             { limit: 1000000, rate: 0.0897 },
             { limit: Infinity, rate: 0.1075 }
+        ]
+    };
+
+    // Simplified federal tax brackets for quick estimation
+    const FEDERAL_TAX_BRACKETS = {
+        'Single': [
+            { upto: 10000, rate: 0.10 },
+            { upto: 40000, rate: 0.12 },
+            { upto: 85000, rate: 0.22 },
+            { upto: 160000, rate: 0.24 },
+            { upto: Infinity, rate: 0.32 }
+        ],
+        'Married Filing Jointly': [
+            { upto: 20000, rate: 0.10 },
+            { upto: 80000, rate: 0.12 },
+            { upto: 170000, rate: 0.22 },
+            { upto: 320000, rate: 0.24 },
+            { upto: Infinity, rate: 0.32 }
         ]
     };
 
@@ -615,7 +638,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const medicareUsed = data.autoCalculateMedicare ? calculatedMedicare : (data.medicareAmount || 0);
 
         // --- Calculate Total Taxes for Period ---
-        results.totalTaxes += (data.federalTaxAmount || 0);
+        let federalTaxForPeriod = data.federalTaxAmount || 0;
+        if (data.autoCalculateFederalTax) {
+            const freq = data.employmentType === 'Salaried'
+                ? data.salariedPayFrequency
+                : (data.hourlyPayFrequency || 'Weekly');
+            federalTaxForPeriod = estimateFederalTax(results.grossPay, freq, data.federalFilingStatus || 'Single');
+        }
+        results.totalTaxes += federalTaxForPeriod;
         results.totalTaxes += (data.stateTaxAmount || 0);
         results.totalTaxes += socialSecurityAmount;
         results.totalTaxes += medicareAmount;
@@ -623,7 +653,7 @@ document.addEventListener('DOMContentLoaded', () => {
         results.totalTaxes += (data.njFliAmount || 0);
         results.totalTaxes += (data.njUiHcWfAmount || 0);
 
-        results.currentPeriodAmounts.federalTax = data.federalTaxAmount || 0;
+        results.currentPeriodAmounts.federalTax = federalTaxForPeriod;
         if (data.stateTaxName) results.currentPeriodAmounts[data.stateTaxName || 'stateTax'] = data.stateTaxAmount || 0;
         else results.currentPeriodAmounts.stateTax = data.stateTaxAmount || 0;
         results.currentPeriodAmounts.socialSecurity = socialSecurityAmount;
@@ -676,7 +706,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         results.ytdAmounts.grossPay = (ytdBase.grossPay || 0) + results.grossPay;
-        results.ytdAmounts.federalTax = (ytdBase.federalTax || 0) + (data.federalTaxAmount || 0);
+        results.ytdAmounts.federalTax = (ytdBase.federalTax || 0) + federalTaxForPeriod;
         results.ytdAmounts.stateTax = (ytdBase.stateTax || 0) + (data.stateTaxAmount || 0);
         results.ytdAmounts.socialSecurity = (ytdBase.socialSecurity || 0) + socialSecurityAmount;
         results.ytdAmounts.medicare = (ytdBase.medicare || 0) + medicareAmount;
@@ -827,6 +857,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             medicareInput.readOnly = false;
             medicareInput.classList.remove('auto-calc-readonly');
+        }
+
+        if (data.autoCalculateFederalTax) {
+            federalTaxAmountInput.value = calculations.currentPeriodAmounts.federalTax.toFixed(2);
+            federalTaxAmountInput.readOnly = true;
+        } else {
+            federalTaxAmountInput.readOnly = false;
         }
 
         // Update stub indicator
@@ -1909,6 +1946,22 @@ document.addEventListener('DOMContentLoaded', () => {
             element.removeAttribute('required');
             clearError(element); // Clear any errors if it's no longer required
         }
+    }
+
+    // Estimate federal tax using a simplified bracket model
+    function estimateFederalTax(grossPayPerPeriod, payFrequency, filingStatus) {
+        const periods = PAY_PERIODS_PER_YEAR[payFrequency] || 1;
+        const annualIncome = grossPayPerPeriod * periods;
+        const brackets = FEDERAL_TAX_BRACKETS[filingStatus] || FEDERAL_TAX_BRACKETS['Single'];
+        let tax = 0;
+        let prev = 0;
+        for (const { upto, rate } of brackets) {
+            const limit = Math.min(annualIncome, upto);
+            if (limit > prev) tax += (limit - prev) * rate;
+            if (annualIncome <= upto) break;
+            prev = upto;
+        }
+        return parseFloat((tax / periods).toFixed(2));
     }
 
 

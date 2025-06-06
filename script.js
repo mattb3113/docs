@@ -2601,6 +2601,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return isValid;
     }
 
+    function getLabelText(field) {
+        if (field.labels && field.labels.length > 0) {
+            return field.labels[0].textContent
+                .replace(' *', '')
+                .replace('ℹ️', '')
+                .replace('(XXX-XX-NNNN)', '')
+                .replace('(Last 4 Digits Only)', '')
+                .trim();
+        }
+        return 'This field';
+    }
+
     function validateField(field) {
         let isValid = true;
         let errorMessage = '';
@@ -2609,7 +2621,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Required validation
         if (field.hasAttribute('required') && !value && field.offsetParent !== null) { // Check offsetParent to only validate visible required fields
             isValid = false;
-            errorMessage = `${field.labels[0] ? field.labels[0].textContent.replace(' *','').replace('(XXX-XX-NNNN)','').replace('(Last 4 Digits Only)','').trim() : 'This field'} is required.`;
+            errorMessage = `${getLabelText(field)} is required.`;
         }
 
         // Specific validations
@@ -2672,23 +2684,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showError(inputElement, message) {
-        const formGroup = inputElement.closest('.form-group');
-        if (formGroup) {
-            const errorSpan = formGroup.querySelector('.error-message');
-            if (errorSpan) {
-                errorSpan.textContent = message;
-            }
+        const errorId = inputElement.getAttribute('aria-describedby');
+        let errorSpan = null;
+        if (errorId) {
+            errorSpan = document.getElementById(errorId);
+        }
+        if (!errorSpan) {
+            const formGroup = inputElement.closest('.form-group');
+            if (formGroup) errorSpan = formGroup.querySelector('.error-message');
+        }
+        if (errorSpan) {
+            errorSpan.textContent = message;
         }
         inputElement.classList.add('invalid');
     }
 
     function clearError(inputElement) {
-         const formGroup = inputElement.closest('.form-group');
-        if (formGroup) {
-            const errorSpan = formGroup.querySelector('.error-message');
-            if (errorSpan) {
-                errorSpan.textContent = '';
-            }
+        const errorId = inputElement.getAttribute('aria-describedby');
+        let errorSpan = null;
+        if (errorId) {
+            errorSpan = document.getElementById(errorId);
+        }
+        if (!errorSpan) {
+            const formGroup = inputElement.closest('.form-group');
+            if (formGroup) errorSpan = formGroup.querySelector('.error-message');
+        }
+        if (errorSpan) {
+            errorSpan.textContent = '';
         }
         inputElement.classList.remove('invalid');
     }

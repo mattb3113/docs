@@ -16,6 +16,7 @@ const DEBUG_MODE = true;
 document.addEventListener('DOMContentLoaded', () => {
     if (DEBUG_MODE) console.log('Initialization sequence started');
     let currentPreviewStubIndex = 0;
+    let currentFormStep = 0;
     let currentFormStep = 1;
     // --- DOM Elements --- //
     const paystubForm = document.getElementById('paystubForm');
@@ -445,6 +446,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return 1;
     }
 
+    function showFormStep(stepIndex) {
+        formSteps.forEach((step, i) => {
+            step.classList.toggle('active', i === stepIndex);
+        });
+        progressSteps.forEach((el, i) => {
+            const active = i === stepIndex;
+            el.classList.toggle('active', active);
+            if (active) {
+                el.setAttribute('aria-current', 'step');
+            } else {
+                el.removeAttribute('aria-current');
+            }
     function showFormStep(stepNumber) {
         if (isNaN(stepNumber)) return;
         if (stepNumber < 1) stepNumber = 1;
@@ -462,6 +475,16 @@ document.addEventListener('DOMContentLoaded', () => {
         updateProgressIndicator(stepNumber);
 
         if (formProgressIndicator) {
+            const idx = stepIndex;
+            formProgressIndicator.setAttribute('aria-label',
+                `Step ${stepIndex + 1} of ${progressSteps.length}: ${stepTitles[idx]}`);
+        }
+        const stepEl = document.querySelector(`.form-step[data-step="${stepIndex + 1}"]`);
+        if (stepEl) {
+            const prevBtn = stepEl.querySelector('.prev-step');
+            if (prevBtn) prevBtn.disabled = stepIndex === 0;
+        }
+        const prevBtn = formSteps[stepIndex].querySelector('.prev-step-btn');
             const idx = stepNumber - 1;
             formProgressIndicator.setAttribute(
                 'aria-label',
@@ -470,6 +493,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const prevBtn = formSteps[stepIndex].querySelector('.prev-step');
         if (prevBtn) prevBtn.disabled = stepIndex === 0;
+        currentFormStep = stepIndex;
         updateProgressIndicator(stepIndex + 1);
 
         updateLivePreview();
@@ -504,15 +528,29 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleDelegatedStepButtons(e) {
         const nextBtn = e.target.closest('.next-step');
         const prevBtn = e.target.closest('.prev-step');
+
         if (nextBtn) {
+            clearSummaryError();
             if (nextBtn.id === 'generateAndPay') {
                 if (validateAllFormFields()) {
                     handleMainFormSubmit();
                 } else {
                     showSummaryError('Please review the highlighted fields.');
                 }
-            } else if (validateFormStep(currentFormStep)) {
+                return;
+            }
+
+            if (validateFormStep(currentFormStep)) {
                 currentFormStep = Math.min(currentFormStep + 1, formSteps.length - 1);
+                showFormStep(currentFormStep);
+            } else {
+                showSummaryError('Please review the highlighted fields.');
+            }
+        }
+
+        if (prevBtn) {
+            if (currentFormStep > 0) {
+                currentFormStep--;
                 showFormStep(currentFormStep);
             }
         } else if (prevBtn) {
@@ -545,6 +583,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initializeFirstStep() {
         currentPreviewStubIndex = 0;
+        currentFormStep = 0;
+        showFormStep(0);
         showFormStep(1);
     }
 

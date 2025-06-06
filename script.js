@@ -484,7 +484,9 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.onload = (e) => {
                 const img = new Image();
                 img.onload = () => {
-                    const MAX_DIMENSION = 500; // basic client-side resize
+                    // Resize large images before converting to Data URL to keep
+                    // drafts small for LocalStorage (max ~4MB total)
+                    const MAX_DIMENSION = 300; // pixels
                     let { width, height } = img;
                     if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
                         const scale = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
@@ -496,7 +498,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-                    const dataUrl = canvas.toDataURL('image/png', 0.8);
+                    // Slight compression to further reduce size
+                    const dataUrl = canvas.toDataURL('image/png', 0.7);
                     previewImgElement.src = dataUrl;
                     previewImgElement.style.display = 'block';
                     if (placeholderElement) placeholderElement.style.display = 'none';

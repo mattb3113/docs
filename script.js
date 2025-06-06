@@ -466,6 +466,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    const debouncedTotalsUpdate = debounce(updatePaystubTotals, 300);
+    formInputs.forEach(input => {
+        input.addEventListener('input', debouncedTotalsUpdate);
+        input.addEventListener('change', debouncedTotalsUpdate);
+    });
+
     if (nextStubBtn && prevStubBtn) {
         nextStubBtn.addEventListener('click', () => {
             const numStubs = parseInt(numPaystubsSelect.value) || 1;
@@ -489,6 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // Initial preview update
     updateLivePreview();
+    updatePaystubTotals();
 
     const initialNumStubs = parseInt(numPaystubsSelect.value) || 1;
     if (previewNavControls) previewNavControls.style.display = initialNumStubs > 1 ? 'block' : 'none';
@@ -1157,6 +1164,25 @@ document.addEventListener('DOMContentLoaded', () => {
         // For responsive table attributes
         row.cells[1].setAttribute('data-label', 'Current');
         row.cells[2].setAttribute('data-label', 'YTD');
+    }
+
+    // Basic pay calculations used for quick live updates
+    function calculateGrossPay() {
+        return calculateCurrentPeriodPay(gatherFormData()).grossPay;
+    }
+
+    function calculateTotalDeductions() {
+        return calculateCurrentPeriodPay(gatherFormData()).totalDeductions;
+    }
+
+    function calculateNetPay() {
+        return calculateCurrentPeriodPay(gatherFormData()).netPay;
+    }
+
+    function updatePaystubTotals() {
+        livePreviewGrossPay.textContent = formatCurrency(calculateGrossPay());
+        livePreviewTotalDeductions.textContent = formatCurrency(calculateTotalDeductions());
+        livePreviewNetPay.textContent = formatCurrency(calculateNetPay());
     }
 
 

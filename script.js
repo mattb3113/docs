@@ -1260,9 +1260,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function drawFooter(doc, data, pageHeight, pageWidth, isPreviewMode) {
         const bottomContentY = pageHeight - 15;
         if (data.includeVoidedCheck && isPreviewMode) {
-            doc.setFontSize(8);
-            doc.setTextColor(150, 150, 150);
-            doc.text('[Sample Voided Check Area - Appears in HTML Preview]', 15, bottomContentY - 20);
+            drawVoidedCheck(doc, pageWidth - 95, bottomContentY - 45);
         }
         if (data.payrollProviderLogoDataUrl) {
             try {
@@ -1272,6 +1270,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 doc.addImage(data.payrollProviderLogoDataUrl, 'PNG', 15, bottomContentY - imgHeight - 5, imgWidth, imgHeight);
             } catch (e) { console.error('Error adding payroll provider logo to PDF:', e); }
         }
+    }
+
+    function drawVoidedCheck(doc, x, y) {
+        const width = 80;
+        const height = 40;
+        doc.setDrawColor(0);
+        doc.rect(x, y, width, height);
+
+        doc.setFontSize(7);
+        doc.setTextColor(50, 50, 50);
+        doc.text('Pay to the Order of:', x + 2, y + 7);
+        doc.line(x + 38, y + 6, x + width - 2, y + 6);
+        doc.rect(x + width - 28, y + 2, 26, 8);
+        doc.text('Date:', x + 2, y + 15);
+        doc.line(x + 15, y + 14, x + 40, y + 14);
+        doc.text('Memo:', x + 2, y + height - 8);
+        doc.line(x + 15, y + height - 9, x + width - 40, y + height - 9);
+        doc.line(x + width - 38, y + height - 9, x + width - 2, y + height - 9);
+        doc.setFontSize(6);
+        doc.text('Signature', x + width - 36, y + height - 11);
+
+        doc.setTextColor(255, 0, 0);
+        doc.setFontSize(18);
+        doc.text('VOID', x + width / 2, y + height / 2 + 3, null, -30, 'center');
+        doc.setTextColor(0, 0, 0);
     }
 
     function drawWatermarks(doc, pageWidth, pageHeight) {

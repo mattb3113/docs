@@ -455,6 +455,11 @@ document.addEventListener('DOMContentLoaded', () => {
     numPaystubsSelect.addEventListener('change', () => {
         updateHourlyPayFrequencyVisibility();
         currentPreviewStubIndex = 0;
+
+        const numStubs = parseInt(numPaystubsSelect.value) || 1;
+        if (previewNavControls) previewNavControls.style.display = numStubs > 1 ? 'block' : 'none';
+        updatePreviewNavButtons(numStubs);
+
         updateLivePreview();
         updatePreviewNavButtons();
     });
@@ -508,6 +513,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    if (nextStubBtn && prevStubBtn) {
+        nextStubBtn.addEventListener('click', showNextPreviewStub);
+        prevStubBtn.addEventListener('click', showPreviousPreviewStub);
+
     const debouncedTotalsUpdate = debounce(updatePaystubTotals, 300);
     formInputs.forEach(input => {
         input.addEventListener('input', debouncedTotalsUpdate);
@@ -517,14 +526,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (nextStubBtn && prevStubBtn) {
         nextStubBtn.addEventListener('click', goToNextStub);
         prevStubBtn.addEventListener('click', goToPreviousStub);
+
     }
     // Initial preview update
     updateLivePreview();
     updatePaystubTotals();
 
     const initialNumStubs = parseInt(numPaystubsSelect.value) || 1;
+
+    if (previewNavControls) previewNavControls.style.display = initialNumStubs > 1 ? 'block' : 'none';
+    updatePreviewNavButtons(initialNumStubs);
+
     currentPreviewStubIndex = 0;
     updatePreviewNavButtons();
+
 
 
     // Sidebar Button Actions
@@ -1155,6 +1170,32 @@ document.addEventListener('DOMContentLoaded', () => {
             livePreviewPayrollProviderLogo.style.display = 'none';
         }
         livePreviewVoidedCheckContainer.style.display = displayDataForStub.includeVoidedCheck ? 'block' : 'none';
+
+        updatePreviewNavButtons(numStubs);
+    }
+
+    function updatePreviewNavButtons(numStubs = parseInt(numPaystubsSelect.value) || 1) {
+        if (!prevStubBtn || !nextStubBtn) return;
+        prevStubBtn.disabled = currentPreviewStubIndex === 0;
+        nextStubBtn.disabled = currentPreviewStubIndex >= numStubs - 1;
+    }
+
+    function showNextPreviewStub() {
+        const numStubs = parseInt(numPaystubsSelect.value) || 1;
+        if (currentPreviewStubIndex < numStubs - 1) {
+            currentPreviewStubIndex++;
+            updateLivePreview();
+        }
+        updatePreviewNavButtons(numStubs);
+    }
+
+    function showPreviousPreviewStub() {
+        const numStubs = parseInt(numPaystubsSelect.value) || 1;
+        if (currentPreviewStubIndex > 0) {
+            currentPreviewStubIndex--;
+            updateLivePreview();
+        }
+        updatePreviewNavButtons(numStubs);
 
         updatePreviewNavButtons();
 

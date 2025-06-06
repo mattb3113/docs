@@ -40,10 +40,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    [desiredIncomeAmountInput, desiredIncomePeriodSelect, assumedHourlyRegularHoursInput,
+    function clearNetIncomeAdjustmentNote() {
+        if (netIncomeAdjustmentNote) {
+            netIncomeAdjustmentNote.textContent = '';
+            netIncomeAdjustmentNote.style.display = 'none';
+        }
+    }
+
+[desiredIncomeAmountInput, desiredIncomePeriodSelect, assumedHourlyRegularHoursInput,
      isForNjEmploymentCheckbox, ...incomeRepresentationRadios, ...desiredIncomeTypeRadios].forEach(el => {
         el.addEventListener('input', enablePopulateBtn);
         el.addEventListener('change', enablePopulateBtn);
+    });
+
+    // Clear net-to-gross note only when the desired amount or type is altered
+    desiredIncomeAmountInput.addEventListener('input', clearNetIncomeAdjustmentNote);
+    desiredIncomeTypeRadios.forEach(radio => {
+        radio.addEventListener('change', clearNetIncomeAdjustmentNote);
     });
 
     // Logo Preview Elements
@@ -137,9 +150,86 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeNotificationModalBtn = document.getElementById("closeNotificationModalBtn");
     // Success Message Placeholders
     const successUserEmailSpan = document.getElementById('successUserEmail');
+    const successUserEmailInlineSpan = document.getElementById('successUserEmailInline');
     const successTxIdSpan = document.getElementById('successTxId');
     const successNumStubsSpan = document.getElementById('successNumStubs');
     const successUserNotesSpan = document.getElementById('successUserNotes');
+
+    // Accessibility: Modal focus management
+    const focusableSelector = 'a[href], area[href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    let activeModal = null;
+    let lastFocusedElement = null;
+
+    function trapFocus(e) {
+        if (!activeModal) return;
+        const focusableEls = activeModal.querySelectorAll(focusableSelector);
+        if (e.key === 'Escape') {
+            if (activeModal === paymentModal) {
+                closePaymentModal();
+            } else if (activeModal === notificationModal) {
+                closeNotificationModal();
+            }
+        } else if (e.key === 'Tab') {
+            if (focusableEls.length === 0) return;
+            const first = focusableEls[0];
+            const last = focusableEls[focusableEls.length - 1];
+            if (e.shiftKey) {
+                if (document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                }
+            } else {
+                if (document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            }
+        }
+    }
+
+    function openModal(modal) {
+        lastFocusedElement = document.activeElement;
+        activeModal = modal;
+        modal.style.display = 'flex';
+        const focusableEls = modal.querySelectorAll(focusableSelector);
+        if (focusableEls.length) focusableEls[0].focus();
+        document.addEventListener('keydown', trapFocus);
+    }
+
+    function closeModal(modal) {
+        modal.style.display = 'none';
+        document.removeEventListener('keydown', trapFocus);
+        activeModal = null;
+        if (lastFocusedElement) {
+            lastFocusedElement.focus();
+            lastFocusedElement = null;
+        }
+    }
+
+    function openPaymentModal() {
+        paymentInstructionsDiv.style.display = 'block';
+        modalOrderSuccessMessageDiv.style.display = 'none';
+        openModal(paymentModal);
+    }
+
+    function closePaymentModal() {
+        const wasSuccess = modalOrderSuccessMessageDiv.style.display !== 'none';
+        closeModal(paymentModal);
+        if (wasSuccess) {
+            paymentInstructionsDiv.style.display = 'block';
+            modalOrderSuccessMessageDiv.style.display = 'none';
+            cashAppTxIdInput.value = '';
+            clearError(cashAppTxIdInput);
+        }
+    }
+
+    function openNotificationModal() {
+        openModal(notificationModal);
+    }
+
+    function closeNotificationModal() {
+        closeModal(notificationModal);
+    }
 
     // Multi-step form setup (v2)
     let currentFormStep = 0;
@@ -318,6 +408,25 @@ document.addEventListener('DOMContentLoaded', () => {
     companyLogoInput.addEventListener('change', (e) => handleLogoUpload(e, companyLogoPreviewImg, companyLogoPlaceholder));
     payrollProviderLogoInput.addEventListener('change', (e) => handleLogoUpload(e, payrollProviderLogoPreviewImg, payrollProviderLogoPlaceholder));
 
+    // Handle Remove Logo Buttons
+    document.querySelectorAll('.btn-remove-logo').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const inputId = btn.dataset.targetInput;
+            const previewId = btn.dataset.targetPreview;
+            const placeholderSelector = btn.dataset.targetPlaceholder;
+            const inputEl = document.getElementById(inputId);
+            const previewEl = document.getElementById(previewId);
+            const placeholderEl = document.querySelector(placeholderSelector);
+            if (inputEl) inputEl.value = '';
+            if (previewEl) {
+                previewEl.src = '#';
+                previewEl.style.display = 'none';
+            }
+            if (placeholderEl) placeholderEl.style.display = 'block';
+            updateLivePreview();
+        });
+    });
+
     // Form input changes for live preview (debounced)
     const formInputs = paystubForm.querySelectorAll('input, select, textarea');
     formInputs.forEach(input => {
@@ -371,6 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (generateAndPayBtn) generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
 
     // Modal Interactions
+
     closePaymentModalBtn.addEventListener('click', () => {
         paymentModal.style.display = 'none';
         if (generateAndPayBtn) generateAndPayBtn.disabled = false;
@@ -384,17 +494,25 @@ document.addEventListener('DOMContentLoaded', () => {
         clearError(cashAppTxIdInput);
         if (generateAndPayBtn) generateAndPayBtn.disabled = false;
     });
+
+    closePaymentModalBtn.addEventListener('click', closePaymentModal);
+    closeSuccessMessageBtn.addEventListener('click', closePaymentModal);
+
     confirmPaymentBtn.addEventListener('click', handlePaymentConfirmationSubmit);
 
-    closeNotificationModalBtn.addEventListener("click", () => notificationModal.style.display = "none");
+    closeNotificationModalBtn.addEventListener("click", closeNotificationModal);
     // Close modal if clicked outside of modal-content
     window.addEventListener('click', (event) => {
         if (event.target === paymentModal) {
+
             paymentModal.style.display = 'none';
             if (generateAndPayBtn) generateAndPayBtn.disabled = false;
+
+            closePaymentModal();
+
         }
         if (event.target === notificationModal) {
-            notificationModal.style.display = 'none';
+            closeNotificationModal();
         }
     });
     // --- Core Logic Functions --- //
@@ -865,8 +983,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update stub indicator
         livePreviewStubIndicator.textContent = `(Previewing Stub: ${currentPreviewStubIndex + 1} of ${numStubs})`;
         livePreviewStubXofY.textContent = `Stub ${currentPreviewStubIndex + 1} of ${numStubs}`;
-        livePreviewStubIndicator.textContent = `(Previewing Stub: ${currentPreviewStubIndex + 1} of ${totalStubs})`;
-        livePreviewStubXofY.textContent = `Stub ${currentPreviewStubIndex + 1} of ${totalStubs}`;
 
         // Company Info
         livePreviewCompanyName.textContent = displayDataForStub.companyName || 'Your Company Name';
@@ -979,8 +1095,8 @@ document.addEventListener('DOMContentLoaded', () => {
             showSummaryError('Please review the highlighted fields below.');
             const firstError = paystubForm.querySelector('.invalid');
             if (firstError) firstError.focus();
+            // Notify the user once about the validation issue
             showNotificationModal('Validation Error', 'Please fix the errors in the form before generating the PDF.'); // Replace with custom modal later
-            showNotificationModal('Validation Error', 'Please fix the errors in the form before generating the PDF.');
             return;
         }
 
@@ -1143,7 +1259,7 @@ document.addEventListener('DOMContentLoaded', () => {
             body: infoTableBody,
             startY: yPos,
             theme: 'plain',
-            styles: { fontSize: 9, cellPadding: 1.5 },
+            styles: { fontSize: 9, cellPadding: 1.5, overflow: 'linebreak' },
             columnStyles: {
                 0: { cellWidth: 25, fontStyle: 'bold' }, 1: { cellWidth: 'auto' },
                 2: { cellWidth: 25, fontStyle: 'bold' }, 3: { cellWidth: 'auto' },
@@ -1206,6 +1322,7 @@ document.addEventListener('DOMContentLoaded', () => {
             startY: yPos,
             theme: 'striped',
             headStyles: { fillColor: [50, 50, 50], textColor: 255 },
+            styles: { overflow: 'linebreak' },
             columnStyles: {
                 1: { halign: 'right' }, 2: { halign: 'right' },
                 3: { halign: 'right' }, 4: { halign: 'right' }
@@ -1239,6 +1356,7 @@ document.addEventListener('DOMContentLoaded', () => {
             startY: yPos,
             theme: 'striped',
             headStyles: { fillColor: [50, 50, 50], textColor: 255 },
+            styles: { overflow: 'linebreak' },
             columnStyles: {
                 1: { halign: 'right' }, 2: { halign: 'right' }
             },
@@ -1306,9 +1424,7 @@ document.addEventListener('DOMContentLoaded', () => {
             totalPaymentAmountSpan.textContent = formatCurrency(pricingInfo.price);
             paymentDiscountNoteSpan.textContent = pricingInfo.note;
 
-            paymentModal.style.display = 'flex'; // Use flex for centering
-            paymentInstructionsDiv.style.display = 'block';
-            modalOrderSuccessMessageDiv.style.display = 'none';
+            openPaymentModal();
         } else {
             showSummaryError('Please review the highlighted fields below.');
             const firstError = paystubForm.querySelector('.invalid');
@@ -1329,6 +1445,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = gatherFormData();
         successUserEmailSpan.textContent = formData.userEmail;
+        successUserEmailInlineSpan.textContent = formData.userEmail;
         successTxIdSpan.textContent = txId;
         successNumStubsSpan.textContent = numPaystubsSelect.value;
         successUserNotesSpan.textContent = formData.userNotes || 'None provided';
@@ -1406,6 +1523,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const originalText = saveDraftBtn.textContent;
             saveDraftBtn.textContent = 'Draft Saved!';
             setTimeout(() => { saveDraftBtn.textContent = originalText; }, 1500);
+            showNotificationModal('Draft Saved', 'Your current form progress has been saved to this browser.');
         } catch (e) {
             console.error('Failed to save draft', e);
         }
@@ -1475,9 +1593,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => {
                     loadDraftBtn.textContent = originalText;
                 }, 1500);
-            } else {
-                showNotificationModal('No Draft Found', 'There is no saved draft to load.');
             }
+            showNotificationModal('No Draft Found', 'No saved draft was found in this browser.');
             return;
         }
 
@@ -1528,6 +1645,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleEmploymentFields();
         updateHourlyPayFrequencyVisibility();
         updateLivePreview();
+        showNotificationModal('Draft Loaded', 'Your previously saved draft has been loaded into the form.');
     }
 
     function autoPopulateFromDesiredIncome() {
@@ -1868,6 +1986,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 isValid = false;
             }
         });
+
+        const otherDeductionAmount = parseFloat(document.getElementById('otherDeductionAmount').value);
+        const otherDeductionNameInput = document.getElementById('otherDeductionName');
+        if (otherDeductionNameInput) {
+            if (!isNaN(otherDeductionAmount) && otherDeductionAmount > 0) {
+                if (!otherDeductionNameInput.value.trim()) {
+                    showError(otherDeductionNameInput, 'Name required if amount is entered.');
+                    isValid = false;
+                } else {
+                    clearError(otherDeductionNameInput);
+                }
+            } else {
+                clearError(otherDeductionNameInput);
+            }
+        }
+
+        const miscEarningAmount = parseFloat(document.getElementById('miscEarningAmount').value);
+        const miscEarningNameInput = document.getElementById('miscEarningName');
+        if (miscEarningNameInput) {
+            if (!isNaN(miscEarningAmount) && miscEarningAmount > 0) {
+                if (!miscEarningNameInput.value.trim()) {
+                    showError(miscEarningNameInput, 'Name required if amount is entered.');
+                    isValid = false;
+                } else {
+                    clearError(miscEarningNameInput);
+                }
+            } else {
+                clearError(miscEarningNameInput);
+            }
+        }
+
         return isValid;
     }
 
@@ -1911,6 +2060,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 isValid = false;
                 errorMessage = 'Pay Date cannot be before Pay Period End Date.';
             }
+        }
+
+        // Optional pattern hints
+        if (field.id === 'companyPhone') {
+            if (value && !/^[\d\s()+-]{7,20}$/.test(value)) {
+                showError(field, 'Format e.g. (555) 123-4567');
+            } else {
+                clearError(field);
+            }
+            return true;
+        }
+
+        if (field.id === 'companyEin') {
+            if (value && !/^\d{2}-?\d{7}$/.test(value)) {
+                showError(field, 'Format e.g. 12-3456789');
+            } else {
+                clearError(field);
+            }
+            return true;
         }
 
 
@@ -2150,7 +2318,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function showNotificationModal(title, message) {
         notificationModalTitle.textContent = title;
         notificationModalMessage.textContent = message;
-        notificationModal.style.display = "flex";
+        openNotificationModal();
     }
 
 

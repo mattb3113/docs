@@ -543,13 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Sidebar Button Actions
-    if (resetAllFieldsBtn) resetAllFieldsBtn.addEventListener('click', resetAllFormFields);
-    if (saveDraftBtn) saveDraftBtn.addEventListener('click', saveDraftToLocalStorage);
-    if (loadDraftBtn) loadDraftBtn.addEventListener('click', loadDraftFromLocalStorage);
-    if (estimateAllDeductionsBtn) estimateAllDeductionsBtn.addEventListener('click', estimateAllStandardDeductions);
-    if (previewPdfWatermarkedBtn) previewPdfWatermarkedBtn.addEventListener('click', handleWatermarkedPreview);
-    if (copyKeyDataBtn) copyKeyDataBtn.addEventListener('click', copyKeyPaystubData);
-    if (generateAndPayBtn) generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
+    setupActionButtons();
 
     // Modal Interactions
 
@@ -2475,6 +2469,16 @@ document.addEventListener('DOMContentLoaded', () => {
         notificationModalTitle.textContent = title;
         notificationModalMessage.textContent = message;
         openNotificationModal();
+    }
+
+    function setupActionButtons() {
+        if (resetAllFieldsBtn) resetAllFieldsBtn.addEventListener('click', resetAllFormFields);
+        if (saveDraftBtn) saveDraftBtn.addEventListener('click', saveDraftToLocalStorage);
+        if (loadDraftBtn) loadDraftBtn.addEventListener('click', loadDraftFromLocalStorage);
+        if (estimateAllDeductionsBtn) estimateAllDeductionsBtn.addEventListener('click', estimateAllStandardDeductions);
+        if (previewPdfWatermarkedBtn) previewPdfWatermarkedBtn.addEventListener('click', handleWatermarkedPreview);
+        if (copyKeyDataBtn) copyKeyDataBtn.addEventListener('click', copyKeyPaystubData);
+        if (generateAndPayBtn) generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
     }
 
 

@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (DEBUG_MODE) console.log('Initialization sequence started');
     let currentPreviewStubIndex = 0;
     let currentFormStep = 0;
+    let currentFormStep = 1;
     // --- DOM Elements --- //
     const paystubForm = document.getElementById('paystubForm');
     if (!paystubForm && DEBUG_MODE) console.error('Missing form element: paystubForm');
@@ -56,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const annualSalaryInput = document.getElementById('annualSalary');
 
-    const firstNextBtn = document.querySelector('.form-step .next-step-btn');
     const firstNextBtn = document.querySelector('.form-step .next-step');
 
     function parseCurrencyValue(val) {
@@ -239,6 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const estimateAllDeductionsBtn = document.getElementById('estimateAllDeductionsBtn');
     const previewPdfWatermarkedBtn = document.getElementById('previewPdfWatermarkedBtn');
     const generateAndPayBtn = document.getElementById('generateAndPayBtn');
+    const generateAndPayFinalBtn = document.getElementById('generateAndPay');
     const copyKeyDataBtn = document.getElementById('copyKeyData');
     const sharePdfEmailLink = document.getElementById('sharePdfEmail');
     const sharePdfInstructions = document.getElementById('sharePdfInstructions');
@@ -372,6 +373,48 @@ document.addEventListener('DOMContentLoaded', () => {
         stepTitles.push(heading ? heading.textContent.trim() : `Step ${idx + 1}`);
     });
 
+    let currentStepIndex = 0;
+
+    function showActiveStep(index) {
+        if (index < 0 || index >= formSteps.length) return;
+        currentStepIndex = index;
+        formSteps.forEach((step, i) => {
+            step.style.display = i === index ? 'block' : 'none';
+            step.classList.toggle('active', i === index);
+        });
+        progressSteps.forEach((el, i) => {
+            el.classList.toggle('active', i === index);
+            el.classList.toggle('completed', i < index);
+        });
+        updateProgressIndicator(index + 1);
+        updateLivePreview();
+    }
+
+    function validateStepInputs(index) {
+        const stepEl = formSteps[index];
+        if (!stepEl) return true;
+        let valid = true;
+        stepEl.querySelectorAll('input, select, textarea').forEach(inp => {
+            if (!validateField(inp)) valid = false;
+        });
+        return valid;
+    }
+
+    function initStepNavigation() {
+        document.querySelectorAll('.next-step').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (validateStepInputs(currentStepIndex)) {
+                    showActiveStep(Math.min(currentStepIndex + 1, formSteps.length - 1));
+                }
+            });
+        });
+        document.querySelectorAll('.prev-step').forEach(btn => {
+            btn.addEventListener('click', () => {
+                showActiveStep(Math.max(currentStepIndex - 1, 0));
+            });
+        });
+    }
+
     function updateProgressIndicator(currentStepNumber) {
         const indicators = document.querySelectorAll('.progress-step');
         console.log('Current step:', currentStepNumber);
@@ -415,7 +458,22 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 el.removeAttribute('aria-current');
             }
+    function showFormStep(stepNumber) {
+        if (isNaN(stepNumber)) return;
+        if (stepNumber < 1) stepNumber = 1;
+        if (stepNumber > totalSteps) stepNumber = totalSteps;
+        currentFormStep = stepNumber;
+
+        formSteps.forEach((step, idx) => {
+            const active = idx + 1 === stepNumber;
+            step.style.display = active ? 'block' : 'none';
+            step.classList.toggle('active', active);
+            const prevBtn = step.querySelector('.prev-step');
+            if (prevBtn) prevBtn.disabled = stepNumber === 1;
         });
+
+        updateProgressIndicator(stepNumber);
+
         if (formProgressIndicator) {
             const idx = stepIndex;
             formProgressIndicator.setAttribute('aria-label',
@@ -427,6 +485,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (prevBtn) prevBtn.disabled = stepIndex === 0;
         }
         const prevBtn = formSteps[stepIndex].querySelector('.prev-step-btn');
+            const idx = stepNumber - 1;
+            formProgressIndicator.setAttribute(
+                'aria-label',
+                `Step ${stepNumber} of ${progressSteps.length}: ${stepTitles[idx]}`
+            );
+        }
+        const prevBtn = formSteps[stepIndex].querySelector('.prev-step');
         if (prevBtn) prevBtn.disabled = stepIndex === 0;
         currentFormStep = stepIndex;
         updateProgressIndicator(stepIndex + 1);
@@ -488,10 +553,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentFormStep--;
                 showFormStep(currentFormStep);
             }
+        } else if (prevBtn) {
+            const current = getCurrentStep();
+            showFormStep(current - 1);
         }
     }
 
-    const prevButtons = document.querySelectorAll('.prev-step-btn');
+    const prevButtons = document.querySelectorAll('.prev-step');
     for (let i = 0; i < prevButtons.length; i++) {
         const btn = prevButtons[i];
         btn.addEventListener('click', function () {
@@ -500,14 +568,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentFormStep--;
                 if (DEBUG_MODE) console.log(`Navigating to step ${currentFormStep}`);
                 showFormStep(currentFormStep);
-
             } else {
                 const current = getCurrentStep();
                 if (validateFormStep(current)) {
                     showFormStep(current + 1);
                 }
             }
-        }
+        });
     }
 
     function setupDelegatedButtonListeners() {
@@ -518,11 +585,14 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPreviewStubIndex = 0;
         currentFormStep = 0;
         showFormStep(0);
+        showFormStep(1);
     }
 
     function initializeAllInputHandlers() {
         setupActionButtons();
     }
+
+    showFormStep(1);
 
 
     // --- Initial State & Configuration --- //
@@ -762,6 +832,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (generateAndPayBtn) generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
     }
     setupSidebarButtonActions();
+
+    if (generateAndPayFinalBtn) {
+        generateAndPayFinalBtn.addEventListener('click', () => {
+            clearSummaryError();
+            if (validateAllFormFields()) {
+                handleMainFormSubmit();
+            } else {
+                showSummaryError('Please review the highlighted fields.');
+            }
+        });
+    }
 
     // Modal Interactions
 
@@ -2856,7 +2937,7 @@ document.addEventListener('DOMContentLoaded', () => {
         el.addEventListener('input', updatePaystubPreview);
         el.addEventListener('blur', updatePaystubPreview);
     });
-    document.querySelectorAll('.next-step-btn, .prev-step-btn').forEach(btn => {
+    document.querySelectorAll('.next-step, .prev-step').forEach(btn => {
         btn.addEventListener('click', () => setTimeout(updatePaystubPreview, 0));
     });
 
@@ -2890,7 +2971,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setupDelegatedButtonListeners();
     initializeAllInputHandlers();
     showFormStep(1);
-    showFormStep(0);
+    initStepNavigation();
+    showActiveStep(0);
     const allFormInputs = document.querySelectorAll('#paystubForm input, #paystubForm select, #paystubForm textarea');
     allFormInputs.forEach(inp => inp.addEventListener('input', updateLivePreview));
 

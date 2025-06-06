@@ -371,7 +371,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (generateAndPayBtn) generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
 
     // Modal Interactions
-    closePaymentModalBtn.addEventListener('click', () => paymentModal.style.display = 'none');
+    closePaymentModalBtn.addEventListener('click', () => {
+        paymentModal.style.display = 'none';
+        if (generateAndPayBtn) generateAndPayBtn.disabled = false;
+    });
     closeSuccessMessageBtn.addEventListener('click', () => {
         paymentModal.style.display = 'none';
         // Reset modal to initial state for next time
@@ -379,6 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modalOrderSuccessMessageDiv.style.display = 'none';
         cashAppTxIdInput.value = '';
         clearError(cashAppTxIdInput);
+        if (generateAndPayBtn) generateAndPayBtn.disabled = false;
     });
     confirmPaymentBtn.addEventListener('click', handlePaymentConfirmationSubmit);
 
@@ -387,6 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('click', (event) => {
         if (event.target === paymentModal) {
             paymentModal.style.display = 'none';
+            if (generateAndPayBtn) generateAndPayBtn.disabled = false;
         }
         if (event.target === notificationModal) {
             notificationModal.style.display = 'none';
@@ -1292,6 +1297,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function handleMainFormSubmit() {
+        if (generateAndPayBtn) generateAndPayBtn.disabled = true;
         clearSummaryError();
         if (validateAllFormFields()) {
             // Update dynamic pricing in modal
@@ -1308,6 +1314,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const firstError = paystubForm.querySelector('.invalid');
             if (firstError) firstError.focus();
             showNotificationModal('Validation Error', 'Please correct the errors in the form.');
+            if (generateAndPayBtn) generateAndPayBtn.disabled = false;
         }
     }
 

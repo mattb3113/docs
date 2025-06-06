@@ -390,11 +390,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const remaining = SOCIAL_SECURITY_WAGE_LIMIT_2024 - ytdGross;
         if (remaining <= 0) return 0;
         const taxable = Math.min(grossPay, remaining);
-        return taxable * SOCIAL_SECURITY_RATE;
+        return parseFloat((taxable * SOCIAL_SECURITY_RATE).toFixed(2));
     }
 
     function calculateMedicareDeduction(grossPay) {
-        return grossPay * MEDICARE_RATE;
+        return parseFloat((grossPay * MEDICARE_RATE).toFixed(2));
     }
 
     // Simplified federal tax brackets for quick estimation
@@ -1973,17 +1973,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const isForNJ = data.isForNJEmployment || false;
 
         if (typeof estimateFederalTax === 'function') {
-            const fedTax = estimateFederalTax(grossPay, payFrequency, filingStatus);
+            const fedTax = estimateFederalTax(gross, payFrequency, filingStatus);
             const fedInput = document.getElementById('federalTaxAmount');
             if (fedInput) {
                 fedInput.value = fedTax.toFixed(2);
                 fedInput.classList.add('auto-calculated-field');
                 fedInput.readOnly = true;
             }
-        const filingStatus = data.federalFilingStatus || data.filingStatus || 'Single';
-        const gross = calculations.grossPay;
+        }
+
         const ytdGross = data.initialYtdGrossPay || 0;
-        const isForNJ = data.isForNJEmployment || false;
 
         if (autoCalculateFederalTaxCheckbox && autoCalculateFederalTaxCheckbox.checked) {
             const val = estimateFederalTax(gross, payFrequency, filingStatus);
@@ -1996,11 +1995,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (autoCalculateSocialSecurityCheckbox && autoCalculateSocialSecurityCheckbox.checked) {
-          
             const val = calculateSocialSecurityDeduction(gross, ytdGross);
-=======
-            const val = calculateSocialSecurity(gross);
-
             socialSecurityAmountInput.value = val.toFixed(2);
             socialSecurityAmountInput.readOnly = true;
             socialSecurityAmountInput.classList.add('auto-calculated-field');
@@ -2010,11 +2005,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (autoCalculateMedicareCheckbox && autoCalculateMedicareCheckbox.checked) {
-
             const val = calculateMedicareDeduction(gross);
-=======
-            const val = calculateMedicare(gross);
-
             medicareAmountInput.value = val.toFixed(2);
             medicareAmountInput.readOnly = true;
             medicareAmountInput.classList.add('auto-calculated-field');
@@ -2096,11 +2087,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateSocialSecurityCheckbox.checked) {
             const data = gatherFormData();
             const gross = calculateCurrentPeriodPay(data).grossPay;
-
             const ytd = parseFloat(document.getElementById('initialYtdSocialSecurity')?.value) || 0;
             const val = calculateSocialSecurityDeduction(gross, ytd);
-
-            const val = calculateSocialSecurity(gross);
 
             socialSecurityAmountInput.value = val.toFixed(2);
             socialSecurityAmountInput.readOnly = true;
@@ -2116,10 +2104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateMedicareCheckbox.checked) {
             const data = gatherFormData();
             const gross = calculateCurrentPeriodPay(data).grossPay;
-
             const val = calculateMedicareDeduction(gross);
-
-            const val = calculateMedicare(gross);
 
             medicareAmountInput.value = val.toFixed(2);
             medicareAmountInput.readOnly = true;

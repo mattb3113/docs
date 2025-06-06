@@ -163,6 +163,7 @@ label, input, select, textarea, button {
 /* -------------------- */
 .main-wrapper {
     display: flex;
+    align-items: flex-start; /* Prevent sidebar height from stretching content */
     gap: 20px; /* Space between sidebar and content */
     align-items: flex-start; /* Align panels to the top */
     align-items: flex-start;
@@ -170,7 +171,6 @@ label, input, select, textarea, button {
     align-items: flex-start; /* Keep sidebar and content aligned at the top */
     gap: 40px; /* Space between sidebar and main content */
     padding-top: var(--header-height); /* Account for fixed header */
-    min-height: calc(100vh - var(--header-height));
 }
 
 /* -------------------- */
@@ -216,7 +216,7 @@ label, input, select, textarea, button {
     flex: 1 1 0;
     min-width: 0;
     padding: 40px;
-    overflow-y: auto; /* Allows main content to scroll independently if needed */
+    /* Let page scroll naturally instead of independent scrolling */
 }
 
 .hero-section {

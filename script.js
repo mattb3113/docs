@@ -1138,7 +1138,7 @@ document.addEventListener('DOMContentLoaded', () => {
             body: infoTableBody,
             startY: yPos,
             theme: 'plain',
-            styles: { fontSize: 9, cellPadding: 1.5 },
+            styles: { fontSize: 9, cellPadding: 1.5, overflow: 'linebreak' },
             columnStyles: {
                 0: { cellWidth: 25, fontStyle: 'bold' }, 1: { cellWidth: 'auto' },
                 2: { cellWidth: 25, fontStyle: 'bold' }, 3: { cellWidth: 'auto' },
@@ -1201,6 +1201,7 @@ document.addEventListener('DOMContentLoaded', () => {
             startY: yPos,
             theme: 'striped',
             headStyles: { fillColor: [50, 50, 50], textColor: 255 },
+            styles: { overflow: 'linebreak' },
             columnStyles: {
                 1: { halign: 'right' }, 2: { halign: 'right' },
                 3: { halign: 'right' }, 4: { halign: 'right' }
@@ -1234,6 +1235,7 @@ document.addEventListener('DOMContentLoaded', () => {
             startY: yPos,
             theme: 'striped',
             headStyles: { fillColor: [50, 50, 50], textColor: 255 },
+            styles: { overflow: 'linebreak' },
             columnStyles: {
                 1: { halign: 'right' }, 2: { halign: 'right' }
             },

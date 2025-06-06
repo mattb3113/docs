@@ -426,15 +426,37 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     populateDetailsBtn.addEventListener('click', autoPopulateFromDesiredIncome);
 
+    // --- Preview Navigation Helpers --- //
+    function updatePreviewNavButtons() {
+        const numStubs = parseInt(numPaystubsSelect.value) || 1;
+        if (previewNavControls) previewNavControls.style.display = numStubs > 1 ? 'block' : 'none';
+        if (prevStubBtn) prevStubBtn.disabled = currentPreviewStubIndex === 0;
+        if (nextStubBtn) nextStubBtn.disabled = currentPreviewStubIndex >= numStubs - 1;
+    }
+
+    function goToNextStub() {
+        const numStubs = parseInt(numPaystubsSelect.value) || 1;
+        if (currentPreviewStubIndex < numStubs - 1) {
+            currentPreviewStubIndex++;
+            updateLivePreview();
+        }
+        updatePreviewNavButtons();
+    }
+
+    function goToPreviousStub() {
+        if (currentPreviewStubIndex > 0) {
+            currentPreviewStubIndex--;
+            updateLivePreview();
+        }
+        updatePreviewNavButtons();
+    }
+
     // Update Hourly Pay Frequency Visibility and preview navigation when number of stubs changes
     numPaystubsSelect.addEventListener('change', () => {
         updateHourlyPayFrequencyVisibility();
         currentPreviewStubIndex = 0;
-        const numStubs = parseInt(numPaystubsSelect.value) || 1;
-        if (previewNavControls) previewNavControls.style.display = numStubs > 1 ? 'block' : 'none';
-        if (prevStubBtn) prevStubBtn.disabled = true;
-        if (nextStubBtn) nextStubBtn.disabled = numStubs <= 1;
         updateLivePreview();
+        updatePreviewNavButtons();
     });
     // Also trigger on employment type change
     employmentTypeRadios.forEach(radio => radio.addEventListener('change', updateHourlyPayFrequencyVisibility));
@@ -493,34 +515,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (nextStubBtn && prevStubBtn) {
-        nextStubBtn.addEventListener('click', () => {
-            const numStubs = parseInt(numPaystubsSelect.value) || 1;
-            if (currentPreviewStubIndex < numStubs - 1) {
-                currentPreviewStubIndex++;
-                updateLivePreview();
-            }
-            prevStubBtn.disabled = currentPreviewStubIndex === 0;
-            nextStubBtn.disabled = currentPreviewStubIndex >= numStubs - 1;
-        });
-
-        prevStubBtn.addEventListener('click', () => {
-            const numStubs = parseInt(numPaystubsSelect.value) || 1;
-            if (currentPreviewStubIndex > 0) {
-                currentPreviewStubIndex--;
-                updateLivePreview();
-            }
-            prevStubBtn.disabled = currentPreviewStubIndex === 0;
-            nextStubBtn.disabled = currentPreviewStubIndex >= numStubs - 1;
-        });
+        nextStubBtn.addEventListener('click', goToNextStub);
+        prevStubBtn.addEventListener('click', goToPreviousStub);
     }
     // Initial preview update
     updateLivePreview();
     updatePaystubTotals();
 
     const initialNumStubs = parseInt(numPaystubsSelect.value) || 1;
-    if (previewNavControls) previewNavControls.style.display = initialNumStubs > 1 ? 'block' : 'none';
-    if (prevStubBtn) prevStubBtn.disabled = true;
-    if (nextStubBtn) nextStubBtn.disabled = initialNumStubs <= 1;
+    currentPreviewStubIndex = 0;
+    updatePreviewNavButtons();
 
 
     // Sidebar Button Actions
@@ -1152,6 +1156,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         livePreviewVoidedCheckContainer.style.display = displayDataForStub.includeVoidedCheck ? 'block' : 'none';
 
+        updatePreviewNavButtons();
+
         if (prevStubBtn && nextStubBtn) {
             prevStubBtn.disabled = currentPreviewStubIndex === 0;
             nextStubBtn.disabled = currentPreviewStubIndex >= numStubs - 1;
@@ -1159,6 +1165,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Ensure summary totals reflect latest input
         updatePayPreviewTotals();
+
     }
 
     function addEarningRow(description, hours, rate, current, ytd) {

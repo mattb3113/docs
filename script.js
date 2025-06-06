@@ -106,6 +106,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const estimateDeductionsBtn = document.getElementById('estimateDeductions');
     const previewPdfWatermarkedBtn = document.getElementById('previewPdfWatermarked');
     const generateAndPayBtn = document.getElementById('generateAndPay');
+    const copyKeyDataBtn = document.getElementById('copyKeyData');
+    const sharePdfEmailLink = document.getElementById('sharePdfEmail');
+    const sharePdfInstructions = document.getElementById('sharePdfInstructions');
 
     // Modal Elements
     const paymentModal = document.getElementById('paymentModal');
@@ -360,6 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
     estimateDeductionsBtn.addEventListener('click', estimateAllDeductions);
     if (estimateAllDeductionsBtn) estimateAllDeductionsBtn.addEventListener('click', estimateAllStandardDeductions);
     previewPdfWatermarkedBtn.addEventListener('click', () => generateAndDownloadPdf(true));
+    if (copyKeyDataBtn) copyKeyDataBtn.addEventListener('click', copyKeyPaystubData);
     generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
 
     // Modal Interactions
@@ -936,14 +940,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function generateAndDownloadPdf(isPreviewMode) {
         if (!validateAllFormFields()) {
-            showNotificationModal('Validation Error', 'Please fix the errors in the form before generating the PDF.'); // Replace with custom modal later
+            showNotificationModal('Validation Error', 'Please fix the errors in the form before generating the PDF.');
             return;
         }
 
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const formData = gatherFormData();
-        const numStubsToGenerate = parseInt(numPaystubsSelect.value) || 1;
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const formData = gatherFormData();
+            const numStubsToGenerate = parseInt(numPaystubsSelect.value) || 1;
 
         let runningYtdData = { // Initial YTDs from form for the first stub
             grossPay: formData.initialYtdGrossPay,
@@ -998,6 +1003,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         doc.save(isPreviewMode ? 'BuellDocs_Paystub_Preview.pdf' : 'BuellDocs_Paystub.pdf');
+        if (isPreviewMode && sharePdfEmailLink && sharePdfInstructions) {
+            sharePdfEmailLink.style.display = 'block';
+            sharePdfInstructions.style.display = 'block';
+        }
+        } catch (err) {
+            console.error('Failed to generate PDF', err);
+            showNotificationModal('Error', 'Failed to generate PDF. Please try again.');
+        }
     }
 
     function generatePdfPage(doc, data, calculations, isPreviewMode, stubNum, totalStubs) {
@@ -1282,6 +1295,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function resetAllFormFields() {
         paystubForm.reset();
+        if (sharePdfEmailLink) sharePdfEmailLink.style.display = 'none';
+        if (sharePdfInstructions) sharePdfInstructions.style.display = 'none';
         if (netIncomeAdjustmentNote) {
             netIncomeAdjustmentNote.textContent = '';
             netIncomeAdjustmentNote.style.display = 'none';
@@ -1945,6 +1960,70 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Intl.NumberFormat('en-US', options).format(amount || 0);
     }
 
+    function compileCurrentPreviewText() {
+        const lines = [];
+        lines.push(`Company: ${livePreviewCompanyName.textContent}`);
+        lines.push(`Employee: ${livePreviewEmployeeName.textContent}`);
+        lines.push(`Pay Period: ${livePreviewPayPeriodStart.textContent} to ${livePreviewPayPeriodEnd.textContent}`);
+        lines.push(`Pay Date: ${livePreviewPayDate.textContent}`);
+        lines.push('');
+        lines.push('Earnings:');
+        livePreviewEarningsBody.querySelectorAll('tr').forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 4) {
+                const desc = cells[0].textContent.trim();
+                const amt = cells[3].textContent.trim();
+                lines.push(`  ${desc}: ${amt}`);
+            }
+        });
+        lines.push('Deductions:');
+        livePreviewDeductionsBody.querySelectorAll('tr').forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 2) {
+                const desc = cells[0].textContent.trim();
+                const amt = cells[1].textContent.trim();
+                lines.push(`  ${desc}: ${amt}`);
+            }
+        });
+        lines.push('');
+        lines.push(`Gross Pay: ${livePreviewGrossPay.textContent}`);
+        lines.push(`Total Deductions: ${livePreviewTotalDeductions.textContent}`);
+        lines.push(`Net Pay: ${livePreviewNetPay.textContent}`);
+        return lines.join('\n');
+    }
+
+    function copyKeyPaystubData() {
+        const text = compileCurrentPreviewText();
+        const onSuccess = () => {
+            showNotificationModal('Copy Success', 'Key data copied to clipboard. Paste into your document.');
+        };
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(onSuccess).catch(() => fallbackCopy(text, onSuccess));
+            } else {
+                fallbackCopy(text, onSuccess);
+            }
+        } catch (e) {
+            fallbackCopy(text, onSuccess);
+        }
+    }
+
+    function fallbackCopy(text, callback) {
+        try {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            if (callback) callback();
+        } catch (err) {
+            showNotificationModal('Copy Failed', 'Unable to copy text to clipboard.');
+        }
+    }
+
 
     function maskSSN(ssn) {
         if (!ssn) return '';
@@ -1971,6 +2050,10 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleEmploymentFields(); // Set initial state of employment fields
     updateHourlyPayFrequencyVisibility(); // Set initial state of hourly frequency dropdown
     toggleRepresentationFields(); // Set initial state of representation fields
+    minimizeSecondarySections();
+    if (sharePdfEmailLink) sharePdfEmailLink.style.display = 'none';
+    if (sharePdfInstructions) sharePdfInstructions.style.display = 'none';
+=======
     showStep(0);
 
 });

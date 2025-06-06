@@ -18,3 +18,16 @@ npm start
 ```
 
 The client app will post form data to `/create-checkout-session` and redirect to Stripe Checkout. After payment success, the server uses a webhook to generate the PDF and email it to the provided address.
+
+## Final Integration Overview
+
+The paystub generator initializes on `DOMContentLoaded` and immediately displays the first step. All navigation buttons are managed through delegated listeners so dynamically added elements work seamlessly. Every form input registers handlers for validation and live preview updates.
+
+Event flow: **user interaction → validation → step update → preview refresh**. Missing critical elements are reported via `console.error`. Invalid data triggers inline visual feedback while preview issues fall back to placeholder values.
+
+To verify a build:
+
+1. Navigate through the steps and ensure next/previous controls work.
+2. Confirm salary amounts format as currency when blurring the input.
+3. Modify any field and check that the preview updates immediately.
+4. Watch the progress indicator to verify accurate tracking of the current step.

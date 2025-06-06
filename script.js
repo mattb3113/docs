@@ -22,6 +22,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const hourlyFieldsDiv = document.getElementById('hourlyFields');
     const salariedFieldsDiv = document.getElementById('salariedFields');
 
+    function checkRequiredElements() {
+        const ids = ['paystubForm', 'numPaystubs', 'paystubPreviewContent'];
+        for (const id of ids) {
+            if (!document.getElementById(id)) {
+                console.error(`Missing element: #${id}`);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    if (!checkRequiredElements()) return;
+
     // Desired Income Representation Elements
     const desiredIncomeAmountInput = document.getElementById('desiredIncomeAmount');
     const desiredIncomePeriodSelect = document.getElementById('desiredIncomePeriod');
@@ -345,39 +358,41 @@ document.addEventListener('DOMContentLoaded', () => {
         return valid;
     }
 
-    const nextButtons = document.querySelectorAll('.next-step-btn');
-    for (let i = 0; i < nextButtons.length; i++) {
-        const btn = nextButtons[i];
-        if (btn.id === 'generateAndPay') {
-            btn.addEventListener('click', function () {
+    function handleDelegatedStepButtons(e) {
+        const nextBtn = e.target.closest('.next-step-btn');
+        const prevBtn = e.target.closest('.prev-step-btn');
+        if (nextBtn) {
+            if (nextBtn.id === 'generateAndPay') {
                 if (validateAllFormFields()) {
                     handleMainFormSubmit();
                 } else {
                     showSummaryError('Please review the highlighted fields.');
                 }
-            });
-        } else {
-            btn.addEventListener('click', function () {
-                if (validateFormStep(currentFormStep)) {
-                    currentFormStep = Math.min(currentFormStep + 1, formSteps.length - 1);
-                    showFormStep(currentFormStep);
-                }
-            });
-        }
-    }
-
-    const prevButtons = document.querySelectorAll('.prev-step-btn');
-    for (let i = 0; i < prevButtons.length; i++) {
-        const btn = prevButtons[i];
-        btn.addEventListener('click', function () {
+            } else if (validateFormStep(currentFormStep)) {
+                currentFormStep = Math.min(currentFormStep + 1, formSteps.length - 1);
+                showFormStep(currentFormStep);
+            }
+        } else if (prevBtn) {
             if (currentFormStep > 0) {
                 currentFormStep--;
                 showFormStep(currentFormStep);
             }
-        });
+        }
     }
 
-    showFormStep(0);
+    function setupDelegatedButtonListeners() {
+        document.addEventListener('click', handleDelegatedStepButtons);
+    }
+
+    function initializeFirstStep() {
+        currentPreviewStubIndex = 0;
+        showFormStep(0);
+    }
+
+    function initializeAllInputHandlers() {
+        setupActionButtons();
+    }
+
 
 
     // --- Initial State & Configuration --- //
@@ -2691,7 +2706,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateNjUiCheckbox) autoCalculateNjUiCheckbox.checked = true;
     }
     updateAutoCalculatedFields();
-    showFormStep(0);
+    initializeFirstStep();
+    setupDelegatedButtonListeners();
+    initializeAllInputHandlers();
     validateDesiredIncome();
     if (sharePdfEmailLink) sharePdfEmailLink.style.display = 'none';
     if (sharePdfInstructions) sharePdfInstructions.style.display = 'none';

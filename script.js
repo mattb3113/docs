@@ -531,6 +531,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial preview update
     updateLivePreview();
     updatePaystubTotals();
+    const payCalcInputIds = ['hourlyRate','regularHours','overtimeHours','annualSalary','bonus','miscEarningAmount','federalTaxAmount','stateTaxAmount','socialSecurityAmount','medicareAmount','njSdiAmount','njFliAmount','njUiHcWfAmount','healthInsurance','retirement401k','otherDeductionAmount'];
+    const payCalcInputs = payCalcInputIds.map(id => document.getElementById(id)).filter(Boolean);
+    const debouncedRefreshTotals = debounce(refreshLiveTotals, 300);
+    payCalcInputs.forEach(inp => {
+        inp.addEventListener('input', debouncedRefreshTotals);
+        inp.addEventListener('change', debouncedRefreshTotals);
+    });
 
     const initialNumStubs = parseInt(numPaystubsSelect.value) || 1;
 
@@ -1251,6 +1258,40 @@ document.addEventListener('DOMContentLoaded', () => {
         livePreviewGrossPay.textContent = formatCurrency(calculateGrossPay());
         livePreviewTotalDeductions.textContent = formatCurrency(calculateTotalDeductions());
         livePreviewNetPay.textContent = formatCurrency(calculateNetPay());
+    }
+
+    function computeGrossPayFromInputs() {
+        const data = gatherFormData();
+        let gross = 0;
+        if (data.employmentType === 'Hourly') {
+            const rate = parseFloat(data.hourlyRate) || 0;
+            const reg = parseFloat(data.regularHours) || 0;
+            const overtime = parseFloat(data.overtimeHours) || 0;
+            gross = (rate * reg) + (rate * overtime * 1.5);
+        } else {
+            const freq = data.salariedPayFrequency;
+            const periods = PAY_PERIODS_PER_YEAR[freq] || 1;
+            gross = (parseFloat(data.annualSalary) || 0) / periods;
+        }
+        gross += parseFloat(data.bonus) || 0;
+        gross += parseFloat(data.miscEarningAmount) || 0;
+        return gross;
+    }
+
+    function computeTotalDeductionsFromInputs() {
+        const data = gatherFormData();
+        const fields = ['federalTaxAmount','stateTaxAmount','socialSecurityAmount','medicareAmount','njSdiAmount','njFliAmount','njUiHcWfAmount','healthInsurance','retirement401k','otherDeductionAmount'];
+        return fields.reduce((sum, f) => sum + (parseFloat(data[f]) || 0), 0);
+    }
+
+    function computeNetPayFromInputs() {
+        return computeGrossPayFromInputs() - computeTotalDeductionsFromInputs();
+    }
+
+    function refreshLiveTotals() {
+        livePreviewGrossPay.textContent = formatCurrency(computeGrossPayFromInputs());
+        livePreviewTotalDeductions.textContent = formatCurrency(computeTotalDeductionsFromInputs());
+        livePreviewNetPay.textContent = formatCurrency(computeNetPayFromInputs());
     }
 
 

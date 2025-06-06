@@ -2939,11 +2939,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const annualSalaryInput = document.getElementById('annualSalary');
     if (annualSalaryInput) {
         annualSalaryInput.addEventListener('blur', function() {
-            let value = this.value.replace(/[^0-9.]/g, '');
-            if (value) {
-                value = parseFloat(value).toFixed(2);
-                this.value = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
-            }
+            const formatted = formatCurrencyInput(this.value);
+            if (formatted) this.value = formatted;
         });
     }
     validateDesiredIncome();

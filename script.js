@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const netIncomeAdjustmentNote = document.getElementById('netIncomeAdjustmentNote');
     const populateDetailsBtn = document.getElementById('populateDetailsBtn');
 
-    const firstNextBtn = document.querySelector('.form-step .next-step-btn');
+    const firstNextBtn = document.querySelector('.form-step .next-step');
 
     function parseCurrencyValue(val) {
         if (!val) return NaN;
@@ -298,13 +298,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Multi-step form setup (v2)
-    let currentFormStep = 0;
     const formSteps = Array.from(document.querySelectorAll('.form-step'));
+    const totalSteps = formSteps.length;
     const formProgressIndicator = document.getElementById('formProgressIndicator');
     const progressSteps = [];
     const stepTitles = [];
 
     formSteps.forEach((step, idx) => {
+        step.dataset.step = idx + 1;
         const indicator = document.createElement('div');
         indicator.className = 'progress-step' + (idx === 0 ? ' active' : '');
         indicator.textContent = idx + 1;
@@ -314,29 +315,55 @@ document.addEventListener('DOMContentLoaded', () => {
         stepTitles.push(heading ? heading.textContent.trim() : `Step ${idx + 1}`);
     });
 
-    function showFormStep(stepIndex) {
-        formSteps.forEach((step, i) => {
-            step.style.display = i === stepIndex ? 'block' : 'none';
+    function getCurrentStep() {
+        const steps = document.querySelectorAll('.form-step');
+        for (const step of steps) {
+            const visible = step.style.display === 'block';
+            if (visible && step.classList.contains('active')) {
+                return parseInt(step.dataset.step, 10);
+            }
+        }
+        const byClass = document.querySelector('.form-step.active');
+        if (byClass) return parseInt(byClass.dataset.step, 10);
+        const byDisplay = Array.from(steps).find(s => s.style.display === 'block');
+        if (byDisplay) return parseInt(byDisplay.dataset.step, 10);
+        return 1;
+    }
+
+    function showFormStep(stepNumber) {
+        if (isNaN(stepNumber)) return;
+        if (stepNumber < 1) stepNumber = 1;
+        if (stepNumber > totalSteps) stepNumber = totalSteps;
+        formSteps.forEach(step => {
+            const show = parseInt(step.dataset.step, 10) === stepNumber;
+            step.style.display = show ? 'block' : 'none';
+            step.classList.toggle('active', show);
+            console.log(`Step ${step.dataset.step} visibility: ${show}`);
         });
         progressSteps.forEach((el, i) => {
-            el.classList.toggle('active', i === stepIndex);
-            if (i === stepIndex) {
+            const active = i + 1 === stepNumber;
+            el.classList.toggle('active', active);
+            if (active) {
                 el.setAttribute('aria-current', 'step');
             } else {
                 el.removeAttribute('aria-current');
             }
         });
         if (formProgressIndicator) {
+            const idx = stepNumber - 1;
             formProgressIndicator.setAttribute('aria-label',
-                `Step ${stepIndex + 1} of ${progressSteps.length}: ${stepTitles[stepIndex]}`);
+                `Step ${stepNumber} of ${progressSteps.length}: ${stepTitles[idx]}`);
         }
-        const prevBtn = formSteps[stepIndex].querySelector('.prev-step-btn');
-        if (prevBtn) prevBtn.disabled = stepIndex === 0;
+        const stepEl = document.querySelector(`.form-step[data-step="${stepNumber}"]`);
+        if (stepEl) {
+            const prevBtn = stepEl.querySelector('.prev-step');
+            if (prevBtn) prevBtn.disabled = stepNumber === 1;
+        }
         updateLivePreview();
     }
 
-    function validateFormStep(stepIndex) {
-        const stepEl = formSteps[stepIndex];
+    function validateFormStep(stepNumber) {
+        const stepEl = document.querySelector(`.form-step[data-step="${stepNumber}"]`);
         let valid = true;
         if (stepEl) {
             const inputs = stepEl.querySelectorAll('input, select, textarea');
@@ -345,39 +372,31 @@ document.addEventListener('DOMContentLoaded', () => {
         return valid;
     }
 
-    const nextButtons = document.querySelectorAll('.next-step-btn');
-    for (let i = 0; i < nextButtons.length; i++) {
-        const btn = nextButtons[i];
-        if (btn.id === 'generateAndPay') {
-            btn.addEventListener('click', function () {
+    document.body.addEventListener('click', (e) => {
+        const nextBtn = e.target.closest('.next-step');
+        if (nextBtn) {
+            if (nextBtn.id === 'generateAndPay') {
                 if (validateAllFormFields()) {
                     handleMainFormSubmit();
                 } else {
                     showSummaryError('Please review the highlighted fields.');
                 }
-            });
-        } else {
-            btn.addEventListener('click', function () {
-                if (validateFormStep(currentFormStep)) {
-                    currentFormStep = Math.min(currentFormStep + 1, formSteps.length - 1);
-                    showFormStep(currentFormStep);
+            } else {
+                const current = getCurrentStep();
+                if (validateFormStep(current)) {
+                    showFormStep(current + 1);
                 }
-            });
-        }
-    }
-
-    const prevButtons = document.querySelectorAll('.prev-step-btn');
-    for (let i = 0; i < prevButtons.length; i++) {
-        const btn = prevButtons[i];
-        btn.addEventListener('click', function () {
-            if (currentFormStep > 0) {
-                currentFormStep--;
-                showFormStep(currentFormStep);
             }
-        });
-    }
+            return;
+        }
+        const prevBtn = e.target.closest('.prev-step');
+        if (prevBtn) {
+            const current = getCurrentStep();
+            showFormStep(current - 1);
+        }
+    });
 
-    showFormStep(0);
+    showFormStep(1);
 
 
     // --- Initial State & Configuration --- //
@@ -1885,7 +1904,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields(); // Ensure correct fields are shown based on default radio
         updateHourlyPayFrequencyVisibility(); // And update conditional dropdown
-        showFormStep(0);
+        showFormStep(1);
         updateLivePreview(); // Refresh live preview
         if (resetAllFieldsBtn) {
             const originalText = resetAllFieldsBtn.textContent;
@@ -2083,9 +2102,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields();
         updateHourlyPayFrequencyVisibility();
-        if (currentFormStep < formSteps.length - 1) {
-            currentFormStep++;
-            showFormStep(currentFormStep);
+        const currentStep = getCurrentStep();
+        if (currentStep < totalSteps) {
+            showFormStep(currentStep + 1);
         }
         updateLivePreview();
 
@@ -2691,7 +2710,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateNjUiCheckbox) autoCalculateNjUiCheckbox.checked = true;
     }
     updateAutoCalculatedFields();
-    showFormStep(0);
+    showFormStep(1);
     validateDesiredIncome();
     if (sharePdfEmailLink) sharePdfEmailLink.style.display = 'none';
     if (sharePdfInstructions) sharePdfInstructions.style.display = 'none';

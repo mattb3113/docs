@@ -69,7 +69,8 @@
 
             <form id="paystubForm">
                 <div id="formSummaryError" class="form-summary-error" aria-live="polite"></div>
-                <div id="progressIndicator" class="progress-indicator"></div>
+                <div id="formProgressIndicator" class="progress-indicator"></div>
+                <div class="form-step">
                 <!-- Step 1: Desired Income Representation -->
                 <section class="form-section-card">
                     <h3>Step 1: Define Your Desired Income Representation</h3>
@@ -119,6 +120,13 @@
                     </div>
                     <button type="button" id="populateDetailsBtn" class="btn btn-primary">Calculate &amp; Fill Paystub Details &#10132;</button>
                 </section>
+                <div class="step-navigation">
+                    <button type="button" class="btn btn-primary next-step-btn">Next Step</button>
+                </div>
+            </div>
+                <div class="form-step">
+
+
                 <!-- Employer Information -->
                 <section class="form-section-card form-section-minimized">
                     <h3>Employer Information</h3>
@@ -222,6 +230,13 @@
                         <span class="error-message" id="federalFilingStatusError"></span>
                     </div>
                 </section>
+                <div class="step-navigation">
+                    <button type="button" class="btn btn-secondary prev-step-btn">Previous Step</button>
+                    <button type="button" class="btn btn-primary next-step-btn">Next Step</button>
+                </div>
+            </div>
+                <div class="form-step">
+
 
                 <!-- Pay Period & Dates (For First/Base Stub) -->
                 <section class="form-section-card form-section-minimized">
@@ -319,6 +334,13 @@
                         </div>
                     </div>
                 </section>
+                <div class="step-navigation">
+                    <button type="button" class="btn btn-secondary prev-step-btn">Previous Step</button>
+                    <button type="button" class="btn btn-primary next-step-btn">Next Step</button>
+                </div>
+            </div>
+                <div class="form-step">
+
 
                 <!-- Taxes (Enter Amounts per Period - Simulation Only) -->
                 <section class="form-section-card form-section-minimized">
@@ -410,6 +432,13 @@
                         </div>
                     </div>
                 </section>
+                <div class="step-navigation">
+                    <button type="button" class="btn btn-secondary prev-step-btn">Previous Step</button>
+                    <button type="button" class="btn btn-primary next-step-btn">Next Step</button>
+                </div>
+            </div>
+                <div class="form-step">
+
 
                 <!-- Other Deductions (Optional) -->
                 <section class="form-section-card form-section-minimized">
@@ -485,6 +514,13 @@
                         </div>
                     </div>
                 </section>
+                <div class="step-navigation">
+                    <button type="button" class="btn btn-secondary prev-step-btn">Previous Step</button>
+                    <button type="button" class="btn btn-primary next-step-btn">Next Step</button>
+                </div>
+            </div>
+                <div class="form-step">
+
 
                 <!-- Optional Additions -->
                 <section class="form-section-card form-section-minimized">
@@ -522,6 +558,11 @@
                         <span class="error-message" id="userEmailError"></span>
                     </div>
                 </section>
+                <div class="step-navigation">
+                    <button type="button" class="btn btn-secondary prev-step-btn">Previous Step</button>
+                    <button type="button" id="generateAndPay" class="btn btn-primary next-step-btn">Generate & Proceed to Payment</button>
+                </div>
+            </div>
             </form>
 
             <div class="summary-bar">

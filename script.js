@@ -1880,6 +1880,13 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('regularHours').value = assumedHours;
         }
 
+        const filingStatus = federalFilingStatusSelect ? federalFilingStatusSelect.value : 'Single';
+        const stateTaxInput = document.getElementById('stateTaxAmount');
+        if (stateTaxInput) {
+            const estState = estimateNJStateTax(grossPayPerPeriod, payFrequency, filingStatus);
+            stateTaxInput.value = estState.toFixed(2);
+        }
+
         if (forNJ) {
             const stateTaxNameInput = document.getElementById('stateTaxName');
             if (stateTaxNameInput && !stateTaxNameInput.value) stateTaxNameInput.value = 'NJ State Tax';

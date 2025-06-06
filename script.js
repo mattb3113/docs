@@ -260,6 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
         5: { price: 125.00, note: "$25 each - Bulk rate applied!" }
     };
     const SOCIAL_SECURITY_WAGE_LIMIT_2024 = 168600; // 2024 limit
+    const SOCIAL_SECURITY_RATE = 0.062;
     const MEDICARE_RATE = 0.0145;
     const FEDERAL_TAX_RATE = 0.12; // Simplified flat rate for estimation
     const STATE_TAX_RATE = 0.05;   // Simplified flat rate for estimation
@@ -337,8 +338,8 @@ document.addEventListener('DOMContentLoaded', () => {
     employmentTypeRadios.forEach(radio => radio.addEventListener('change', updateHourlyPayFrequencyVisibility));
     isForNjEmploymentCheckbox.addEventListener('change', handleNjEmploymentChange);
     if (autoCalculateFederalTaxCheckbox) autoCalculateFederalTaxCheckbox.addEventListener('change', updateAutoCalculatedFields);
-    if (autoCalculateSocialSecurityCheckbox) autoCalculateSocialSecurityCheckbox.addEventListener('change', updateAutoCalculatedFields);
-    if (autoCalculateMedicareCheckbox) autoCalculateMedicareCheckbox.addEventListener('change', updateAutoCalculatedFields);
+    if (autoCalculateSocialSecurityCheckbox) autoCalculateSocialSecurityCheckbox.addEventListener('change', handleSocialSecurityAutoCalcChange);
+    if (autoCalculateMedicareCheckbox) autoCalculateMedicareCheckbox.addEventListener('change', handleMedicareAutoCalcChange);
     if (autoCalculateNjSdiCheckbox) autoCalculateNjSdiCheckbox.addEventListener('change', updateAutoCalculatedFields);
     if (autoCalculateNjFliCheckbox) autoCalculateNjFliCheckbox.addEventListener('change', updateAutoCalculatedFields);
     if (autoCalculateNjUiCheckbox) autoCalculateNjUiCheckbox.addEventListener('change', updateAutoCalculatedFields);
@@ -1865,6 +1866,37 @@ document.addEventListener('DOMContentLoaded', () => {
             if (stateTaxNameInput) stateTaxNameInput.value = '';
         }
         updateAutoCalculatedFields();
+    }
+
+    function handleSocialSecurityAutoCalcChange() {
+        if (autoCalculateSocialSecurityCheckbox.checked) {
+            const data = gatherFormData();
+            const gross = calculateCurrentPeriodPay(data).grossPay;
+            const ytd = parseFloat(document.getElementById('initialYtdSocialSecurity')?.value) || 0;
+            const val = estimateSocialSecurity(gross, ytd);
+            socialSecurityAmountInput.value = val.toFixed(2);
+            socialSecurityAmountInput.readOnly = true;
+            socialSecurityAmountInput.classList.add('auto-calculated-field');
+        } else {
+            socialSecurityAmountInput.readOnly = false;
+            socialSecurityAmountInput.classList.remove('auto-calculated-field');
+        }
+        updateLivePreview();
+    }
+
+    function handleMedicareAutoCalcChange() {
+        if (autoCalculateMedicareCheckbox.checked) {
+            const data = gatherFormData();
+            const gross = calculateCurrentPeriodPay(data).grossPay;
+            const val = estimateMedicare(gross);
+            medicareAmountInput.value = val.toFixed(2);
+            medicareAmountInput.readOnly = true;
+            medicareAmountInput.classList.add('auto-calculated-field');
+        } else {
+            medicareAmountInput.readOnly = false;
+            medicareAmountInput.classList.remove('auto-calculated-field');
+        }
+        updateLivePreview();
     }
 
 

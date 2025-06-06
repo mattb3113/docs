@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const annualSalaryInput = document.getElementById('annualSalary');
 
     const firstNextBtn = document.querySelector('.form-step .next-step-btn');
+    const firstNextBtn = document.querySelector('.form-step .next-step');
 
     function parseCurrencyValue(val) {
         if (!val) return NaN;
@@ -328,13 +329,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Multi-step form setup (v2)
-    let currentFormStep = 0;
     const formSteps = Array.from(document.querySelectorAll('.form-step'));
+    const totalSteps = formSteps.length;
     const formProgressIndicator = document.getElementById('formProgressIndicator');
     const progressSteps = [];
     const stepTitles = [];
 
     formSteps.forEach((step, idx) => {
+        step.dataset.step = idx + 1;
         const indicator = document.createElement('div');
         indicator.className = 'progress-step' + (idx === 0 ? ' active' : '');
         indicator.textContent = idx + 1;
@@ -344,24 +346,53 @@ document.addEventListener('DOMContentLoaded', () => {
         stepTitles.push(heading ? heading.textContent.trim() : `Step ${idx + 1}`);
     });
 
+    function getCurrentStep() {
+        const steps = document.querySelectorAll('.form-step');
+        for (const step of steps) {
+            const visible = step.style.display === 'block';
+            if (visible && step.classList.contains('active')) {
+                return parseInt(step.dataset.step, 10);
+            }
+        }
+        const byClass = document.querySelector('.form-step.active');
+        if (byClass) return parseInt(byClass.dataset.step, 10);
+        const byDisplay = Array.from(steps).find(s => s.style.display === 'block');
+        if (byDisplay) return parseInt(byDisplay.dataset.step, 10);
+        return 1;
+    }
+
+    function showFormStep(stepNumber) {
+        if (isNaN(stepNumber)) return;
+        if (stepNumber < 1) stepNumber = 1;
+        if (stepNumber > totalSteps) stepNumber = totalSteps;
+        formSteps.forEach(step => {
+            const show = parseInt(step.dataset.step, 10) === stepNumber;
+            step.style.display = show ? 'block' : 'none';
+            step.classList.toggle('active', show);
+            console.log(`Step ${step.dataset.step} visibility: ${show}`);
     function showFormStep(stepIndex) {
         formSteps.forEach((step, i) => {
-            step.style.display = i === stepIndex ? 'block' : 'none';
+            step.classList.toggle('active', i === stepIndex);
         });
         progressSteps.forEach((el, i) => {
-            el.classList.toggle('active', i === stepIndex);
-            if (i === stepIndex) {
+            const active = i + 1 === stepNumber;
+            el.classList.toggle('active', active);
+            if (active) {
                 el.setAttribute('aria-current', 'step');
             } else {
                 el.removeAttribute('aria-current');
             }
         });
         if (formProgressIndicator) {
+            const idx = stepNumber - 1;
             formProgressIndicator.setAttribute('aria-label',
-                `Step ${stepIndex + 1} of ${progressSteps.length}: ${stepTitles[stepIndex]}`);
+                `Step ${stepNumber} of ${progressSteps.length}: ${stepTitles[idx]}`);
         }
-        const prevBtn = formSteps[stepIndex].querySelector('.prev-step-btn');
-        if (prevBtn) prevBtn.disabled = stepIndex === 0;
+        const stepEl = document.querySelector(`.form-step[data-step="${stepNumber}"]`);
+        if (stepEl) {
+            const prevBtn = stepEl.querySelector('.prev-step');
+            if (prevBtn) prevBtn.disabled = stepNumber === 1;
+        }
         updateLivePreview();
     }
 
@@ -377,15 +408,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (annualSalaryInput) annualSalaryInput.classList.add('invalid');
             }
             return valid;
+    function validateFormStep(stepNumber) {
+        const stepEl = document.querySelector(`.form-step[data-step="${stepNumber}"]`);
+        let valid = true;
+        if (stepEl) {
+            const inputs = stepEl.querySelectorAll('input, select, textarea');
+            inputs.forEach(inp => { if (!validateField(inp)) valid = false; });
         }
         return true;
     }
 
-    const nextButtons = document.querySelectorAll('.next-step-btn');
-    for (let i = 0; i < nextButtons.length; i++) {
-        const btn = nextButtons[i];
-        if (btn.id === 'generateAndPay') {
-            btn.addEventListener('click', function () {
+    document.body.addEventListener('click', (e) => {
+        const nextBtn = e.target.closest('.next-step');
+        if (nextBtn) {
+            if (nextBtn.id === 'generateAndPay') {
                 if (validateAllFormFields()) {
                     handleMainFormSubmit();
                 } else {
@@ -397,23 +433,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (validateStep(currentFormStep)) {
                     currentFormStep = Math.min(currentFormStep + 1, formSteps.length - 1);
                     showFormStep(currentFormStep);
+
+            } else {
+                const current = getCurrentStep();
+                if (validateFormStep(current)) {
+                    showFormStep(current + 1);
                 }
-            });
-        }
-    }
-
-    const prevButtons = document.querySelectorAll('.prev-step-btn');
-    for (let i = 0; i < prevButtons.length; i++) {
-        const btn = prevButtons[i];
-        btn.addEventListener('click', function () {
-            if (currentFormStep > 0) {
-                currentFormStep--;
-                showFormStep(currentFormStep);
             }
-        });
-    }
+            return;
+        }
+        const prevBtn = e.target.closest('.prev-step');
+        if (prevBtn) {
+            const current = getCurrentStep();
+            showFormStep(current - 1);
+        }
+    });
 
-    showFormStep(0);
+    showFormStep(1);
 
 
     // --- Initial State & Configuration --- //
@@ -748,7 +784,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (type === 'Salaried') {
             document.querySelector('input[name="employmentType"][value="Salaried"]').checked = true;
             toggleEmploymentFields();
-            document.getElementById('annualSalary').value = annualAmount.toFixed(2);
+            document.getElementById('annualSalary').value = formatCurrencyInput(annualAmount);
         } else {
             document.querySelector('input[name="employmentType"][value="Hourly"]').checked = true;
             toggleEmploymentFields();
@@ -834,7 +870,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } else if (inputElement.type === 'checkbox') {
                     data[key] = inputElement.checked;
-                } else if (key === 'desiredIncomeAmount') {
+                } else if (key === 'desiredIncomeAmount' || key === 'annualSalary') {
                     data[key] = parseCurrencyValue(value) || 0;
                 } else if (inputElement.type === 'number' || inputElement.classList.contains('amount-input')) {
                     data[key] = parseFloat(value) || 0; // Ensure numbers, default to 0 if NaN
@@ -1921,7 +1957,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields(); // Ensure correct fields are shown based on default radio
         updateHourlyPayFrequencyVisibility(); // And update conditional dropdown
-        showFormStep(0);
+        showFormStep(1);
         updateLivePreview(); // Refresh live preview
         if (resetAllFieldsBtn) {
             const originalText = resetAllFieldsBtn.textContent;
@@ -2079,7 +2115,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (repType === 'Salaried') {
             document.querySelector('input[name="employmentType"][value="Salaried"]').checked = true;
             const annualSalaryInput = document.getElementById('annualSalary');
-            annualSalaryInput.value = effectiveAnnualSalary.toFixed(2);
+            annualSalaryInput.value = formatCurrencyInput(effectiveAnnualSalary);
             const payFreqSelect = document.getElementById('salariedPayFrequency');
             if (payFreqSelect.value) payFrequency = payFreqSelect.value; else payFreqSelect.value = payFrequency;
             grossPayPerPeriod = effectiveAnnualSalary / PAY_PERIODS_PER_YEAR[payFrequency];
@@ -2119,9 +2155,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields();
         updateHourlyPayFrequencyVisibility();
-        if (currentFormStep < formSteps.length - 1) {
-            currentFormStep++;
-            showFormStep(currentFormStep);
+        const currentStep = getCurrentStep();
+        if (currentStep < totalSteps) {
+            showFormStep(currentStep + 1);
         }
         updateLivePreview();
 
@@ -2727,7 +2763,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateNjUiCheckbox) autoCalculateNjUiCheckbox.checked = true;
     }
     updateAutoCalculatedFields();
+    showFormStep(1);
     showFormStep(0);
+    const allFormInputs = document.querySelectorAll('#paystubForm input, #paystubForm select, #paystubForm textarea');
+    allFormInputs.forEach(inp => inp.addEventListener('input', updateLivePreview));
+
+    const annualSalaryInput = document.getElementById('annualSalary');
+    if (annualSalaryInput) {
+        annualSalaryInput.addEventListener('blur', function() {
+            let value = this.value.replace(/[^0-9.]/g, '');
+            if (value) {
+                value = parseFloat(value).toFixed(2);
+                this.value = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+            }
+        });
+    }
     validateDesiredIncome();
     if (sharePdfEmailLink) sharePdfEmailLink.style.display = 'none';
     if (sharePdfInstructions) sharePdfInstructions.style.display = 'none';

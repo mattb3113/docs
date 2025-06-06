@@ -75,7 +75,7 @@
             <form id="paystubForm">
                 <div id="formSummaryError" class="form-summary-error" aria-live="polite"></div>
                 <div id="formProgressIndicator" class="progress-indicator"></div>
-                <div class="form-step">
+                <div class="form-step" data-step="1">
                 <!-- Step 1: Desired Income Representation -->
                 <section class="form-section-card">
                     <h3>Step 1: Define Your Desired Income Representation</h3>
@@ -126,10 +126,10 @@
                     <button type="button" id="populateDetailsBtn" class="btn btn-primary">Calculate &amp; Fill Paystub Details &#10132;</button>
                 </section>
                 <div class="step-navigation">
-                    <button type="button" class="btn btn-primary next-step-btn">Next Step</button>
+                    <button type="button" class="btn btn-primary next-step">Next Step</button>
                 </div>
             </div>
-                <div class="form-step">
+                <div class="form-step" data-step="2">
 
 
                 <!-- Employer Information -->
@@ -261,11 +261,11 @@
                     </div>
                 </section>
                 <div class="step-navigation">
-                    <button type="button" class="btn btn-secondary prev-step-btn">Previous Step</button>
-                    <button type="button" class="btn btn-primary next-step-btn">Next Step</button>
+                    <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
+                    <button type="button" class="btn btn-primary next-step">Next Step</button>
                 </div>
             </div>
-                <div class="form-step">
+                <div class="form-step" data-step="3">
 
 
 
@@ -310,7 +310,7 @@
                         <div class="grid-col-2">
                             <div class="form-group">
                                 <label for="annualSalary">Annual Salary <span class="required-asterisk">*</span></label>
-                                <input type="number" id="annualSalary" name="annualSalary" step="0.01" required aria-required="true" min="0" value="0" aria-describedby="annualSalaryError">
+                                <input type="text" id="annualSalary" name="annualSalary" class="form-input" inputmode="decimal" pattern="[0-9,\.]*" required aria-required="true" value="0.00" aria-describedby="annualSalaryError">
                                 <span class="error-message" id="annualSalaryError"></span>
                             </div>
                             <div class="form-group">
@@ -346,11 +346,11 @@
                     </div>
                 </section>
                 <div class="step-navigation">
-                    <button type="button" class="btn btn-secondary prev-step-btn">Previous Step</button>
-                    <button type="button" class="btn btn-primary next-step-btn">Next Step</button>
+                    <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
+                    <button type="button" class="btn btn-primary next-step">Next Step</button>
                 </div>
             </div>
-                <div class="form-step">
+                <div class="form-step" data-step="4">
 
 
                 <!-- Taxes (Enter Amounts per Period - Simulation Only) -->
@@ -436,11 +436,11 @@
                     </div>
                 </section>
                 <div class="step-navigation">
-                    <button type="button" class="btn btn-secondary prev-step-btn">Previous Step</button>
-                    <button type="button" class="btn btn-primary next-step-btn">Next Step</button>
+                    <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
+                    <button type="button" class="btn btn-primary next-step">Next Step</button>
                 </div>
             </div>
-                <div class="form-step">
+                <div class="form-step" data-step="5">
 
 
                 <!-- Other Deductions (Optional) -->
@@ -508,11 +508,11 @@
                     </div>
                 </section>
                 <div class="step-navigation">
-                    <button type="button" class="btn btn-secondary prev-step-btn">Previous Step</button>
-                    <button type="button" class="btn btn-primary next-step-btn">Next Step</button>
+                    <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
+                    <button type="button" class="btn btn-primary next-step">Next Step</button>
                 </div>
             </div>
-                <div class="form-step">
+                <div class="form-step" data-step="6">
 
 
                 <!-- Optional Additions -->
@@ -553,8 +553,8 @@
                     </div>
                 </section>
                 <div class="step-navigation">
-                    <button type="button" class="btn btn-secondary prev-step-btn">Previous Step</button>
-                    <button type="button" id="generateAndPay" class="btn btn-primary next-step-btn">Generate & Proceed to Payment</button>
+                    <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
+                    <button type="button" id="generateAndPay" class="btn btn-primary next-step">Generate & Proceed to Payment</button>
                 </div>
             </div>
             </form>

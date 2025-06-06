@@ -16,6 +16,7 @@ const DEBUG_MODE = true;
 document.addEventListener('DOMContentLoaded', () => {
     if (DEBUG_MODE) console.log('Initialization sequence started');
     let currentPreviewStubIndex = 0;
+    let currentFormStep = 0;
     // --- DOM Elements --- //
     const paystubForm = document.getElementById('paystubForm');
     if (!paystubForm && DEBUG_MODE) console.error('Missing form element: paystubForm');
@@ -402,21 +403,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return 1;
     }
 
-    function showFormStep(stepNumber) {
-        if (isNaN(stepNumber)) return;
-        if (stepNumber < 1) stepNumber = 1;
-        if (stepNumber > totalSteps) stepNumber = totalSteps;
-        formSteps.forEach(step => {
-            const show = parseInt(step.dataset.step, 10) === stepNumber;
-            step.style.display = show ? 'block' : 'none';
-            step.classList.toggle('active', show);
-            console.log(`Step ${step.dataset.step} visibility: ${show}`);
     function showFormStep(stepIndex) {
         formSteps.forEach((step, i) => {
             step.classList.toggle('active', i === stepIndex);
         });
         progressSteps.forEach((el, i) => {
-            const active = i + 1 === stepNumber;
+            const active = i === stepIndex;
             el.classList.toggle('active', active);
             if (active) {
                 el.setAttribute('aria-current', 'step');
@@ -425,17 +417,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         if (formProgressIndicator) {
-            const idx = stepNumber - 1;
+            const idx = stepIndex;
             formProgressIndicator.setAttribute('aria-label',
-                `Step ${stepNumber} of ${progressSteps.length}: ${stepTitles[idx]}`);
+                `Step ${stepIndex + 1} of ${progressSteps.length}: ${stepTitles[idx]}`);
         }
-        const stepEl = document.querySelector(`.form-step[data-step="${stepNumber}"]`);
+        const stepEl = document.querySelector(`.form-step[data-step="${stepIndex + 1}"]`);
         if (stepEl) {
             const prevBtn = stepEl.querySelector('.prev-step');
-            if (prevBtn) prevBtn.disabled = stepNumber === 1;
+            if (prevBtn) prevBtn.disabled = stepIndex === 0;
         }
         const prevBtn = formSteps[stepIndex].querySelector('.prev-step-btn');
         if (prevBtn) prevBtn.disabled = stepIndex === 0;
+        currentFormStep = stepIndex;
         updateProgressIndicator(stepIndex + 1);
 
         updateLivePreview();
@@ -468,36 +461,33 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
     function handleDelegatedStepButtons(e) {
-        const nextBtn = e.target.closest('.next-step-btn');
-        const prevBtn = e.target.closest('.prev-step-btn');
-    document.body.addEventListener('click', (e) => {
         const nextBtn = e.target.closest('.next-step');
+        const prevBtn = e.target.closest('.prev-step');
+
         if (nextBtn) {
+            clearSummaryError();
             if (nextBtn.id === 'generateAndPay') {
                 if (validateAllFormFields()) {
                     handleMainFormSubmit();
                 } else {
                     showSummaryError('Please review the highlighted fields.');
                 }
-            } else if (validateFormStep(currentFormStep)) {
+                return;
+            }
+
+            if (validateFormStep(currentFormStep)) {
                 currentFormStep = Math.min(currentFormStep + 1, formSteps.length - 1);
                 showFormStep(currentFormStep);
+            } else {
+                showSummaryError('Please review the highlighted fields.');
             }
-        } else if (prevBtn) {
-            });
-        } else {
-            btn.addEventListener('click', function () {
-                if (DEBUG_MODE) console.log(`Attempting to validate step ${currentFormStep}`);
-                if (validateFormStep(currentFormStep)) {
-                    if (DEBUG_MODE) console.log(`Step ${currentFormStep} validation passed`);
-                if (validateStep(currentFormStep)) {
-                    currentFormStep = Math.min(currentFormStep + 1, formSteps.length - 1);
-                    if (DEBUG_MODE) console.log(`Navigating to step ${currentFormStep}`);
-                    showFormStep(currentFormStep);
-                } else {
-                    if (DEBUG_MODE) console.log(`Step ${currentFormStep} validation failed`);
-                }
-            });
+        }
+
+        if (prevBtn) {
+            if (currentFormStep > 0) {
+                currentFormStep--;
+                showFormStep(currentFormStep);
+            }
         }
     }
 
@@ -526,23 +516,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initializeFirstStep() {
         currentPreviewStubIndex = 0;
+        currentFormStep = 0;
         showFormStep(0);
     }
 
     function initializeAllInputHandlers() {
         setupActionButtons();
     }
-
-            return;
-        }
-        const prevBtn = e.target.closest('.prev-step');
-        if (prevBtn) {
-            const current = getCurrentStep();
-            showFormStep(current - 1);
-        }
-    });
-
-    showFormStep(1);
 
 
     // --- Initial State & Configuration --- //

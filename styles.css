@@ -653,6 +653,15 @@ input.invalid, select.invalid, textarea.invalid {
     z-index: 2; /* Above watermark */
 }
 
+/* Prevent overly long text from breaking the preview layout */
+#paystubPreviewContent,
+#paystubPreviewContent td,
+#paystubPreviewContent th,
+#paystubPreviewContent div {
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+}
+
 .paystub-header-preview {
     display: flex;
     justify-content: space-between;

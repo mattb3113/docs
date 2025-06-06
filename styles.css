@@ -163,6 +163,8 @@ label, input, select, textarea, button {
 /* -------------------- */
 .main-wrapper {
     display: flex;
+    gap: 20px; /* Space between sidebar and content */
+    align-items: flex-start; /* Align panels to the top */
     align-items: flex-start;
     gap: 30px;
     align-items: flex-start; /* Keep sidebar and content aligned at the top */
@@ -1010,6 +1012,7 @@ input.invalid, select.invalid, textarea.invalid {
     }
     .main-wrapper {
         flex-direction: column;
+        gap: 0;
         gap: 20px;
     }
     .sidebar {

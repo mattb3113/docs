@@ -146,6 +146,10 @@ label, input, select, textarea, button {
     letter-spacing: 0.5px;
 }
 
+.header-nav .nav-link.active {
+    color: var(--accent-gold);
+}
+
 .header-nav .nav-link:hover {
     color: var(--accent-gold);
 }
@@ -297,6 +301,68 @@ label, input, select, textarea, button {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     font-weight: 600;
+}
+
+/* -------------------- */
+/* --- ABOUT PAGE STYLES --- */
+/* -------------------- */
+.about-main {
+    padding-top: calc(var(--header-height) + 30px);
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.page-section {
+    margin-bottom: 40px;
+}
+
+.content-card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.terminal-card {
+    background-color: #111;
+    border-radius: var(--border-radius-md);
+    padding: 20px;
+    font-family: "Courier New", Courier, monospace;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    position: relative;
+}
+
+.terminal-controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    gap: 6px;
+}
+
+.terminal-controls span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.red { background-color: #ff5f56; }
+.yellow { background-color: #ffbd2e; }
+.green { background-color: #27c93f; }
+
+.text-center {
+    text-align: center;
+}
+
+footer {
+    padding: 20px 30px;
+    border-top: 1px solid var(--border-color-light);
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 14px;
 }
 
 

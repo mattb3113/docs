@@ -7,9 +7,6 @@
     <link rel="stylesheet" href="styles.css">
     <style>
     .main-content {
-        padding-top: calc(var(--header-height) + 30px);
-        padding-left: 30px;
-        padding-right: 30px;
         max-width: 900px;
         margin: 0 auto;
     }
@@ -77,7 +74,6 @@
 
     @media (max-width: 768px) {
         .header-nav .nav-link { margin-left: 15px; font-size: 14px; }
-        .main-content { padding-left: 15px; padding-right: 15px; }
     }
 </style>
 </head>
@@ -89,7 +85,7 @@
     <header class="app-header">
         <div class="logo-container">
             <span class="logo-text">BUELLDOCS</span>
-            <span class="header-tagline">Secure Document Services</span>
+            <span class="header-tagline">Client Dashboard</span>
         </div>
         <nav class="header-nav">
             <a href="index.html" class="nav-link">Client Dashboard</a>
@@ -98,7 +94,10 @@
         <a class="btn btn-secondary header-contact-btn" href="mailto:buellschool@gmail.com">Contact Us</a>
     </header>
 
+    <main class="main-content centered-main">
+    <div class="main-wrapper">
     <main class="main-content">
+    <main class="main-content about-content">
         <section class="about-hero page-section content-card">
             <h1>Meet <span style="color: var(--accent-gold);">The Architect</span></h1>
             <p>At 33, I've made it my mission to become the ultimate fixer—the Michael Clayton of documentation. After years honing my craft within rigid corporate structures, I redirected my skills to serve those who truly need them: you.</p>
@@ -144,6 +143,7 @@
             <a href="#" class="btn btn-primary">Explore Services</a>
         </section>
     </main>
+    </div>
 
     <footer>
         BUELLDOCS © 2025 | <!-- SYSTEM INFO --> | <a href='privacy_policy.html'>Privacy Policy</a>

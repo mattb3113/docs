@@ -818,6 +818,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const companyPhoneInput = document.getElementById('companyPhone');
+    if (companyPhoneInput) {
+        companyPhoneInput.addEventListener('input', e => {
+            const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+            let formatted = digits;
+            if (digits.length > 6) {
+                formatted = `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
+            } else if (digits.length > 3) {
+                formatted = `(${digits.slice(0,3)}) ${digits.slice(3)}`;
+            } else if (digits.length > 0) {
+                formatted = `(${digits}`;
+            }
+            e.target.value = formatted;
+        });
+    }
+
 
 
     // Sidebar Button Actions
@@ -2618,14 +2634,27 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage = 'Please enter a valid email address.';
         }
 
-        if (isValid && field.name === "employeeSsn" && value && !/^\d{3}-?\d{2}-?\d{4}$/.test(value)) {
-            isValid = false;
-            errorMessage = "Please enter a valid SSN (123-45-6789 or 123456789).";
+        if (isValid && field.name === "employeeSsn" && value) {
+            const digits = value.replace(/\D/g, '');
+            if (digits.length !== 9) {
+                isValid = false;
+                errorMessage = 'SSN must be 9 digits.';
+            }
         }
 
-        if (isValid && field.type === 'number' && parseFloat(value) < 0) {
-            isValid = false;
-            errorMessage = 'Value cannot be negative.';
+        if (isValid && field.type === 'number') {
+            const numericVal = parseFloat(value);
+            if (!isNaN(numericVal)) {
+                if (numericVal < 0) {
+                    isValid = false;
+                    errorMessage = 'Value cannot be negative.';
+                }
+                const max = parseFloat(field.getAttribute('max'));
+                if (isValid && !isNaN(max) && numericVal > max) {
+                    isValid = false;
+                    errorMessage = `Value cannot exceed ${max}.`;
+                }
+            }
         }
 
         if (isValid && field.type === 'date' && value) {
@@ -2645,8 +2674,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Optional pattern hints
         if (field.id === 'companyPhone') {
-            if (value && !/^[\d\s()+-]{7,20}$/.test(value)) {
-                showError(field, 'Format e.g. (555) 123-4567');
+            const digits = value.replace(/\D/g, '');
+            if (digits && digits.length !== 10) {
+                showError(field, 'Phone number must be 10 digits');
             } else {
                 clearError(field);
             }

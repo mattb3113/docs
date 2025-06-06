@@ -115,7 +115,7 @@
                     </div>
                     <div class="form-group" id="assumedHourlyHoursGroup" style="display:none;">
                         <label for="assumedHourlyRegularHours">Assumed Regular Hours per Period for Representation</label>
-                        <input type="number" id="assumedHourlyRegularHours" name="assumedHourlyRegularHours" step="0.01" min="0" value="40">
+                        <input type="number" id="assumedHourlyRegularHours" name="assumedHourlyRegularHours" step="0.01" min="0" max="168" value="40">
                     </div>
                     <div class="form-group checkbox-group">
                         <label for="isForNJEmployment">
@@ -295,12 +295,12 @@
                             </div>
                             <div class="form-group">
                                 <label for="regularHours">Regular Hours (per period) <span class="required-asterisk">*</span></label>
-                                <input type="number" id="regularHours" name="regularHours" step="0.01" required aria-required="true" min="0" value="0" aria-describedby="regularHoursError">
+                                <input type="number" id="regularHours" name="regularHours" step="0.01" required aria-required="true" min="0" max="168" value="0" aria-describedby="regularHoursError">
                                 <span class="error-message" id="regularHoursError"></span>
                             </div>
                             <div class="form-group">
                                 <label for="overtimeHours">Overtime Hours (per period)</label>
-                                <input type="number" id="overtimeHours" name="overtimeHours" step="0.01" min="0" value="0" aria-describedby="overtimeHoursError">
+                                <input type="number" id="overtimeHours" name="overtimeHours" step="0.01" min="0" max="168" value="0" aria-describedby="overtimeHoursError">
                                 <span class="error-message" id="overtimeHoursError"></span>
                             </div>
                         </div>

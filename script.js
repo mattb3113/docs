@@ -1947,6 +1947,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 isValid = false;
             }
         });
+
+        const otherDeductionAmount = parseFloat(document.getElementById('otherDeductionAmount').value);
+        const otherDeductionNameInput = document.getElementById('otherDeductionName');
+        if (otherDeductionNameInput) {
+            if (!isNaN(otherDeductionAmount) && otherDeductionAmount > 0) {
+                if (!otherDeductionNameInput.value.trim()) {
+                    showError(otherDeductionNameInput, 'Name required if amount is entered.');
+                    isValid = false;
+                } else {
+                    clearError(otherDeductionNameInput);
+                }
+            } else {
+                clearError(otherDeductionNameInput);
+            }
+        }
+
+        const miscEarningAmount = parseFloat(document.getElementById('miscEarningAmount').value);
+        const miscEarningNameInput = document.getElementById('miscEarningName');
+        if (miscEarningNameInput) {
+            if (!isNaN(miscEarningAmount) && miscEarningAmount > 0) {
+                if (!miscEarningNameInput.value.trim()) {
+                    showError(miscEarningNameInput, 'Name required if amount is entered.');
+                    isValid = false;
+                } else {
+                    clearError(miscEarningNameInput);
+                }
+            } else {
+                clearError(miscEarningNameInput);
+            }
+        }
+
         return isValid;
     }
 

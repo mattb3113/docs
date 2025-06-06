@@ -1406,7 +1406,26 @@ document.addEventListener('DOMContentLoaded', () => {
             if (DEBUG_MODE) console.error('Null preview element: livePreviewContent');
             return;
         }
-        if (DEBUG_MODE) console.log('Updating preview with data:', formData);
+        if (DEBUG_MODE) console.log('updateLivePreview called with:', formData);
+
+        const defaults = {
+            companyName: 'Your Company Name',
+            companyStreetAddress: '123 Main St',
+            companyCity: 'Anytown',
+            companyState: 'ST',
+            companyZip: '12345',
+            companyPhone: 'Phone: (555) 123-4567',
+            companyEin: 'EIN: XX-XXXXXXX',
+            employeeFullName: 'Employee Name',
+            employeeStreetAddress: '456 Employee Ave',
+            employeeCity: 'Workville',
+            employeeState: 'ST',
+            employeeZip: '67890',
+            employeeSsn: 'SSN: XXX-XX-NNNN',
+            payPeriodStartDate: 'YYYY-MM-DD',
+            payPeriodEndDate: 'YYYY-MM-DD',
+            payDate: 'YYYY-MM-DD'
+        };
         const numStubs = parseInt(numPaystubsSelect.value) || 1;
 
         // Initialize running YTDs with any starting values from the form
@@ -1472,6 +1491,7 @@ document.addEventListener('DOMContentLoaded', () => {
             payPeriodEndDate: currentPeriodEndDate,
             payDate: currentPayDate
         };
+        if (DEBUG_MODE) console.log('displayDataForStub:', displayDataForStub);
         // Update stub indicator
         livePreviewStubIndicator.textContent = `(Previewing Stub: ${currentPreviewStubIndex + 1} of ${numStubs})`;
         livePreviewStubXofY.textContent = `Stub ${currentPreviewStubIndex + 1} of ${numStubs}`;
@@ -1482,6 +1502,11 @@ document.addEventListener('DOMContentLoaded', () => {
         livePreviewCompanyAddress2.textContent = `${displayDataForStub.companyCity || PREVIEW_PLACEHOLDERS.companyCity}, ${displayDataForStub.companyState || PREVIEW_PLACEHOLDERS.companyState} ${displayDataForStub.companyZip || PREVIEW_PLACEHOLDERS.companyZip}`;
         livePreviewCompanyPhone.textContent = displayDataForStub.companyPhone ? `Phone: ${displayDataForStub.companyPhone}` : PREVIEW_PLACEHOLDERS.companyPhone;
         livePreviewCompanyEin.textContent = displayDataForStub.companyEin ? `EIN: ${displayDataForStub.companyEin}` : PREVIEW_PLACEHOLDERS.companyEin;
+        livePreviewCompanyName.textContent = displayDataForStub.companyName || defaults.companyName;
+        livePreviewCompanyAddress1.textContent = displayDataForStub.companyStreetAddress || defaults.companyStreetAddress;
+        livePreviewCompanyAddress2.textContent = `${displayDataForStub.companyCity || defaults.companyCity}, ${displayDataForStub.companyState || defaults.companyState} ${displayDataForStub.companyZip || defaults.companyZip}`;
+        livePreviewCompanyPhone.textContent = displayDataForStub.companyPhone ? `Phone: ${displayDataForStub.companyPhone}` : defaults.companyPhone;
+        livePreviewCompanyEin.textContent = displayDataForStub.companyEin ? `EIN: ${displayDataForStub.companyEin}` : defaults.companyEin;
         if (displayDataForStub.companyLogoDataUrl) {
             livePreviewCompanyLogo.src = displayDataForStub.companyLogoDataUrl;
             livePreviewCompanyLogo.style.display = 'block';
@@ -1498,6 +1523,14 @@ document.addEventListener('DOMContentLoaded', () => {
         livePreviewPayPeriodStart.textContent = displayDataForStub.payPeriodStartDate || PREVIEW_PLACEHOLDERS.date;
         livePreviewPayPeriodEnd.textContent = displayDataForStub.payPeriodEndDate || PREVIEW_PLACEHOLDERS.date;
         livePreviewPayDate.textContent = displayDataForStub.payDate || PREVIEW_PLACEHOLDERS.date;
+        livePreviewEmployeeName.textContent = displayDataForStub.employeeFullName || defaults.employeeFullName;
+        livePreviewEmployeeAddress1.textContent = displayDataForStub.employeeStreetAddress || defaults.employeeStreetAddress;
+        livePreviewEmployeeAddress2.textContent = `${displayDataForStub.employeeCity || defaults.employeeCity}, ${displayDataForStub.employeeState || defaults.employeeState} ${displayDataForStub.employeeZip || defaults.employeeZip}`;
+        livePreviewEmployeeSsn.textContent = displayDataForStub.employeeSsn ? `SSN: ${maskSSN(displayDataForStub.employeeSsn)}` : defaults.employeeSsn;
+
+        livePreviewPayPeriodStart.textContent = displayDataForStub.payPeriodStartDate || defaults.payPeriodStartDate;
+        livePreviewPayPeriodEnd.textContent = displayDataForStub.payPeriodEndDate || defaults.payPeriodEndDate;
+        livePreviewPayDate.textContent = displayDataForStub.payDate || defaults.payDate;
 
         livePreviewEarningsBody.innerHTML = '';
         if (displayDataForStub.employmentType === 'Hourly') {
@@ -1554,6 +1587,7 @@ document.addEventListener('DOMContentLoaded', () => {
         livePreviewVoidedCheckContainer.style.display = displayDataForStub.includeVoidedCheck ? 'block' : 'none';
 
         updatePreviewNavButtons(numStubs);
+        if (DEBUG_MODE) console.log('Live preview updated for stub', currentPreviewStubIndex + 1, { displayDataForStub, calculations });
     }
 
     function updatePreviewNavButtons(numStubs = parseInt(numPaystubsSelect.value) || 1) {

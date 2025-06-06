@@ -16,6 +16,7 @@ const DEBUG_MODE = true;
 document.addEventListener('DOMContentLoaded', () => {
     if (DEBUG_MODE) console.log('Initialization sequence started');
     let currentPreviewStubIndex = 0;
+    let currentFormStep = 1;
     // --- DOM Elements --- //
     const paystubForm = document.getElementById('paystubForm');
     if (!paystubForm && DEBUG_MODE) console.error('Missing form element: paystubForm');
@@ -448,33 +449,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isNaN(stepNumber)) return;
         if (stepNumber < 1) stepNumber = 1;
         if (stepNumber > totalSteps) stepNumber = totalSteps;
-        formSteps.forEach(step => {
-            const show = parseInt(step.dataset.step, 10) === stepNumber;
-            step.style.display = show ? 'block' : 'none';
-            step.classList.toggle('active', show);
-            console.log(`Step ${step.dataset.step} visibility: ${show}`);
-    function showFormStep(stepIndex) {
-        formSteps.forEach((step, i) => {
-            step.classList.toggle('active', i === stepIndex);
+        currentFormStep = stepNumber;
+
+        formSteps.forEach((step, idx) => {
+            const active = idx + 1 === stepNumber;
+            step.style.display = active ? 'block' : 'none';
+            step.classList.toggle('active', active);
+            const prevBtn = step.querySelector('.prev-step');
+            if (prevBtn) prevBtn.disabled = stepNumber === 1;
         });
-        progressSteps.forEach((el, i) => {
-            const active = i + 1 === stepNumber;
-            el.classList.toggle('active', active);
-            if (active) {
-                el.setAttribute('aria-current', 'step');
-            } else {
-                el.removeAttribute('aria-current');
-            }
-        });
+
+        updateProgressIndicator(stepNumber);
+
         if (formProgressIndicator) {
             const idx = stepNumber - 1;
-            formProgressIndicator.setAttribute('aria-label',
-                `Step ${stepNumber} of ${progressSteps.length}: ${stepTitles[idx]}`);
-        }
-        const stepEl = document.querySelector(`.form-step[data-step="${stepNumber}"]`);
-        if (stepEl) {
-            const prevBtn = stepEl.querySelector('.prev-step');
-            if (prevBtn) prevBtn.disabled = stepNumber === 1;
+            formProgressIndicator.setAttribute(
+                'aria-label',
+                `Step ${stepNumber} of ${progressSteps.length}: ${stepTitles[idx]}`
+            );
         }
         const prevBtn = formSteps[stepIndex].querySelector('.prev-step');
         if (prevBtn) prevBtn.disabled = stepIndex === 0;
@@ -553,7 +545,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initializeFirstStep() {
         currentPreviewStubIndex = 0;
-        showFormStep(0);
+        showFormStep(1);
     }
 
     function initializeAllInputHandlers() {
@@ -2935,6 +2927,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateNjUiCheckbox) autoCalculateNjUiCheckbox.checked = true;
     }
     updateAutoCalculatedFields();
+    initializeFirstStep();
+    setupDelegatedButtonListeners();
+    initializeAllInputHandlers();
+    showFormStep(1);
     initStepNavigation();
     showActiveStep(0);
     const allFormInputs = document.querySelectorAll('#paystubForm input, #paystubForm select, #paystubForm textarea');

@@ -1390,7 +1390,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (DEBUG_MODE) console.error('Null preview element: livePreviewContent');
             return;
         }
-        if (DEBUG_MODE) console.log('Updating preview with data:', formData);
+        if (DEBUG_MODE) console.log('updateLivePreview called with:', formData);
 
         const defaults = {
             companyName: 'Your Company Name',
@@ -1475,6 +1475,7 @@ document.addEventListener('DOMContentLoaded', () => {
             payPeriodEndDate: currentPeriodEndDate,
             payDate: currentPayDate
         };
+        if (DEBUG_MODE) console.log('displayDataForStub:', displayDataForStub);
         // Update stub indicator
         livePreviewStubIndicator.textContent = `(Previewing Stub: ${currentPreviewStubIndex + 1} of ${numStubs})`;
         livePreviewStubXofY.textContent = `Stub ${currentPreviewStubIndex + 1} of ${numStubs}`;
@@ -1557,6 +1558,7 @@ document.addEventListener('DOMContentLoaded', () => {
         livePreviewVoidedCheckContainer.style.display = displayDataForStub.includeVoidedCheck ? 'block' : 'none';
 
         updatePreviewNavButtons(numStubs);
+        if (DEBUG_MODE) console.log('Live preview updated for stub', currentPreviewStubIndex + 1, { displayDataForStub, calculations });
     }
 
     function updatePreviewNavButtons(numStubs = parseInt(numPaystubsSelect.value) || 1) {

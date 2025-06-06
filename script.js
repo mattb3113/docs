@@ -33,6 +33,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const netIncomeAdjustmentNote = document.getElementById('netIncomeAdjustmentNote');
     const populateDetailsBtn = document.getElementById('populateDetailsBtn');
 
+    const firstNextBtn = document.querySelector('.form-step .next-step-btn');
+
+    function parseCurrencyValue(val) {
+        if (!val) return NaN;
+        const cleaned = val.replace(/[^0-9.]/g, '');
+        return parseFloat(cleaned);
+    }
+
+    function formatCurrencyInput(val) {
+        const num = parseCurrencyValue(val);
+        if (isNaN(num)) return '';
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(num);
+    }
+
+    function validateDesiredIncome() {
+        const amount = parseCurrencyValue(desiredIncomeAmountInput.value);
+        if (isNaN(amount) || amount <= 0) {
+            showError(desiredIncomeAmountInput, 'Please enter a valid salary amount.');
+            if (firstNextBtn) firstNextBtn.disabled = true;
+            return false;
+        }
+        clearError(desiredIncomeAmountInput);
+        if (firstNextBtn) firstNextBtn.disabled = false;
+        return true;
+    }
+
+    desiredIncomeAmountInput.addEventListener('input', validateDesiredIncome);
+    desiredIncomeAmountInput.addEventListener('blur', () => {
+        if (validateDesiredIncome()) {
+            desiredIncomeAmountInput.value = formatCurrencyInput(desiredIncomeAmountInput.value);
+        }
+    });
+
     function enablePopulateBtn() {
         if (populateDetailsBtn) {
             populateDetailsBtn.disabled = false;
@@ -293,9 +331,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const nextButtons = document.querySelectorAll('.next-step-btn');
-    nextButtons.forEach(btn => {
+    for (let i = 0; i < nextButtons.length; i++) {
+        const btn = nextButtons[i];
         if (btn.id === 'generateAndPay') {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', function () {
                 if (validateAllFormFields()) {
                     handleMainFormSubmit();
                 } else {
@@ -303,24 +342,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         } else {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', function () {
                 if (validateFormStep(currentFormStep)) {
                     currentFormStep = Math.min(currentFormStep + 1, formSteps.length - 1);
                     showFormStep(currentFormStep);
                 }
             });
         }
-    });
+    }
 
     const prevButtons = document.querySelectorAll('.prev-step-btn');
-    prevButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
+    for (let i = 0; i < prevButtons.length; i++) {
+        const btn = prevButtons[i];
+        btn.addEventListener('click', function () {
             if (currentFormStep > 0) {
                 currentFormStep--;
                 showFormStep(currentFormStep);
             }
         });
-    });
+    }
 
     showFormStep(0);
 
@@ -623,7 +663,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function populateDetailsFromDesiredIncome() {
-        const amount = parseFloat(desiredIncomeAmountInput.value) || 0;
+        const amount = parseCurrencyValue(desiredIncomeAmountInput.value) || 0;
         const period = desiredIncomePeriodSelect.value;
         const type = document.querySelector('input[name="incomeRepresentationType"]:checked').value;
         const hours = parseFloat(assumedHourlyRegularHoursInput.value) || 40;
@@ -718,6 +758,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } else if (inputElement.type === 'checkbox') {
                     data[key] = inputElement.checked;
+                } else if (key === 'desiredIncomeAmount') {
+                    data[key] = parseCurrencyValue(value) || 0;
                 } else if (inputElement.type === 'number' || inputElement.classList.contains('amount-input')) {
                     data[key] = parseFloat(value) || 0; // Ensure numbers, default to 0 if NaN
                 } else {
@@ -1816,7 +1858,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function autoPopulateFromDesiredIncome() {
-        const amount = parseFloat(desiredIncomeAmountInput.value);
+        const amount = parseCurrencyValue(desiredIncomeAmountInput.value);
         const period = desiredIncomePeriodSelect.value;
         const repType = document.querySelector('input[name="incomeRepresentationType"]:checked').value;
         const desiredIncomeType = document.querySelector('input[name="desiredIncomeType"]:checked').value;
@@ -2523,6 +2565,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     updateAutoCalculatedFields();
     showFormStep(0);
+    validateDesiredIncome();
     if (sharePdfEmailLink) sharePdfEmailLink.style.display = 'none';
     if (sharePdfInstructions) sharePdfInstructions.style.display = 'none';
     showStep(0);

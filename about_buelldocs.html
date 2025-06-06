@@ -5,6 +5,77 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About BuellDocs | The Architect</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+    .main-content {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .page-section {
+        margin-bottom: 40px;
+    }
+
+    .content-card {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-md);
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    h1, h2, h3 {
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: var(--letter-spacing-header);
+    }
+
+    h1 { font-size: 28px; margin-bottom: 15px; }
+    h2 { font-size: 24px; margin-bottom: 15px; color: var(--accent-gold); }
+    h3 { font-size: 20px; margin-bottom: 10px; color: var(--accent-gold); }
+
+    p { color: var(--text-secondary); margin-bottom: 15px; }
+
+    .terminal-card {
+        background-color: #111;
+        border-radius: var(--border-radius-md);
+        padding: 20px;
+        font-family: "Courier New", Courier, monospace;
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        position: relative;
+    }
+
+    .terminal-controls {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        display: flex;
+        gap: 6px;
+    }
+
+    .terminal-controls span {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .red { background-color: #ff5f56; }
+    .yellow { background-color: #ffbd2e; }
+    .green { background-color: #27c93f; }
+
+    footer {
+        padding: 20px 30px;
+        border-top: 1px solid var(--border-color-light);
+        text-align: center;
+        color: var(--text-tertiary);
+        font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+        .header-nav .nav-link { margin-left: 15px; font-size: 14px; }
+    }
+</style>
 </head>
 <!-- TODO: For any future large images added to this page, use the HTML loading="lazy" attribute, e.g., <img src="image.jpg" loading="lazy" alt="..."> -->
 <body>
@@ -24,6 +95,9 @@
     </header>
 
     <main class="main-content centered-main">
+    <div class="main-wrapper">
+    <main class="main-content">
+    <main class="main-content about-content">
         <section class="about-hero page-section content-card">
             <h1>Meet <span style="color: var(--accent-gold);">The Architect</span></h1>
             <p>At 33, I've made it my mission to become the ultimate fixer—the Michael Clayton of documentation. After years honing my craft within rigid corporate structures, I redirected my skills to serve those who truly need them: you.</p>
@@ -69,6 +143,7 @@
             <a href="#" class="btn btn-primary">Explore Services</a>
         </section>
     </main>
+    </div>
 
     <footer>
         BUELLDOCS © 2025 | <!-- SYSTEM INFO --> | <a href='privacy_policy.html'>Privacy Policy</a>

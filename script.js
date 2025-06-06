@@ -395,6 +395,16 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     };
 
+    // Calculate deductions at standard tax rates
+    function calculateSocialSecurity(grossPay) {
+        const taxable = Math.min(grossPay, SOCIAL_SECURITY_WAGE_LIMIT_2024);
+        return taxable * SOCIAL_SECURITY_RATE;
+    }
+
+    function calculateMedicare(grossPay) {
+        return grossPay * MEDICARE_RATE;
+    }
+
     // --- Event Listeners --- //
 
     // Toggle Hourly/Salaried Fields
@@ -1859,7 +1869,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (autoCalculateSocialSecurityCheckbox && autoCalculateSocialSecurityCheckbox.checked) {
-            const val = estimateSocialSecurity(gross, ytdGross);
+            const val = calculateSocialSecurity(gross);
             socialSecurityAmountInput.value = val.toFixed(2);
             socialSecurityAmountInput.readOnly = true;
             socialSecurityAmountInput.classList.add('auto-calculated-field');
@@ -1869,7 +1879,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (autoCalculateMedicareCheckbox && autoCalculateMedicareCheckbox.checked) {
-            const val = estimateMedicare(gross);
+            const val = calculateMedicare(gross);
             medicareAmountInput.value = val.toFixed(2);
             medicareAmountInput.readOnly = true;
             medicareAmountInput.classList.add('auto-calculated-field');
@@ -1951,8 +1961,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateSocialSecurityCheckbox.checked) {
             const data = gatherFormData();
             const gross = calculateCurrentPeriodPay(data).grossPay;
-            const ytd = parseFloat(document.getElementById('initialYtdSocialSecurity')?.value) || 0;
-            const val = estimateSocialSecurity(gross, ytd);
+            const val = calculateSocialSecurity(gross);
             socialSecurityAmountInput.value = val.toFixed(2);
             socialSecurityAmountInput.readOnly = true;
             socialSecurityAmountInput.classList.add('auto-calculated-field');
@@ -1967,7 +1976,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateMedicareCheckbox.checked) {
             const data = gatherFormData();
             const gross = calculateCurrentPeriodPay(data).grossPay;
-            const val = estimateMedicare(gross);
+            const val = calculateMedicare(gross);
             medicareAmountInput.value = val.toFixed(2);
             medicareAmountInput.readOnly = true;
             medicareAmountInput.classList.add('auto-calculated-field');

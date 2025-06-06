@@ -318,6 +318,25 @@ document.addEventListener('DOMContentLoaded', () => {
     companyLogoInput.addEventListener('change', (e) => handleLogoUpload(e, companyLogoPreviewImg, companyLogoPlaceholder));
     payrollProviderLogoInput.addEventListener('change', (e) => handleLogoUpload(e, payrollProviderLogoPreviewImg, payrollProviderLogoPlaceholder));
 
+    // Handle Remove Logo Buttons
+    document.querySelectorAll('.btn-remove-logo').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const inputId = btn.dataset.targetInput;
+            const previewId = btn.dataset.targetPreview;
+            const placeholderSelector = btn.dataset.targetPlaceholder;
+            const inputEl = document.getElementById(inputId);
+            const previewEl = document.getElementById(previewId);
+            const placeholderEl = document.querySelector(placeholderSelector);
+            if (inputEl) inputEl.value = '';
+            if (previewEl) {
+                previewEl.src = '#';
+                previewEl.style.display = 'none';
+            }
+            if (placeholderEl) placeholderEl.style.display = 'block';
+            updateLivePreview();
+        });
+    });
+
     // Form input changes for live preview (debounced)
     const formInputs = paystubForm.querySelectorAll('input, select, textarea');
     formInputs.forEach(input => {

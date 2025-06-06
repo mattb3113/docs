@@ -1348,9 +1348,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updatePaystubTotals() {
-        livePreviewGrossPay.textContent = formatCurrency(calculateGrossPay());
-        livePreviewTotalDeductions.textContent = formatCurrency(calculateTotalDeductions());
-        livePreviewNetPay.textContent = formatCurrency(calculateNetPay());
+        const gross = calculateGrossPay();
+        const totalDeductions = calculateTotalDeductions();
+        const netPay = calculateNetPay();
+
+        livePreviewGrossPay.textContent = formatCurrency(gross);
+        livePreviewTotalDeductions.textContent = formatCurrency(totalDeductions);
+        livePreviewNetPay.textContent = formatCurrency(netPay);
+
+        // Also update the sticky summary bar at the bottom
+        if (summaryGrossPay && summaryTotalDeductions && summaryNetPay) {
+            summaryGrossPay.textContent = formatCurrency(gross);
+            summaryTotalDeductions.textContent = formatCurrency(totalDeductions);
+            summaryNetPay.textContent = formatCurrency(netPay);
+        }
     }
 
     function computeGrossPayFromInputs() {

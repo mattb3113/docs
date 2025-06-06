@@ -310,7 +310,7 @@
                         <div class="grid-col-2">
                             <div class="form-group">
                                 <label for="annualSalary">Annual Salary <span class="required-asterisk">*</span></label>
-                                <input type="number" id="annualSalary" name="annualSalary" step="0.01" required aria-required="true" min="0" value="0" aria-describedby="annualSalaryError">
+                                <input type="text" id="annualSalary" name="annualSalary" class="form-input" inputmode="decimal" pattern="[0-9,\.]*" required aria-required="true" value="0.00" aria-describedby="annualSalaryError">
                                 <span class="error-message" id="annualSalaryError"></span>
                             </div>
                             <div class="form-group">

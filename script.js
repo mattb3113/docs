@@ -1498,6 +1498,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const originalText = saveDraftBtn.textContent;
             saveDraftBtn.textContent = 'Draft Saved!';
             setTimeout(() => { saveDraftBtn.textContent = originalText; }, 1500);
+            showNotificationModal('Draft Saved', 'Your current form progress has been saved to this browser.');
         } catch (e) {
             console.error('Failed to save draft', e);
         }
@@ -1567,9 +1568,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => {
                     loadDraftBtn.textContent = originalText;
                 }, 1500);
-            } else {
-                showNotificationModal('No Draft Found', 'There is no saved draft to load.');
             }
+            showNotificationModal('No Draft Found', 'No saved draft was found in this browser.');
             return;
         }
 
@@ -1620,6 +1620,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleEmploymentFields();
         updateHourlyPayFrequencyVisibility();
         updateLivePreview();
+        showNotificationModal('Draft Loaded', 'Your previously saved draft has been loaded into the form.');
     }
 
     function autoPopulateFromDesiredIncome() {

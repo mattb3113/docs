@@ -29,6 +29,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const hourlyFieldsDiv = document.getElementById('hourlyFields');
     const salariedFieldsDiv = document.getElementById('salariedFields');
 
+    function checkRequiredElements() {
+        const ids = ['paystubForm', 'numPaystubs', 'paystubPreviewContent'];
+        for (const id of ids) {
+            if (!document.getElementById(id)) {
+                console.error(`Missing element: #${id}`);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    if (!checkRequiredElements()) return;
+
     // Desired Income Representation Elements
     const desiredIncomeAmountInput = document.getElementById('desiredIncomeAmount');
     const desiredIncomePeriodSelect = document.getElementById('desiredIncomePeriod');
@@ -454,7 +467,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return valid;
         return true;
     }
-
+    function handleDelegatedStepButtons(e) {
+        const nextBtn = e.target.closest('.next-step-btn');
+        const prevBtn = e.target.closest('.prev-step-btn');
     document.body.addEventListener('click', (e) => {
         const nextBtn = e.target.closest('.next-step');
         if (nextBtn) {
@@ -464,6 +479,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     showSummaryError('Please review the highlighted fields.');
                 }
+            } else if (validateFormStep(currentFormStep)) {
+                currentFormStep = Math.min(currentFormStep + 1, formSteps.length - 1);
+                showFormStep(currentFormStep);
+            }
+        } else if (prevBtn) {
             });
         } else {
             btn.addEventListener('click', function () {
@@ -497,6 +517,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     showFormStep(current + 1);
                 }
             }
+        }
+    }
+
+    function setupDelegatedButtonListeners() {
+        document.addEventListener('click', handleDelegatedStepButtons);
+    }
+
+    function initializeFirstStep() {
+        currentPreviewStubIndex = 0;
+        showFormStep(0);
+    }
+
+    function initializeAllInputHandlers() {
+        setupActionButtons();
+    }
+
             return;
         }
         const prevBtn = e.target.closest('.prev-step');
@@ -2870,6 +2906,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateNjUiCheckbox) autoCalculateNjUiCheckbox.checked = true;
     }
     updateAutoCalculatedFields();
+    initializeFirstStep();
+    setupDelegatedButtonListeners();
+    initializeAllInputHandlers();
     showFormStep(1);
     showFormStep(0);
     const allFormInputs = document.querySelectorAll('#paystubForm input, #paystubForm select, #paystubForm textarea');

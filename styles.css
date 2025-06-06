@@ -543,9 +543,10 @@ input.auto-calc-readonly[readonly] {
 .form-summary-error.active {
     display: block;
 }
-input.invalid, select.invalid, textarea.invalid {
-    border-color: var(--error-color) !important;
-    box-shadow: 0 0 0 2px rgba(226, 93, 106, 0.3) !important; /* Red glow */
+/* Validation styling */
+.invalid {
+    border-color: #ff4444;
+    box-shadow: 0 0 5px rgba(255,68,68,0.5);
 }
 
 
@@ -1039,6 +1040,10 @@ input.invalid, select.invalid, textarea.invalid {
     border-radius: var(--border-radius-sm);
     margin-top: 5px;
 }
+/* Form step visibility */
+.form-step { display: none; }
+.form-step.active { display: block; }
+
 
 .form-step {
     display: none;
@@ -1055,14 +1060,12 @@ input.invalid, select.invalid, textarea.invalid {
 }
 
 .progress-step {
-    width: 20px;
-    height: 20px;
+    display: inline-block;
+    width: 25px;
+    height: 25px;
     border-radius: 50%;
-    background: var(--border-color);
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: #ddd;
+    text-align: center;
     margin: 0 5px;
     font-size: 12px;
 }
@@ -1076,6 +1079,8 @@ input.invalid, select.invalid, textarea.invalid {
     background: #3498db;
     color: #fff;
 }
+.progress-step.completed { background: #4CAF50; color: white; }
+.progress-step.active { background: #2196F3; color: white; }
 
 .step-navigation {
     display: flex;

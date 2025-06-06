@@ -163,8 +163,8 @@ label, input, select, textarea, button {
 /* -------------------- */
 .main-wrapper {
     display: flex;
+    align-items: flex-start; /* Prevent sidebar height from stretching content */
     padding-top: var(--header-height); /* Account for fixed header */
-    min-height: calc(100vh - var(--header-height));
 }
 
 /* -------------------- */
@@ -208,7 +208,7 @@ label, input, select, textarea, button {
 .main-content {
     flex: 1;
     padding: 40px;
-    overflow-y: auto; /* Allows main content to scroll independently if needed */
+    /* Let page scroll naturally instead of independent scrolling */
 }
 
 .hero-section {

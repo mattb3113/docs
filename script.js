@@ -56,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const annualSalaryInput = document.getElementById('annualSalary');
 
-    const firstNextBtn = document.querySelector('.form-step .next-step-btn');
     const firstNextBtn = document.querySelector('.form-step .next-step');
 
     function parseCurrencyValue(val) {
@@ -239,6 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const estimateAllDeductionsBtn = document.getElementById('estimateAllDeductionsBtn');
     const previewPdfWatermarkedBtn = document.getElementById('previewPdfWatermarkedBtn');
     const generateAndPayBtn = document.getElementById('generateAndPayBtn');
+    const generateAndPayFinalBtn = document.getElementById('generateAndPay');
     const copyKeyDataBtn = document.getElementById('copyKeyData');
     const sharePdfEmailLink = document.getElementById('sharePdfEmail');
     const sharePdfInstructions = document.getElementById('sharePdfInstructions');
@@ -426,6 +426,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 `Step ${stepNumber} of ${progressSteps.length}: ${stepTitles[idx]}`
             );
         }
+        const prevBtn = formSteps[stepIndex].querySelector('.prev-step');
+        if (prevBtn) prevBtn.disabled = stepIndex === 0;
+        updateProgressIndicator(stepIndex + 1);
 
         updateLivePreview();
     }
@@ -457,10 +460,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
     function handleDelegatedStepButtons(e) {
-        const nextBtn = e.target.closest('.next-step-btn');
-        const prevBtn = e.target.closest('.prev-step-btn');
-    document.body.addEventListener('click', (e) => {
         const nextBtn = e.target.closest('.next-step');
+        const prevBtn = e.target.closest('.prev-step');
         if (nextBtn) {
             if (nextBtn.id === 'generateAndPay') {
                 if (validateAllFormFields()) {
@@ -473,24 +474,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 showFormStep(currentFormStep);
             }
         } else if (prevBtn) {
-            });
-        } else {
-            btn.addEventListener('click', function () {
-                if (DEBUG_MODE) console.log(`Attempting to validate step ${currentFormStep}`);
-                if (validateFormStep(currentFormStep)) {
-                    if (DEBUG_MODE) console.log(`Step ${currentFormStep} validation passed`);
-                if (validateStep(currentFormStep)) {
-                    currentFormStep = Math.min(currentFormStep + 1, formSteps.length - 1);
-                    if (DEBUG_MODE) console.log(`Navigating to step ${currentFormStep}`);
-                    showFormStep(currentFormStep);
-                } else {
-                    if (DEBUG_MODE) console.log(`Step ${currentFormStep} validation failed`);
-                }
-            });
+            const current = getCurrentStep();
+            showFormStep(current - 1);
         }
     }
 
-    const prevButtons = document.querySelectorAll('.prev-step-btn');
+    const prevButtons = document.querySelectorAll('.prev-step');
     for (let i = 0; i < prevButtons.length; i++) {
         const btn = prevButtons[i];
         btn.addEventListener('click', function () {
@@ -499,14 +488,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentFormStep--;
                 if (DEBUG_MODE) console.log(`Navigating to step ${currentFormStep}`);
                 showFormStep(currentFormStep);
-
             } else {
                 const current = getCurrentStep();
                 if (validateFormStep(current)) {
                     showFormStep(current + 1);
                 }
             }
-        }
+        });
     }
 
     function setupDelegatedButtonListeners() {
@@ -521,15 +509,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function initializeAllInputHandlers() {
         setupActionButtons();
     }
-
-            return;
-        }
-        const prevBtn = e.target.closest('.prev-step');
-        if (prevBtn) {
-            const current = getCurrentStep();
-            showFormStep(current - 1);
-        }
-    });
 
     showFormStep(1);
 
@@ -771,6 +750,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (generateAndPayBtn) generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
     }
     setupSidebarButtonActions();
+
+    if (generateAndPayFinalBtn) {
+        generateAndPayFinalBtn.addEventListener('click', () => {
+            clearSummaryError();
+            if (validateAllFormFields()) {
+                handleMainFormSubmit();
+            } else {
+                showSummaryError('Please review the highlighted fields.');
+            }
+        });
+    }
 
     // Modal Interactions
 
@@ -2865,7 +2855,7 @@ document.addEventListener('DOMContentLoaded', () => {
         el.addEventListener('input', updatePaystubPreview);
         el.addEventListener('blur', updatePaystubPreview);
     });
-    document.querySelectorAll('.next-step-btn, .prev-step-btn').forEach(btn => {
+    document.querySelectorAll('.next-step, .prev-step').forEach(btn => {
         btn.addEventListener('click', () => setTimeout(updatePaystubPreview, 0));
     });
 

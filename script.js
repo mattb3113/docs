@@ -314,6 +314,22 @@ document.addEventListener('DOMContentLoaded', () => {
         stepTitles.push(heading ? heading.textContent.trim() : `Step ${idx + 1}`);
     });
 
+    function updateProgressIndicator(currentStepNumber) {
+        const indicators = document.querySelectorAll('.progress-step');
+        console.log('Current step:', currentStepNumber);
+        indicators.forEach(step => {
+            const stepNum = parseInt(step.textContent, 10);
+            console.log(`Step ${stepNum} initial classes:`, step.className);
+            step.classList.remove('completed', 'active');
+            if (stepNum < currentStepNumber) {
+                step.classList.add('completed');
+            } else if (stepNum === currentStepNumber) {
+                step.classList.add('active');
+            }
+            console.log(`Step ${stepNum} updated classes:`, step.className);
+        });
+    }
+
     function showFormStep(stepIndex) {
         formSteps.forEach((step, i) => {
             step.style.display = i === stepIndex ? 'block' : 'none';
@@ -332,6 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const prevBtn = formSteps[stepIndex].querySelector('.prev-step-btn');
         if (prevBtn) prevBtn.disabled = stepIndex === 0;
+        updateProgressIndicator(stepIndex + 1);
         updateLivePreview();
     }
 

@@ -1059,8 +1059,14 @@ input.invalid, select.invalid, textarea.invalid {
     font-size: 12px;
 }
 
+.progress-step.completed {
+    background: var(--success-color);
+    color: #fff;
+}
+
 .progress-step.active {
-    background: var(--accent-gold);
+    background: #3498db;
+    color: #fff;
 }
 
 .step-navigation {

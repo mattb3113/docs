@@ -567,6 +567,27 @@ document.addEventListener('DOMContentLoaded', () => {
     currentPreviewStubIndex = 0;
     updatePreviewNavButtons();
 
+    const employeeSsnInput = document.getElementById('employeeSsn');
+    if (employeeSsnInput) {
+        let ssnRaw = '';
+        employeeSsnInput.addEventListener('input', e => {
+            const digits = e.target.value.replace(/\D/g, '').slice(0, 9);
+            ssnRaw = digits;
+            e.target.dataset.rawValue = ssnRaw;
+            e.target.value = digits.replace(/(\d{3})(\d{2})(\d{0,4})/, (m, p1, p2, p3) => p3 ? `${p1}-${p2}-${p3}` : `${p1}-${p2}`);
+        });
+        employeeSsnInput.addEventListener('blur', e => {
+            if (ssnRaw.length >= 4) {
+                e.target.value = `***-**-${ssnRaw.slice(-4)}`;
+            }
+        });
+        employeeSsnInput.addEventListener('focus', e => {
+            if (ssnRaw) {
+                e.target.value = ssnRaw.replace(/(\d{3})(\d{2})(\d{0,4})/, (m, p1, p2, p3) => `${p1}-${p2}-${p3}`);
+            }
+        });
+    }
+
 
 
     // Sidebar Button Actions
@@ -750,7 +771,10 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let [key, value] of formData.entries()) {
             const inputElement = paystubForm.elements[key];
             if (inputElement) {
-                if (inputElement instanceof RadioNodeList) {
+                if (key === 'employeeSsn') {
+                    const raw = inputElement.dataset.rawValue || value;
+                    data[key] = raw.trim();
+                } else if (inputElement instanceof RadioNodeList) {
                     data[key] = value;
                 } else if (inputElement.type === 'radio') {
                     if (inputElement.checked) {

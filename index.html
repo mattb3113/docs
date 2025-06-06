@@ -128,7 +128,7 @@
 
 
                 <!-- Employer Information -->
-                <section class="form-section-card form-section-minimized">
+                <section class="form-section-card">
                     <h3>Employer Information</h3>
                     <div class="grid-col-2">
                         <div class="form-group">
@@ -224,7 +224,7 @@
                     </div>
                     <div class="form-group">
                     <label for="employeeSsn">Employee SSN</label>
-                        <input type="text" id="employeeSsn" name="employeeSsn" placeholder="123-45-6789" aria-describedby="employeeSsnError">
+                        <input type="text" id="employeeSsn" name="employeeSsn" placeholder="***-**-1234" aria-describedby="employeeSsnError">
                         <span class="error-message" id="employeeSsnError"></span>
                         <p class="info-text ssn-info">SSN is used for display on the paystub and is not stored by BuellDocs for this generator tool. See our <a href='privacy_policy.html'>Privacy Policy</a>.</p>
                     </div>
@@ -232,23 +232,11 @@
                         <label for="federalFilingStatus">Federal Filing Status <span class="required-asterisk">*</span></label>
                         <select id="federalFilingStatus" name="federalFilingStatus" required aria-required="true" aria-describedby="federalFilingStatusError">
                             <option value="Single" selected>Single</option>
-                            <option value="Married Filing Jointly">Married Filing Jointly</option>
+                            <option value="Married Filing Jointly">Married filing jointly</option>
+                            <option value="Head of Household">Head of Household</option>
                         </select>
                         <span class="error-message" id="federalFilingStatusError"></span>
                     </div>
-                </section>
-                <div class="step-navigation">
-                    <button type="button" class="btn btn-secondary prev-step-btn">Previous Step</button>
-                    <button type="button" class="btn btn-primary next-step-btn">Next Step</button>
-                </div>
-            </div>
-                <div class="form-step">
-
-
-                <!-- Pay Period & Dates (For First/Base Stub) -->
-                <section class="form-section-card form-section-minimized">
-                    <h3>Pay Period & Dates (For First/Base Stub)</h3>
-                    <p class="info-text">For multiple stubs, later pay periods auto-increment based on the chosen frequency.</p>
                     <div class="grid-col-3">
                         <div class="form-group">
                             <label for="payPeriodStartDate">Pay Period Start Date <span class="required-asterisk">*</span></label>
@@ -267,6 +255,15 @@
                         </div>
                     </div>
                 </section>
+                <div class="step-navigation">
+                    <button type="button" class="btn btn-secondary prev-step-btn">Previous Step</button>
+                    <button type="button" class="btn btn-primary next-step-btn">Next Step</button>
+                </div>
+            </div>
+                <div class="form-step">
+
+
+
 
                 <!-- Earnings -->
                 <section class="form-section-card form-section-minimized">

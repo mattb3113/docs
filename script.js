@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const annualSalaryInput = document.getElementById('annualSalary');
 
     const firstNextBtn = document.querySelector('.form-step .next-step');
+    const salaryNextBtn = document.querySelector('[data-step="3"] .next-step');
 
     function parseCurrencyValue(val) {
         if (typeof val !== 'string') {
@@ -106,6 +107,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    function validateAnnualSalary() {
+        if (!annualSalaryInput) return true;
+        if (!isValidSalary(annualSalaryInput.value)) {
+            showError(annualSalaryInput, 'Please enter a valid salary amount.');
+            if (salaryNextBtn) salaryNextBtn.disabled = true;
+            return false;
+        }
+        clearError(annualSalaryInput);
+        if (salaryNextBtn) salaryNextBtn.disabled = false;
+        return true;
+    }
+
     function enablePopulateBtn() {
         if (populateDetailsBtn) {
             populateDetailsBtn.disabled = false;
@@ -134,20 +147,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (annualSalaryInput) {
         annualSalaryInput.addEventListener('input', () => {
-            if (!isValidSalary(annualSalaryInput.value)) {
-                annualSalaryInput.classList.add('invalid');
-            } else {
-                annualSalaryInput.classList.remove('invalid');
-            }
+            validateAnnualSalary();
             updateLivePreview();
-            console.log('Salary input changed');
         });
         annualSalaryInput.addEventListener('blur', () => {
-            if (isValidSalary(annualSalaryInput.value)) {
+            if (validateAnnualSalary()) {
                 annualSalaryInput.value = formatCurrencyInput(annualSalaryInput.value);
-                annualSalaryInput.classList.remove('invalid');
-            } else {
-                annualSalaryInput.classList.add('invalid');
             }
             updateLivePreview();
         });
@@ -2635,6 +2640,13 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage = "Please enter a valid SSN (123-45-6789 or 123456789).";
         }
 
+        if (isValid && field.id === 'annualSalary') {
+            if (!isValidSalary(value)) {
+                isValid = false;
+                errorMessage = 'Please enter a valid salary amount.';
+            }
+        }
+
         if (isValid && field.type === 'number' && parseFloat(value) < 0) {
             isValid = false;
             errorMessage = 'Value cannot be negative.';
@@ -2960,12 +2972,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const annualSalaryInput = document.getElementById('annualSalary');
     if (annualSalaryInput) {
+        annualSalaryInput.addEventListener('blur', () => {
+            if (validateAnnualSalary()) {
+                let value = annualSalaryInput.value.replace(/[^0-9.]/g, '');
+                if (value) {
+                    value = parseFloat(value).toFixed(2);
+                    annualSalaryInput.value = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+                }
+            }
         annualSalaryInput.addEventListener('blur', function() {
             const formatted = formatCurrencyInput(this.value);
             if (formatted) this.value = formatted;
         });
     }
     validateDesiredIncome();
+    validateAnnualSalary();
     if (sharePdfEmailLink) sharePdfEmailLink.style.display = 'none';
     if (sharePdfInstructions) sharePdfInstructions.style.display = 'none';
     if (DEBUG_MODE) console.log('Initialization sequence completed');

@@ -6,6 +6,7 @@
     Description: JavaScript logic for the paystub generator application,
                  including form handling, calculations, live preview, and PDF generation.
 */
+/* TODO (Build Process): For production deployment, consider minifying this file to reduce its size and improve load times. */
 
 'use strict';
 
@@ -130,28 +131,93 @@ document.addEventListener('DOMContentLoaded', () => {
     const successNumStubsSpan = document.getElementById('successNumStubs');
     const successUserNotesSpan = document.getElementById('successUserNotes');
 
-    // Sequential section progression
+    // Multi-step form setup
     const formSections = Array.from(document.querySelectorAll('.form-section-card'));
-    let nextSectionIndex = 1; // start after step 1
+    const stepGroups = [
+        [0],
+        [1],
+        [2],
+        [3,4],
+        [5,6,7],
+        [8,9,10]
+    ];
+    let currentStep = 0;
+    const progressContainer = document.getElementById('progressIndicator');
+    const progressSteps = [];
+
+    stepGroups.forEach((grp, idx) => {
+        const stepEl = document.createElement('div');
+        stepEl.className = 'progress-step' + (idx === 0 ? ' active' : '');
+        stepEl.textContent = idx + 1;
+        progressContainer.appendChild(stepEl);
+        progressSteps.push(stepEl);
+
+        const lastSection = formSections[grp[grp.length - 1]];
+        const nav = document.createElement('div');
+        nav.className = 'step-navigation';
+        if (idx > 0) {
+            const prev = document.createElement('button');
+            prev.type = 'button';
+            prev.className = 'btn btn-secondary prev-step';
+            prev.textContent = 'Previous Step';
+            prev.addEventListener('click', () => {
+                if (currentStep > 0) {
+                    currentStep--;
+                    showStep(currentStep);
+                }
+            });
+            nav.appendChild(prev);
+        }
+        const next = document.createElement('button');
+        next.type = 'button';
+        next.className = 'btn btn-primary next-step';
+        next.textContent = idx === stepGroups.length - 1 ? 'Generate & Proceed to Payment' : 'Next Step';
+        next.addEventListener('click', () => {
+            if (idx === stepGroups.length - 1) {
+                handleMainFormSubmit();
+            } else if (validateStep(idx)) {
+                currentStep++;
+                showStep(currentStep);
+            }
+        });
+        nav.appendChild(next);
+        lastSection.appendChild(nav);
+    });
+
+    function showStep(index) {
+        stepGroups.forEach((grp, idx) => {
+            grp.forEach(i => {
+                formSections[i].style.display = idx === index ? 'block' : 'none';
+            });
+            progressSteps[idx].classList.toggle('active', idx === index);
+        });
+        updateLivePreview();
+    }
+
+    function validateStep(index) {
+        let valid = true;
+        stepGroups[index].forEach(i => {
+            const inputs = formSections[i].querySelectorAll('input, select, textarea');
+            inputs.forEach(inp => { if (!validateField(inp)) valid = false; });
+        });
+        return valid;
+    }
+
+    showStep(currentStep);
 
     function minimizeSecondarySections() {
-        formSections.forEach((sec, idx) => {
-            if (idx > 0) sec.classList.add('form-section-minimized');
-        });
-        nextSectionIndex = 1;
+        showStep(0);
     }
 
     function revealAllSections() {
-        formSections.forEach(sec => sec.classList.remove('form-section-minimized'));
-        nextSectionIndex = formSections.length;
+        stepGroups.forEach(grp => grp.forEach(i => formSections[i].style.display = 'block'));
+        progressSteps.forEach(step => step.classList.add('active'));
     }
 
     function revealNextSection() {
-        while (nextSectionIndex < formSections.length) {
-            const sec = formSections[nextSectionIndex];
-            sec.classList.remove('form-section-minimized');
-            nextSectionIndex++;
-            if (sec.querySelectorAll('[required]').length > 0) break;
+        if (currentStep < stepGroups.length - 1) {
+            currentStep++;
+            showStep(currentStep);
         }
     }
 
@@ -245,21 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
     employmentTypeRadios.forEach(radio => radio.addEventListener('change', updateHourlyPayFrequencyVisibility));
     isForNjEmploymentCheckbox.addEventListener('change', handleNjEmploymentChange);
 
-    // Sequentially reveal sections once required fields are complete
-    formSections.slice(1).forEach((section, idx) => {
-        const sectionIndex = idx + 1;
-        const requiredInputs = section.querySelectorAll('[required]');
-        if (requiredInputs.length === 0) return;
-        const checkAndAdvance = () => {
-            if (sectionIndex + 1 === nextSectionIndex && isSectionComplete(sectionIndex)) {
-                revealNextSection();
-            }
-        };
-        requiredInputs.forEach(input => {
-            input.addEventListener('input', checkAndAdvance);
-            input.addEventListener('change', checkAndAdvance);
-        });
-    });
+    // Sequential reveal disabled in favor of multi-step navigation
 
 
     // Handle Logo Uploads
@@ -424,11 +476,28 @@ document.addEventListener('DOMContentLoaded', () => {
         if (file && file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                previewImgElement.src = e.target.result;
-                previewImgElement.style.display = 'block';
-                if (placeholderElement) placeholderElement.style.display = 'none';
-                updateLivePreview(); // Update the main live preview
-            }
+                const img = new Image();
+                img.onload = () => {
+                    const MAX_DIMENSION = 500; // basic client-side resize
+                    let { width, height } = img;
+                    if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+                        const scale = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
+                        width = Math.round(width * scale);
+                        height = Math.round(height * scale);
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const dataUrl = canvas.toDataURL('image/png', 0.8);
+                    previewImgElement.src = dataUrl;
+                    previewImgElement.style.display = 'block';
+                    if (placeholderElement) placeholderElement.style.display = 'none';
+                    updateLivePreview();
+                };
+                img.src = e.target.result;
+            };
             reader.readAsDataURL(file);
             clearError(event.target);
         } else if (file) {
@@ -1204,6 +1273,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // TODO (Future Backend): When a real backend is implemented, ensure all data submitted from the client (especially if it includes any sensitive form details beyond just TXID and email for manual processing) is transmitted over HTTPS and handled securely on the server according to best practices for data protection and encryption at rest.
     function handlePaymentConfirmationSubmit() {
         const txId = cashAppTxIdInput.value.trim();
         if (!txId) {
@@ -1246,7 +1316,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields(); // Ensure correct fields are shown based on default radio
         updateHourlyPayFrequencyVisibility(); // And update conditional dropdown
-        minimizeSecondarySections();
+        showStep(0);
         updateLivePreview(); // Refresh live preview
     }
 
@@ -1267,7 +1337,12 @@ document.addEventListener('DOMContentLoaded', () => {
         data.companyLogoDataUrl = companyLogoPreviewImg.style.display !== 'none' ? companyLogoPreviewImg.src : null;
         data.payrollProviderLogoDataUrl = payrollProviderLogoPreviewImg.style.display !== 'none' ? payrollProviderLogoPreviewImg.src : null;
         try {
-            localStorage.setItem('buellDocsPaystubDraft_v2', JSON.stringify(data));
+            const json = JSON.stringify(data);
+            if (json.length > 4000000) { // ~4MB safety check
+                alert('Draft is too large to save. Please use smaller logo images.');
+                return;
+            }
+            localStorage.setItem('buellDocsPaystubDraft_v2', json);
             const originalText = saveDraftBtn.textContent;
             saveDraftBtn.textContent = 'Draft Saved!';
             setTimeout(() => { saveDraftBtn.textContent = originalText; }, 1500);
@@ -1509,7 +1584,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields();
         updateHourlyPayFrequencyVisibility();
-        revealNextSection();
+        if (currentStep < stepGroups.length - 1) {
+            currentStep++;
+            showStep(currentStep);
+        }
         updateLivePreview();
 
         if (populateDetailsBtn) {
@@ -1723,7 +1801,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Required validation
         if (field.hasAttribute('required') && !value && field.offsetParent !== null) { // Check offsetParent to only validate visible required fields
             isValid = false;
-            errorMessage = `${field.labels[0] ? field.labels[0].textContent.replace(' *','').replace('(XXX-XX-NNNN)','').trim() : 'This field'} is required.`;
+            errorMessage = `${field.labels[0] ? field.labels[0].textContent.replace(' *','').replace('(XXX-XX-NNNN)','').replace('(Last 4 Digits Only)','').trim() : 'This field'} is required.`;
         }
 
         // Specific validations
@@ -1732,9 +1810,9 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage = 'Please enter a valid email address.';
         }
 
-        if (isValid && field.name === 'employeeSsn' && value && !/^\d{3}-?\d{2}-?\d{4}$/.test(value) && !/^\d{9}$/.test(value)) {
+        if (isValid && field.name === 'employeeSsn' && value && !/^\d{4}$/.test(value)) {
             isValid = false;
-            errorMessage = 'SSN must be in NNN-NN-NNNN or NNNNNNNNN format.';
+            errorMessage = 'Please enter the last 4 digits of the SSN.';
         }
 
         if (isValid && field.type === 'number' && parseFloat(value) < 0) {
@@ -1949,11 +2027,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function maskSSN(ssn) {
         if (!ssn) return '';
-        const cleaned = ssn.replace(/-/g, '');
-        if (cleaned.length === 9) {
-            return `XXX-XX-${cleaned.substring(5)}`;
-        }
-        return ssn; // Return original if not in expected format
+        const digits = ssn.replace(/\D/g, '');
+        const last4 = digits.slice(-4);
+        return last4 ? `XXX-XX-${last4}` : '';
     }
 
     function debounce(func, delay) {
@@ -1977,5 +2053,7 @@ document.addEventListener('DOMContentLoaded', () => {
     minimizeSecondarySections();
     if (sharePdfEmailLink) sharePdfEmailLink.style.display = 'none';
     if (sharePdfInstructions) sharePdfInstructions.style.display = 'none';
+=======
+    showStep(0);
 
 });

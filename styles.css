@@ -1045,6 +1045,14 @@ input.auto-calc-readonly[readonly] {
 .form-step.active { display: block; }
 
 
+.form-step {
+    display: none;
+}
+
+.form-step.active {
+    display: block;
+}
+
 .progress-indicator {
     display: flex;
     justify-content: center;
@@ -1059,6 +1067,17 @@ input.auto-calc-readonly[readonly] {
     background: #ddd;
     text-align: center;
     margin: 0 5px;
+    font-size: 12px;
+}
+
+.progress-step.completed {
+    background: var(--success-color);
+    color: #fff;
+}
+
+.progress-step.active {
+    background: #3498db;
+    color: #fff;
 }
 .progress-step.completed { background: #4CAF50; color: white; }
 .progress-step.active { background: #2196F3; color: white; }

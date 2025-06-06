@@ -238,6 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const estimateAllDeductionsBtn = document.getElementById('estimateAllDeductionsBtn');
     const previewPdfWatermarkedBtn = document.getElementById('previewPdfWatermarkedBtn');
     const generateAndPayBtn = document.getElementById('generateAndPayBtn');
+    const generateAndPayFinalBtn = document.getElementById('generateAndPay');
     const copyKeyDataBtn = document.getElementById('copyKeyData');
     const sharePdfEmailLink = document.getElementById('sharePdfEmail');
     const sharePdfInstructions = document.getElementById('sharePdfInstructions');
@@ -782,6 +783,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (generateAndPayBtn) generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
     }
     setupSidebarButtonActions();
+
+    if (generateAndPayFinalBtn) {
+        generateAndPayFinalBtn.addEventListener('click', () => {
+            clearSummaryError();
+            if (validateAllFormFields()) {
+                handleMainFormSubmit();
+            } else {
+                showSummaryError('Please review the highlighted fields.');
+            }
+        });
+    }
 
     // Modal Interactions
 

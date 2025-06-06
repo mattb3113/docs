@@ -1391,6 +1391,25 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         if (DEBUG_MODE) console.log('Updating preview with data:', formData);
+
+        const defaults = {
+            companyName: 'Your Company Name',
+            companyStreetAddress: '123 Main St',
+            companyCity: 'Anytown',
+            companyState: 'ST',
+            companyZip: '12345',
+            companyPhone: 'Phone: (555) 123-4567',
+            companyEin: 'EIN: XX-XXXXXXX',
+            employeeFullName: 'Employee Name',
+            employeeStreetAddress: '456 Employee Ave',
+            employeeCity: 'Workville',
+            employeeState: 'ST',
+            employeeZip: '67890',
+            employeeSsn: 'SSN: XXX-XX-NNNN',
+            payPeriodStartDate: 'YYYY-MM-DD',
+            payPeriodEndDate: 'YYYY-MM-DD',
+            payDate: 'YYYY-MM-DD'
+        };
         const numStubs = parseInt(numPaystubsSelect.value) || 1;
 
         // Initialize running YTDs with any starting values from the form
@@ -1461,11 +1480,11 @@ document.addEventListener('DOMContentLoaded', () => {
         livePreviewStubXofY.textContent = `Stub ${currentPreviewStubIndex + 1} of ${numStubs}`;
 
         // Company Info
-        livePreviewCompanyName.textContent = displayDataForStub.companyName || 'Your Company Name';
-        livePreviewCompanyAddress1.textContent = displayDataForStub.companyStreetAddress || '123 Main St';
-        livePreviewCompanyAddress2.textContent = `${displayDataForStub.companyCity || 'Anytown'}, ${displayDataForStub.companyState || 'ST'} ${displayDataForStub.companyZip || '12345'}`;
-        livePreviewCompanyPhone.textContent = displayDataForStub.companyPhone ? `Phone: ${displayDataForStub.companyPhone}` : 'Phone: (555) 123-4567';
-        livePreviewCompanyEin.textContent = displayDataForStub.companyEin ? `EIN: ${displayDataForStub.companyEin}` : 'EIN: XX-XXXXXXX';
+        livePreviewCompanyName.textContent = displayDataForStub.companyName || defaults.companyName;
+        livePreviewCompanyAddress1.textContent = displayDataForStub.companyStreetAddress || defaults.companyStreetAddress;
+        livePreviewCompanyAddress2.textContent = `${displayDataForStub.companyCity || defaults.companyCity}, ${displayDataForStub.companyState || defaults.companyState} ${displayDataForStub.companyZip || defaults.companyZip}`;
+        livePreviewCompanyPhone.textContent = displayDataForStub.companyPhone ? `Phone: ${displayDataForStub.companyPhone}` : defaults.companyPhone;
+        livePreviewCompanyEin.textContent = displayDataForStub.companyEin ? `EIN: ${displayDataForStub.companyEin}` : defaults.companyEin;
         if (displayDataForStub.companyLogoDataUrl) {
             livePreviewCompanyLogo.src = displayDataForStub.companyLogoDataUrl;
             livePreviewCompanyLogo.style.display = 'block';
@@ -1474,14 +1493,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Employee Info
-        livePreviewEmployeeName.textContent = displayDataForStub.employeeFullName || 'Employee Name';
-        livePreviewEmployeeAddress1.textContent = displayDataForStub.employeeStreetAddress || '456 Employee Ave';
-        livePreviewEmployeeAddress2.textContent = `${displayDataForStub.employeeCity || 'Workville'}, ${displayDataForStub.employeeState || 'ST'} ${displayDataForStub.employeeZip || '67890'}`;
-        livePreviewEmployeeSsn.textContent = displayDataForStub.employeeSsn ? `SSN: ${maskSSN(displayDataForStub.employeeSsn)}` : 'SSN: XXX-XX-NNNN';
+        livePreviewEmployeeName.textContent = displayDataForStub.employeeFullName || defaults.employeeFullName;
+        livePreviewEmployeeAddress1.textContent = displayDataForStub.employeeStreetAddress || defaults.employeeStreetAddress;
+        livePreviewEmployeeAddress2.textContent = `${displayDataForStub.employeeCity || defaults.employeeCity}, ${displayDataForStub.employeeState || defaults.employeeState} ${displayDataForStub.employeeZip || defaults.employeeZip}`;
+        livePreviewEmployeeSsn.textContent = displayDataForStub.employeeSsn ? `SSN: ${maskSSN(displayDataForStub.employeeSsn)}` : defaults.employeeSsn;
 
-        livePreviewPayPeriodStart.textContent = displayDataForStub.payPeriodStartDate || 'YYYY-MM-DD';
-        livePreviewPayPeriodEnd.textContent = displayDataForStub.payPeriodEndDate || 'YYYY-MM-DD';
-        livePreviewPayDate.textContent = displayDataForStub.payDate || 'YYYY-MM-DD';
+        livePreviewPayPeriodStart.textContent = displayDataForStub.payPeriodStartDate || defaults.payPeriodStartDate;
+        livePreviewPayPeriodEnd.textContent = displayDataForStub.payPeriodEndDate || defaults.payPeriodEndDate;
+        livePreviewPayDate.textContent = displayDataForStub.payDate || defaults.payDate;
 
         livePreviewEarningsBody.innerHTML = '';
         if (displayDataForStub.employmentType === 'Hourly') {

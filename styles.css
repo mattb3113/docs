@@ -1107,3 +1107,24 @@ input.invalid, select.invalid, textarea.invalid {
 }
 
 }
+/* Fine-tuned responsive padding/margins for very small screens */
+@media (max-width: 480px), (max-height: 600px) {
+    .app-header {
+        padding: 10px 15px;
+    }
+    .main-content {
+        padding: 15px;
+    }
+    .sidebar {
+        padding: 20px;
+        margin-bottom: 15px;
+    }
+    .form-section-card,
+    .preview-section-card {
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+    .form-group {
+        margin-bottom: 18px;
+    }
+}

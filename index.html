@@ -3,16 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BuellDocs Paystub Generator (Canvas)</title>
+    <title>BuellDocs Paystub Generator</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- CDNs for jsPDF and jsPDF-AutoTable -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-    <!-- Stripe.js for secure payment processing -->
-    <script src="https://js.stripe.com/v3/"></script>
-    <script>
-        window.STRIPE_PUBLISHABLE_KEY = 'pk_test_12345'; // Replace with real key in production
-    </script>
 </head>
 <body>
     <div class="noise-overlay"></div>
@@ -24,7 +18,7 @@
             <span class="header-tagline">Client Dashboard</span>
         </div>
         <nav class="header-nav">
-            <a href="index.html" class="nav-link active">Client Dashboard</a>
+            <a href="index.html" class="nav-link active">Dashboard</a>
             <a href="about_buelldocs.html" class="nav-link">About</a>
         </nav>
         <a class="btn btn-secondary header-contact-btn" href="mailto:buellschool@gmail.com">Contact Us</a>
@@ -59,503 +53,331 @@
                 <button id="loadDraftBtn" class="btn btn-secondary btn-full-width">Load Draft</button>
                 <button id="estimateAllDeductionsBtn" class="btn btn-secondary btn-full-width">Estimate All Deductions</button>
                 <button id="previewPdfWatermarkedBtn" class="btn btn-secondary btn-full-width">Preview PDF (Watermarked)</button>
-                <button id="copyKeyData" class="btn btn-secondary btn-full-width">Copy Key Paystub Data</button>
-                <a id="sharePdfEmail" class="btn btn-secondary btn-full-width" style="display:none;" href="mailto:?subject=BuellDocs Paystub Preview&amp;body=Please find my generated paystub preview attached. (Note: You will need to manually attach the PDF downloaded from BuellDocs.)">Share PDF via Email</a>
+                <button id="copyKeyDataBtn" class="btn btn-secondary btn-full-width">Copy Key Paystub Data</button>
+                <a id="sharePdfEmailLink" class="btn btn-secondary btn-full-width" style="display:none;" href="mailto:?subject=BuellDocs Paystub Preview&amp;body=Please find my generated paystub preview attached. (Note: You will need to manually attach the PDF downloaded from BuellDocs.)">Share PDF via Email</a>
                 <p id="sharePdfInstructions" class="info-text" style="display:none;">First, download the PDF, then click here to open your email client. You'll need to manually attach the downloaded PDF.</p>
-                <button id="generateAndPayBtn" class="btn btn-primary btn-full-width">Generate & Proceed to Payment</button>
             </div>
         </aside>
 
         <main class="main-content">
             <section class="hero-section">
-                <h1>BuellDocs Paystub Generator (Canvas)</h1>
-                <p>Follow the new workflow below to quickly create your draft paystub.</p>
+                <h1>Create Your Income Statement</h1>
+                <p>Start by defining your desired income. We'll help you estimate the rest for your New Jersey paystub.</p>
             </section>
 
-            <form id="paystubForm">
-                <div id="formSummaryError" class="form-summary-error" aria-live="polite"></div>
+            <form id="paystubForm" novalidate>
                 <div id="formProgressIndicator" class="progress-indicator"></div>
+                <div id="formSummaryError" class="form-summary-error" aria-live="polite"></div>
+                
                 <div class="form-step" data-step="1">
-                <!-- Step 1: Desired Income Representation -->
-                <section class="form-section-card">
-                    <h3>Step 1: Define Your Desired Income Representation</h3>
-                    <div class="grid-col-2">
-                        <div class="form-group">
-                            <label for="desiredIncomeAmount">Desired Income Amount <span class="required-asterisk">*</span></label>
-                            <input type="text" id="desiredIncomeAmount" name="desiredIncomeAmount" required aria-required="true" aria-describedby="desiredIncomeAmountError" inputmode="decimal" pattern="[0-9,\.]*">
-                            <span class="error-message" id="desiredIncomeAmountError"></span>
-                        </div>
-                        <div class="form-group">
-                            <label id="desiredIncomeTypeLabel">Is this income amount:</label>
-                            <div class="radio-group" role="radiogroup" aria-labelledby="desiredIncomeTypeLabel">
-                                <input type="radio" name="desiredIncomeType" id="desiredIncomeTypeGross" value="Gross" checked>
-                                <label for="desiredIncomeTypeGross">Before Taxes &amp; Deductions (Gross Income)</label>
-                                <input type="radio" name="desiredIncomeType" id="desiredIncomeTypeNet" value="Net">
-                                <label for="desiredIncomeTypeNet">After Estimated Taxes &amp; Deductions (Target Net Income)</label>
-                            </div>
-                            <p id="netIncomeAdjustmentNote" class="info-text" style="display:none;"></p>
-                        </div>
-                        <div class="form-group">
-                            <label for="desiredIncomePeriod">Income Period <span class="required-asterisk">*</span></label>
-                            <select id="desiredIncomePeriod" required aria-required="true" aria-describedby="desiredIncomePeriodError" name="desiredIncomePeriod">
-                                <option value="Annual" selected>Annual</option>
-                                <option value="Monthly">Monthly</option>
-                                <option value="Weekly">Weekly</option>
-                            </select>
-                            <span class="error-message" id="desiredIncomePeriodError"></span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label id="representAsLabel">Represent As <span class="required-asterisk">*</span></label>
-                        <div class="radio-group" role="radiogroup" aria-labelledby="representAsLabel">
-                            <label><input type="radio" aria-describedby="incomeRepresentationTypeError" id="repAsSalaried" name="incomeRepresentationType" value="Salaried" checked> Salaried</label>
-                            <label><input type="radio" aria-describedby="incomeRepresentationTypeError" id="repAsHourly" name="incomeRepresentationType" value="Hourly"> Hourly</label>
-                            <span class="error-message" id="incomeRepresentationTypeError"></span>
-                        </div>
-                    </div>
-                    <div class="form-group" id="assumedHourlyHoursGroup" style="display:none;">
-                        <label for="assumedHourlyRegularHours">Assumed Regular Hours per Period for Representation</label>
-                        <input type="number" id="assumedHourlyRegularHours" name="assumedHourlyRegularHours" step="0.01" min="0" max="168" value="40">
-                    </div>
-                    <div class="form-group checkbox-group">
-                        <label for="isForNJEmployment">
-                            <input type="checkbox" id="isForNJEmployment" name="isForNJEmployment" checked>
-                            This representation is for New Jersey employment (auto-populates standard NJ taxes/deductions).
-                        </label>
-                    </div>
-                    <button type="button" id="populateDetailsBtn" class="btn btn-primary">Calculate &amp; Fill Paystub Details &#10132;</button>
-                </section>
-                <div class="step-navigation">
-                    <button type="button" class="btn btn-primary next-step">Next Step</button>
-                </div>
-            </div>
-                <div class="form-step" data-step="2">
-
-
-                <!-- Employer Information -->
-                <section class="form-section-card">
-                    <h3>Employer Information</h3>
-                    <div class="grid-col-2">
-                        <div class="form-group">
-                            <label for="companyName">Company Name <span class="required-asterisk">*</span></label>
-                            <input type="text" id="companyName" name="companyName" required aria-describedby="companyNameError" aria-required="true" maxlength="100">
-                            <span class="error-message" id="companyNameError"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="companyPhone">Company Phone</label>
-                            <input type="tel" id="companyPhone" name="companyPhone" placeholder="(###) ###-####" aria-describedby="companyPhoneError">
-                            <span class="error-message" id="companyPhoneError"></span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="companyStreetAddress">Company Street Address</label>
-                        <input type="text" id="companyStreetAddress" name="companyStreetAddress" aria-describedby="companyStreetAddressError" maxlength="100">
-                        <span class="error-message" id="companyStreetAddressError"></span>
-                    </div>
-                    <div class="grid-col-3">
-                        <div class="form-group">
-                            <label for="companyCity">City</label>
-                            <input type="text" id="companyCity" name="companyCity" aria-describedby="companyCityError" maxlength="50">
-                            <span class="error-message" id="companyCityError"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="companyState">State</label>
-                            <input type="text" id="companyState" name="companyState" aria-describedby="companyStateError" maxlength="50">
-                            <span class="error-message" id="companyStateError"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="companyZip">ZIP Code</label>
-                            <input type="text" id="companyZip" name="companyZip" aria-describedby="companyZipError" maxlength="10">
-                            <span class="error-message" id="companyZipError"></span>
-                        </div>
-                    </div>
-                     <div class="grid-col-2">
-                        <div class="form-group">
-
-                            <label for="companyEin">Company EIN <span class="tooltip-icon" tabindex="0" data-tooltip="Employer Identification Number (Federal Tax ID)" aria-describedby="einTooltipText">ℹ️</span><span id="einTooltipText" class="visually-hidden">Employer Identification Number (Federal Tax ID)</span></label>
-                            <input type="text" id="companyEin" name="companyEin" aria-describedby="companyEinError">
-
-                            <label for="companyEin">Company EIN <span class="tooltip-icon" tabindex="0" data-tooltip="Employer Identification Number (Federal Tax ID)">ℹ️</span></label>
-
-                            <input type="text" id="companyEin" name="companyEin" placeholder="XX-XXXXXXX" aria-describedby="companyEinError">
-
-                            <input type="text" id="companyEin" name="companyEin" aria-describedby="companyEinError" maxlength="10">
-
-
-                            <span class="error-message" id="companyEinError"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="companyLogo">Upload Company Logo</label>
-                            <input type="file" id="companyLogo" name="companyLogo" accept="image/*" aria-describedby="companyLogoError">
-                            <div class="logo-preview-container" id="companyLogoPreviewContainer" aria-label="Company logo preview area">
-                                <img id="companyLogoPreview" src="#" alt="Preview of Uploaded Company Logo" style="display:none;">
-                                <div class="logo-placeholder-text">Logo Preview</div>
-                            </div>
-                            <button type="button" class="btn-remove-logo" data-target-input="companyLogo" data-target-preview="companyLogoPreview" data-target-placeholder="#companyLogoPreviewContainer .logo-placeholder-text">Remove</button>
-                            <span class="error-message" id="companyLogoError"></span>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Employee Information -->
-                <section class="form-section-card">
-                    <h3>Employee Information</h3>
-                    <div class="form-group">
-                        <label for="employeeFullName">Employee Full Name <span class="required-asterisk">*</span></label>
-                        <input type="text" id="employeeFullName" name="employeeFullName" required aria-describedby="employeeFullNameError" aria-required="true" maxlength="100">
-                        <span class="error-message" id="employeeFullNameError"></span>
-                    </div>
-                    <div class="form-group">
-                        <label for="employeeStreetAddress">Employee Street Address</label>
-                        <input type="text" id="employeeStreetAddress" name="employeeStreetAddress" aria-describedby="employeeStreetAddressError" maxlength="100">
-                        <span class="error-message" id="employeeStreetAddressError"></span>
-                    </div>
-                    <div class="grid-col-3">
-                        <div class="form-group">
-                            <label for="employeeCity">City</label>
-                            <input type="text" id="employeeCity" name="employeeCity" aria-describedby="employeeCityError" maxlength="50">
-                            <span class="error-message" id="employeeCityError"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="employeeState">State</label>
-                            <input type="text" id="employeeState" name="employeeState" aria-describedby="employeeStateError" maxlength="50">
-                            <span class="error-message" id="employeeStateError"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="employeeZip">ZIP Code</label>
-                            <input type="text" id="employeeZip" name="employeeZip" aria-describedby="employeeZipError" maxlength="10">
-                            <span class="error-message" id="employeeZipError"></span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                    <label for="employeeSsn">Employee SSN</label>
-                        <input type="text" id="employeeSsn" name="employeeSsn" placeholder="***-**-1234" aria-describedby="employeeSsnError">
-                        <span class="error-message" id="employeeSsnError"></span>
-                        <p class="info-text ssn-info">SSN is used for display on the paystub and is not stored by BuellDocs for this generator tool. See our <a href='privacy_policy.html'>Privacy Policy</a>.</p>
-                    </div>
-                    <div class="form-group">
-                        <label for="federalFilingStatus">Federal Filing Status <span class="required-asterisk">*</span></label>
-                        <select id="federalFilingStatus" name="federalFilingStatus" required aria-required="true" aria-describedby="federalFilingStatusError">
-                            <option value="Single" selected>Single</option>
-                            <option value="Married Filing Jointly">Married filing jointly</option>
-                            <option value="Head of Household">Head of Household</option>
-                        </select>
-                        <span class="error-message" id="federalFilingStatusError"></span>
-                    </div>
-                    <div class="grid-col-3">
-                        <div class="form-group">
-                            <label for="payPeriodStartDate">Pay Period Start Date <span class="required-asterisk">*</span></label>
-                            <input type="date" id="payPeriodStartDate" name="payPeriodStartDate" required aria-describedby="payPeriodStartDateError" aria-required="true">
-                            <span class="error-message" id="payPeriodStartDateError"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="payPeriodEndDate">Pay Period End Date <span class="required-asterisk">*</span></label>
-                            <input type="date" id="payPeriodEndDate" name="payPeriodEndDate" required aria-describedby="payPeriodEndDateError" aria-required="true">
-                            <span class="error-message" id="payPeriodEndDateError"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="payDate">Pay Date <span class="required-asterisk">*</span></label>
-                            <input type="date" id="payDate" name="payDate" required aria-describedby="payDateError" aria-required="true">
-                            <span class="error-message" id="payDateError"></span>
-                        </div>
-                    </div>
-                </section>
-                <div class="step-navigation">
-                    <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
-                    <button type="button" class="btn btn-primary next-step">Next Step</button>
-                </div>
-            </div>
-                <div class="form-step" data-step="3">
-
-
-
-
-                <!-- Earnings -->
-                <section class="form-section-card">
-                    <h3>Earnings</h3>
-                    <div class="form-group">
-                        <label id="employmentTypeLabel">Employment Type <span class="required-asterisk">*</span></label>
-                        <div class="radio-group" role="radiogroup" aria-labelledby="employmentTypeLabel">
-                            <label><input type="radio" name="employmentType" value="Hourly" checked aria-describedby="employmentTypeError"> Hourly</label>
-                            <label><input type="radio" name="employmentType" value="Salaried" aria-describedby="employmentTypeError"> Salaried</label>
-                        </div>
-                        <span class="error-message" id="employmentTypeError"></span>
-                    </div>
-
-                    <div id="hourlyFields">
-                        <div class="grid-col-3">
-                            <div class="form-group">
-                                <label for="hourlyRate">Hourly Rate (per pay period) <span class="required-asterisk">*</span></label>
-
-                                <input type="number" id="hourlyRate" name="hourlyRate" step="0.01" required aria-required="true" min="0" value="0" aria-describedby="hourlyRateError">
-
-                                <input type="number" id="hourlyRate" name="hourlyRate" step="0.01" min="0" value="0" aria-describedby="hourlyRateError">
-
-                                <span class="error-message" id="hourlyRateError"></span>
-                            </div>
-                            <div class="form-group">
-                                <label for="regularHours">Regular Hours (per period) <span class="required-asterisk">*</span></label>
-                                <input type="number" id="regularHours" name="regularHours" step="0.01" required aria-required="true" min="0" max="168" value="0" aria-describedby="regularHoursError">
-                                <span class="error-message" id="regularHoursError"></span>
-                            </div>
-                            <div class="form-group">
-                                <label for="overtimeHours">Overtime Hours (per period)</label>
-                                <input type="number" id="overtimeHours" name="overtimeHours" step="0.01" min="0" max="168" value="0" aria-describedby="overtimeHoursError">
-                                <span class="error-message" id="overtimeHoursError"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="salariedFields" style="display:none;">
+                    <section class="form-section-card">
+                        <h3>Step 1: Define Your Desired Income Representation</h3>
                         <div class="grid-col-2">
                             <div class="form-group">
-                                <label for="annualSalary">Annual Salary <span class="required-asterisk">*</span></label>
-                                <input type="text" id="annualSalary" name="annualSalary" class="form-input" inputmode="decimal" pattern="[0-9,\.]*" required aria-required="true" value="0.00" aria-describedby="annualSalaryError">
-                                <span class="error-message" id="annualSalaryError"></span>
+                                <label for="desiredIncomeAmount">Desired Income Amount <span class="required-asterisk">*</span></label>
+                                <input type="text" id="desiredIncomeAmount" name="desiredIncomeAmount" required aria-required="true" aria-describedby="desiredIncomeAmountError" inputmode="decimal" pattern="[0-9,\.]*">
+                                <span class="error-message" id="desiredIncomeAmountError"></span>
                             </div>
                             <div class="form-group">
-                                <label for="salariedPayFrequency">Pay Frequency (Salaried) <span class="required-asterisk">*</span></label>
-                                <select id="salariedPayFrequency" required aria-required="true" name="salariedPayFrequency" aria-describedby="salariedPayFrequencyError">
-                                    <option value="Weekly">Weekly</option>
-                                    <option value="Bi-Weekly" selected>Bi-Weekly</option>
-                                    <option value="Semi-Monthly">Semi-Monthly</option>
+                                <label id="desiredIncomeTypeLabel">Is this income amount:</label>
+                                <div class="radio-group" role="radiogroup" aria-labelledby="desiredIncomeTypeLabel">
+                                    <label><input type="radio" name="desiredIncomeType" id="desiredIncomeTypeGross" value="Gross" checked> Before Taxes (Gross)</label>
+                                    <label><input type="radio" name="desiredIncomeType" id="desiredIncomeTypeNet" value="Net"> After Taxes (Net)</label>
+                                </div>
+                                <p id="netIncomeAdjustmentNote" class="info-text" style="display:none;"></p>
+                            </div>
+                            <div class="form-group">
+                                <label for="desiredIncomePeriod">Income Period <span class="required-asterisk">*</span></label>
+                                <select id="desiredIncomePeriod" required aria-required="true" aria-describedby="desiredIncomePeriodError" name="desiredIncomePeriod">
+                                    <option value="Annual" selected>Annual</option>
                                     <option value="Monthly">Monthly</option>
+                                    <option value="Weekly">Weekly</option>
                                 </select>
-                                <span class="error-message" id="salariedPayFrequencyError"></span>
+                                <span class="error-message" id="desiredIncomePeriodError"></span>
                             </div>
                         </div>
-                    </div>
-                    
-                    <h4>Other Earnings (Per Period)</h4>
-                    <div class="grid-col-3">
-                         <div class="form-group">
-                            <label for="bonus">Bonus</label>
-                            <input type="number" id="bonus" name="bonus" step="0.01" min="0" value="0" aria-describedby="bonusError">
-                            <span class="error-message" id="bonusError"></span>
-                        </div>
                         <div class="form-group">
-                            <label for="miscEarningName">Miscellaneous Earning Name</label>
-                            <input type="text" id="miscEarningName" name="miscEarningName" placeholder="e.g., Commission" aria-describedby="miscEarningNameError">
-                            <span class="error-message" id="miscEarningNameError"></span>
+                            <label id="representAsLabel">Represent As <span class="required-asterisk">*</span></label>
+                            <div class="radio-group" role="radiogroup" aria-labelledby="representAsLabel">
+                                <label><input type="radio" aria-describedby="incomeRepresentationTypeError" id="repAsSalaried" name="incomeRepresentationType" value="Salaried" checked> Salaried</label>
+                                <label><input type="radio" aria-describedby="incomeRepresentationTypeError" id="repAsHourly" name="incomeRepresentationType" value="Hourly"> Hourly</label>
+                                <span class="error-message" id="incomeRepresentationTypeError"></span>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="miscEarningAmount">Miscellaneous Earning Amount</label>
-                            <input type="number" id="miscEarningAmount" name="miscEarningAmount" step="0.01" min="0" value="0" aria-describedby="miscEarningAmountError">
-                            <span class="error-message" id="miscEarningAmountError"></span>
+                        <div class="form-group" id="assumedHourlyHoursGroup" style="display:none;">
+                            <label for="assumedHourlyRegularHours">Assumed Regular Hours per Period</label>
+                            <input type="number" id="assumedHourlyRegularHours" name="assumedHourlyRegularHours" step="0.01" min="0" max="168" value="40">
                         </div>
+                        <div class="form-group checkbox-group">
+                            <label for="isForNJEmployment">
+                                <input type="checkbox" id="isForNJEmployment" name="isForNJEmployment" checked>
+                                This representation is for New Jersey employment (auto-populates standard NJ taxes/deductions).
+                            </label>
+                        </div>
+                        <button type="button" id="populateDetailsBtn" class="btn btn-primary">Calculate &amp; Fill Paystub Details &#10132;</button>
+                    </section>
+                    <div class="step-navigation">
+                        <button type="button" class="btn btn-primary next-step">Next Step</button>
                     </div>
-                </section>
-                <div class="step-navigation">
-                    <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
-                    <button type="button" class="btn btn-primary next-step">Next Step</button>
                 </div>
-            </div>
+
+                <div class="form-step" data-step="2">
+                    <section class="form-section-card">
+                        <h3>Step 2: Company & Employee Details</h3>
+                        <h4>Employer Information</h4>
+                        <div class="grid-col-2">
+                            <div class="form-group">
+                                <label for="companyName">Company Name <span class="required-asterisk">*</span></label>
+                                <input type="text" id="companyName" name="companyName" required aria-describedby="companyNameError" aria-required="true" maxlength="100">
+                                <span class="error-message" id="companyNameError"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="companyPhone">Company Phone</label>
+                                <input type="tel" id="companyPhone" name="companyPhone" placeholder="(###) ###-####" aria-describedby="companyPhoneError">
+                                <span class="error-message" id="companyPhoneError"></span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="companyStreetAddress">Company Street Address</label>
+                            <input type="text" id="companyStreetAddress" name="companyStreetAddress" aria-describedby="companyStreetAddressError" maxlength="100">
+                            <span class="error-message" id="companyStreetAddressError"></span>
+                        </div>
+                        <div class="grid-col-3">
+                            <div class="form-group"><label for="companyCity">City</label><input type="text" id="companyCity" name="companyCity" aria-describedby="companyCityError" maxlength="50"><span class="error-message" id="companyCityError"></span></div>
+                            <div class="form-group"><label for="companyState">State</label><input type="text" id="companyState" name="companyState" aria-describedby="companyStateError" maxlength="50"><span class="error-message" id="companyStateError"></span></div>
+                            <div class="form-group"><label for="companyZip">ZIP</label><input type="text" id="companyZip" name="companyZip" aria-describedby="companyZipError" maxlength="10"><span class="error-message" id="companyZipError"></span></div>
+                        </div>
+                        <hr>
+                        <h4>Employee Information</h4>
+                        <div class="form-group"><label for="employeeFullName">Employee Name <span class="required-asterisk">*</span></label><input type="text" id="employeeFullName" name="employeeFullName" required aria-describedby="employeeFullNameError" aria-required="true" maxlength="100"><span class="error-message" id="employeeFullNameError"></span></div>
+                        <div class="form-group"><label for="employeeStreetAddress">Employee Address</label><input type="text" id="employeeStreetAddress" name="employeeStreetAddress" aria-describedby="employeeStreetAddressError" maxlength="100"><span class="error-message" id="employeeStreetAddressError"></span></div>
+                        <div class="grid-col-3">
+                            <div class="form-group"><label for="employeeCity">City</label><input type="text" id="employeeCity" name="employeeCity" aria-describedby="employeeCityError" maxlength="50"><span class="error-message" id="employeeCityError"></span></div>
+                            <div class="form-group"><label for="employeeState">State</label><input type="text" id="employeeState" name="employeeState" aria-describedby="employeeStateError" maxlength="50"><span class="error-message" id="employeeStateError"></span></div>
+                            <div class="form-group"><label for="employeeZip">ZIP</label><input type="text" id="employeeZip" name="employeeZip" aria-describedby="employeeZipError" maxlength="10"><span class="error-message" id="employeeZipError"></span></div>
+                        </div>
+                    </section>
+                    <div class="step-navigation">
+                        <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
+                        <button type="button" class="btn btn-primary next-step">Next Step</button>
+                    </div>
+                </div>
+
+                <div class="form-step" data-step="3">
+                    <section class="form-section-card">
+                        <h3>Step 3: Pay Details & Dates</h3>
+                        <div class="form-group">
+                            <label id="employmentTypeLabel">Employment Type <span class="required-asterisk">*</span></label>
+                            <div class="radio-group" role="radiogroup" aria-labelledby="employmentTypeLabel">
+                                <label><input type="radio" name="employmentType" value="Hourly" checked aria-describedby="employmentTypeError"> Hourly</label>
+                                <label><input type="radio" name="employmentType" value="Salaried" aria-describedby="employmentTypeError"> Salaried</label>
+                            </div>
+                            <span class="error-message" id="employmentTypeError"></span>
+                        </div>
+                        <div id="hourlyFields">
+                            <div class="grid-col-3">
+                                <div class="form-group">
+                                    <label for="hourlyRate">Hourly Rate <span class="required-asterisk">*</span></label>
+                                    <input type="number" id="hourlyRate" name="hourlyRate" step="0.01" required aria-required="true" min="0" value="0" aria-describedby="hourlyRateError">
+                                    <span class="error-message" id="hourlyRateError"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="regularHours">Regular Hours (per period) <span class="required-asterisk">*</span></label>
+                                    <input type="number" id="regularHours" name="regularHours" step="0.01" required aria-required="true" min="0" max="168" value="0" aria-describedby="regularHoursError">
+                                    <span class="error-message" id="regularHoursError"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="overtimeHours">Overtime Hours (per period)</label>
+                                    <input type="number" id="overtimeHours" name="overtimeHours" step="0.01" min="0" max="168" value="0" aria-describedby="overtimeHoursError">
+                                    <span class="error-message" id="overtimeHoursError"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="salariedFields" style="display:none;">
+                            <div class="grid-col-2">
+                                <div class="form-group">
+                                    <label for="annualSalary">Annual Salary <span class="required-asterisk">*</span></label>
+                                    <input type="text" id="annualSalary" name="annualSalary" class="currency-input" required aria-required="true" value="$0.00" aria-describedby="annualSalaryError">
+                                    <span class="error-message" id="annualSalaryError"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="salariedPayFrequency">Pay Frequency (Salaried) <span class="required-asterisk">*</span></label>
+                                    <select id="salariedPayFrequency" required aria-required="true" name="salariedPayFrequency" aria-describedby="salariedPayFrequencyError">
+                                        <option value="Weekly">Weekly</option>
+                                        <option value="Bi-Weekly" selected>Bi-Weekly</option>
+                                        <option value="Semi-Monthly">Semi-Monthly</option>
+                                        <option value="Monthly">Monthly</option>
+                                    </select>
+                                    <span class="error-message" id="salariedPayFrequencyError"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <h4>Pay Period & Dates (For First/Base Stub)</h4>
+                        <p class="info-text">For multiple stubs, subsequent dates will auto-increment.</p>
+                        <div class="grid-col-3">
+                            <div class="form-group">
+                                <label for="payPeriodStartDate">Period Start Date <span class="required-asterisk">*</span></label>
+                                <input type="date" id="payPeriodStartDate" name="payPeriodStartDate" required aria-describedby="payPeriodStartDateError" aria-required="true">
+                                <span class="error-message" id="payPeriodStartDateError"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="payPeriodEndDate">Period End Date <span class="required-asterisk">*</span></label>
+                                <input type="date" id="payPeriodEndDate" name="payPeriodEndDate" required aria-describedby="payPeriodEndDateError" aria-required="true">
+                                <span class="error-message" id="payPeriodEndDateError"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="payDate">Pay Date <span class="required-asterisk">*</span></label>
+                                <input type="date" id="payDate" name="payDate" required aria-describedby="payDateError" aria-required="true">
+                                <span class="error-message" id="payDateError"></span>
+                            </div>
+                        </div>
+                    </section>
+                    <div class="step-navigation">
+                        <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
+                        <button type="button" class="btn btn-primary next-step">Next Step</button>
+                    </div>
+                </div>
+                
                 <div class="form-step" data-step="4">
-
-
-                <!-- Taxes (Enter Amounts per Period - Simulation Only) -->
-                <section class="form-section-card">
-                    <h3>Taxes (Enter Amounts per Period - Simulation Only)</h3>
-                    <p class="info-text">All values are per pay period. Leave blank to auto-calc where available.</p>
-                     <div class="grid-col-2">
+                    <section class="form-section-card">
+                        <h3>Step 4: Taxes, Deductions & YTD</h3>
+                        <h4>Federal & State Taxes</h4>
                         <div class="form-group">
-                            <label for="federalTaxAmount">Federal Tax Amount</label>
-                            <input type="number" id="federalTaxAmount" name="federalTaxAmount" step="0.01" min="0" value="0" aria-describedby="federalTaxAmountError">
-                            <span class="error-message" id="federalTaxAmountError"></span>
+                            <label for="federalFilingStatus">Federal Filing Status <span class="required-asterisk">*</span></label>
+                            <select id="federalFilingStatus" name="federalFilingStatus" required aria-required="true" aria-describedby="federalFilingStatusError">
+                                <option value="Single" selected>Single</option>
+                                <option value="Married Filing Jointly">Married filing jointly</option>
+                                <option value="Head of Household">Head of Household</option>
+                            </select>
+                            <span class="error-message" id="federalFilingStatusError"></span>
                         </div>
-                        <div class="form-group checkbox-group">
-                            <label for="autoCalculateFederalTax">
-                                <input type="checkbox" id="autoCalculateFederalTax" name="autoCalculateFederalTax" checked>
-                                Auto-calculate Federal Tax?
-                            </label>
-                        </div>
-                         <div class="form-group">
-                            <label for="socialSecurityAmount">Social Security Amount</label>
-                            <input type="number" id="socialSecurityAmount" name="socialSecurityAmount" step="0.01" min="0" value="0" aria-describedby="socialSecurityAmountError">
-                            <span class="error-message" id="socialSecurityAmountError"></span>
-                        </div>
-                        <div class="form-group checkbox-group">
-                            <label for="autoCalculateSocialSecurity">
-                                <input type="checkbox" id="autoCalculateSocialSecurity" name="autoCalculateSocialSecurity" checked>
-                                Auto-calculate Social Security?
-                            </label>
-                        </div>
-                    </div>
-                    <div class="grid-col-2">
-                        <div class="form-group">
-                            <label for="stateTaxAmount">NJ State Tax</label>
-                            <input type="number" id="stateTaxAmount" name="stateTaxAmount" step="0.01" min="0" value="0" aria-describedby="stateTaxAmountError">
-                            <span class="error-message" id="stateTaxAmountError"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="medicareAmount">Medicare</label>
-                            <input type="number" id="medicareAmount" name="medicareAmount" step="0.01" min="0" value="0" aria-describedby="medicareAmountError">
-                            <span class="error-message" id="medicareAmountError"></span>
-                        </div>
-                    </div>
-                    </div>
-                </section>
-
-                <!-- State-Specific Deductions/Taxes (New Jersey) -->
-                <section class="form-section-card">
-                    <h3>State-Specific Deductions/Taxes (New Jersey)</h3>
-                    <div class="grid-col-2">
-                        <div class="form-group">
-                            <label for="stateTaxAmount">NJ State Income Tax</label>
-                            <input type="text" id="stateTaxAmount" name="stateTaxAmount" class="form-input currency-input" value="$0.00" autocomplete="off">
-                            <span class="info-icon" tabindex="0" aria-label="NJ State Income Tax information">ℹ️
-                                <span class="tooltip-text">Enter the amount withheld for New Jersey state income tax per pay period.</span>
-                            </span>
-                            <span class="error-message" id="stateTaxAmountError"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="njSdiAmount">NJ SDI (State Disability Insurance)</label>
-                            <input type="text" id="njSdiAmount" name="njSdiAmount" class="form-input currency-input" value="$0.00" autocomplete="off">
-                            <span class="info-icon" tabindex="0" aria-label="NJ SDI information">ℹ️
-                                <span class="tooltip-text">Enter the amount withheld for New Jersey State Disability Insurance per pay period.</span>
-                            </span>
-                            <span class="error-message" id="njSdiAmountError"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="njFliAmount">NJ FLI (Family Leave Insurance)</label>
-                            <input type="text" id="njFliAmount" name="njFliAmount" class="form-input currency-input" value="$0.00" autocomplete="off">
-                            <span class="info-icon" tabindex="0" aria-label="NJ FLI information">ℹ️
-                                <span class="tooltip-text">Enter the amount withheld for New Jersey Family Leave Insurance per pay period.</span>
-                            </span>
-                            <span class="error-message" id="njFliAmountError"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="njUiHcWfAmount">NJ UI/HC/WF</label>
-                            <input type="text" id="njUiHcWfAmount" name="njUiHcWfAmount" class="form-input currency-input" value="$0.00" autocomplete="off">
-                            <span class="info-icon" tabindex="0" aria-label="NJ UI/HC/WF information">ℹ️
-                                <span class="tooltip-text">Enter the amount withheld for New Jersey Unemployment Insurance, Health Care, and Workforce funds per pay period.</span>
-                            </span>
-                            <span class="error-message" id="njUiHcWfAmountError"></span>
-                        </div>
-                    </div>
-                </section>
-                <div class="step-navigation">
-                    <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
-                    <button type="button" class="btn btn-primary next-step">Next Step</button>
-                </div>
-            </div>
-                <div class="form-step" data-step="5">
-
-
-                <!-- Other Deductions (Optional) -->
-                <section class="form-section-card">
-                    <h3>Other Deductions (Enter Amounts per Period - Optional)</h3>
-                    <div class="grid-col-2">
-                        <div class="form-group">
-                            <label for="healthInsurance">Health Insurance</label>
-                            <input type="number" id="healthInsurance" name="healthInsurance" step="0.01" min="0" value="0" aria-describedby="healthInsuranceError">
-                            <span class="error-message" id="healthInsuranceError"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="retirement401k">Retirement (e.g., 401k)</label>
-                            <input type="number" id="retirement401k" name="retirement401k" step="0.01" min="0" value="0" aria-describedby="retirement401kError">
-                            <span class="error-message" id="retirement401kError"></span>
-                        </div>
-                    </div>
-                    <div id="customDeductionsContainer" class="custom-deductions"></div>
-                    <button type="button" id="addDeductionBtn" class="btn btn-secondary btn-sm">Add Deduction</button>
-                </section>
-
-                <!-- Initial Year-to-Date (YTD) Figures -->
-                <section class="form-section-card">
-                    <h3>Initial Year-to-Date (YTD) Figures</h3>
-                    <p class="info-text">Enter totals from before this batch. They accumulate with each stub.</p>
-                    <div class="grid-col-2">
-                        <div class="form-group">
-                            <label for="initialYtdGrossPay">Initial YTD Gross Pay (before this batch) <span class="tooltip-icon" tabindex="0" data-tooltip="Totals accrued prior to generating these stubs" aria-describedby="initialYtdGrossPayTooltipText">ℹ️</span><span id="initialYtdGrossPayTooltipText" class="visually-hidden">Totals accrued prior to generating these stubs</span></label>
-                            <input type="number" id="initialYtdGrossPay" name="initialYtdGrossPay" step="0.01" min="0" value="0">
-                        </div>
-                        <div class="form-group">
-                            <label for="initialYtdFederalTax">Initial YTD Federal Tax</label>
-                            <input type="number" id="initialYtdFederalTax" name="initialYtdFederalTax" step="0.01" min="0" value="0">
-                        </div>
-                    </div>
-                    <div class="grid-col-2">
-                        <div class="form-group">
-                            <label for="initialYtdStateTax">Initial YTD State Tax</label>
-                            <input type="number" id="initialYtdStateTax" name="initialYtdStateTax" step="0.01" min="0" value="0">
-                        </div>
-                        <div class="form-group">
-                            <label for="initialYtdSocialSecurity">Initial YTD Social Security</label>
-                            <input type="number" id="initialYtdSocialSecurity" name="initialYtdSocialSecurity" step="0.01" min="0" value="0">
-                        </div>
-                    </div>
-                     <div class="grid-col-2">
-                        <div class="form-group">
-                            <label for="initialYtdMedicare">Initial YTD Medicare</label>
-                            <input type="number" id="initialYtdMedicare" name="initialYtdMedicare" step="0.01" min="0" value="0">
-                        </div>
-                        <div class="form-group">
-                            <label for="initialYtdNjSdi">Initial YTD NJ SDI</label>
-                            <input type="number" id="initialYtdNjSdi" name="initialYtdNjSdi" step="0.01" min="0" value="0">
-                        </div>
-                    </div>
-                    <div class="grid-col-2">
-                        <div class="form-group">
-                            <label for="initialYtdNjFli">Initial YTD NJ FLI</label>
-                            <input type="number" id="initialYtdNjFli" name="initialYtdNjFli" step="0.01" min="0" value="0">
-                        </div>
-                        <div class="form-group">
-                            <label for="initialYtdNjUiHcWf">Initial YTD NJ UI/HC/WF</label>
-                            <input type="number" id="initialYtdNjUiHcWf" name="initialYtdNjUiHcWf" step="0.01" min="0" value="0">
-                        </div>
-                    </div>
-                </section>
-                <div class="step-navigation">
-                    <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
-                    <button type="button" class="btn btn-primary next-step">Next Step</button>
-                </div>
-            </div>
-                <div class="form-step" data-step="6">
-
-
-                <!-- Optional Additions -->
-                <section class="form-section-card">
-                    <h3>Optional Additions</h3>
-                     <div class="grid-col-2">
-                        <div class="form-group">
-                            <label for="payrollProviderLogo">Upload Payroll Provider Logo</label>
-                            <input type="file" id="payrollProviderLogo" name="payrollProviderLogo" accept="image/*" aria-describedby="payrollProviderLogoError">
-                             <div class="logo-preview-container" id="payrollProviderLogoPreviewContainer" aria-label="Payroll provider logo preview area">
-                                <img id="payrollProviderLogoPreview" src="#" alt="Preview of Uploaded Payroll Provider Logo" style="display:none;">
-                                <div class="logo-placeholder-text">Logo Preview</div>
+                        <div class="grid-col-2">
+                            <div class="form-group">
+                                <label for="federalTaxAmount">Federal Tax</label>
+                                <input type="number" id="federalTaxAmount" name="federalTaxAmount" class="currency-input" step="0.01" min="0" value="0" aria-describedby="federalTaxAmountError">
+                                <span class="error-message" id="federalTaxAmountError"></span>
                             </div>
-                            <button type="button" class="btn-remove-logo" data-target-input="payrollProviderLogo" data-target-preview="payrollProviderLogoPreview" data-target-placeholder="#payrollProviderLogoPreviewContainer .logo-placeholder-text">Remove</button>
-                            <span class="error-message" id="payrollProviderLogoError"></span>
+                            <div class="form-group checkbox-group">
+                                <label for="autoCalculateFederalTax"><input type="checkbox" id="autoCalculateFederalTax" name="autoCalculateFederalTax" checked> Auto-calculate?</label>
+                            </div>
+                            <div class="form-group">
+                                <label for="stateTaxName">State Tax Name</label>
+                                <input type="text" id="stateTaxName" name="stateTaxName" placeholder="e.g., NJ State Tax" aria-describedby="stateTaxNameError">
+                                <span class="error-message" id="stateTaxNameError"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="stateTaxAmount">State Tax Amount</label>
+                                <input type="number" id="stateTaxAmount" name="stateTaxAmount" class="currency-input" step="0.01" min="0" value="0" aria-describedby="stateTaxAmountError">
+                                <span class="error-message" id="stateTaxAmountError"></span>
+                            </div>
                         </div>
-                        <div class="form-group checkbox-group">
-                             <label for="includeVoidedCheck">
-                                <input type="checkbox" id="includeVoidedCheck" name="includeVoidedCheck">
-                                Include Sample Voided Check Image
-                            </label>
+                        <hr>
+                        <h4>FICA & Other Deductions</h4>
+                        <div class="grid-col-2">
+                            <div class="form-group"><label for="socialSecurityAmount">Social Security</label><input type="number" id="socialSecurityAmount" name="socialSecurityAmount" class="currency-input" step="0.01" min="0" value="0" aria-describedby="socialSecurityAmountError"><span class="error-message" id="socialSecurityAmountError"></span></div>
+                            <div class="form-group checkbox-group"><label for="autoCalculateSocialSecurity"><input type="checkbox" id="autoCalculateSocialSecurity" name="autoCalculateSocialSecurity" checked> Auto-calculate?</label></div>
+                            <div class="form-group"><label for="medicareAmount">Medicare</label><input type="number" id="medicareAmount" name="medicareAmount" class="currency-input" step="0.01" min="0" value="0" aria-describedby="medicareAmountError"><span class="error-message" id="medicareAmountError"></span></div>
+                            <div class="form-group checkbox-group"><label for="autoCalculateMedicare"><input type="checkbox" id="autoCalculateMedicare" name="autoCalculateMedicare" checked> Auto-calculate?</label></div>
                         </div>
-                    </div>
-                </section>
+                    </section>
 
-                <!-- User Notes & Submission -->
-                <section class="form-section-card">
-                    <h3>Notes & Submission</h3>
-                    <div class="form-group">
-                        <label for="userNotes">Additional instructions or custom requests (optional)</label>
-                        <textarea id="userNotes" name="userNotes" rows="3" aria-describedby="userNotesError"></textarea>
-                        <span class="error-message" id="userNotesError"></span>
+                    <section class="form-section-card" id="njDeductionsSection">
+                        <h4>State-Specific Deductions (New Jersey)</h4>
+                        <div class="grid-col-3">
+                            <div class="form-group"><label for="njSdiAmount">NJ SDI</label><input type="number" id="njSdiAmount" name="njSdiAmount" class="currency-input" step="0.01" min="0" value="0"></div>
+                            <div class="form-group"><label for="njFliAmount">NJ FLI</label><input type="number" id="njFliAmount" name="njFliAmount" class="currency-input" step="0.01" min="0" value="0"></div>
+                            <div class="form-group"><label for="njUiHcWfAmount">NJ UI/HC/WF</label><input type="number" id="njUiHcWfAmount" name="njUiHcWfAmount" class="currency-input" step="0.01" min="0" value="0"></div>
+                        </div>
+                    </section>
+                    <div class="step-navigation">
+                        <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
+                        <button type="button" class="btn btn-primary next-step">Next Step</button>
                     </div>
-                    <div class="form-group">
-                        <label for="userEmail">Your Email (for order confirmation) <span class="required-asterisk">*</span></label>
-                        <input type="email" id="userEmail" name="userEmail" required aria-describedby="userEmailError" aria-required="true">
-                        <span class="error-message" id="userEmailError"></span>
-                    </div>
-                </section>
-                <div class="step-navigation">
-                    <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
-                    <button type="button" id="generateAndPay" class="btn btn-primary next-step">Generate & Proceed to Payment</button>
                 </div>
-            </div>
+
+                <div class="form-step" data-step="5">
+                    <section class="form-section-card">
+                        <h3>Step 5: Other Earnings, Deductions & YTD</h3>
+                        <h4>Other Earnings (Per Period)</h4>
+                        <div class="grid-col-2">
+                            <div class="form-group"><label for="bonus">Bonus</label><input type="number" id="bonus" name="bonus" class="currency-input" step="0.01" min="0" value="0" aria-describedby="bonusError"><span class="error-message" id="bonusError"></span></div>
+                            <div class="form-group"><label for="miscEarningName">Misc. Earning Name</label><input type="text" id="miscEarningName" name="miscEarningName" placeholder="e.g., Commission" aria-describedby="miscEarningNameError"><span class="error-message" id="miscEarningNameError"></span></div>
+                            <div class="form-group"><label for="miscEarningAmount">Misc. Earning Amount</label><input type="number" id="miscEarningAmount" class="currency-input" name="miscEarningAmount" step="0.01" min="0" value="0" aria-describedby="miscEarningAmountError"><span class="error-message" id="miscEarningAmountError"></span></div>
+                        </div>
+                        <hr>
+                        <h4>Other Deductions (Per Period)</h4>
+                        <div class="grid-col-2">
+                            <div class="form-group"><label for="healthInsurance">Health Insurance</label><input type="number" id="healthInsurance" name="healthInsurance" class="currency-input" step="0.01" min="0" value="0"></div>
+                            <div class="form-group"><label for="retirement401k">Retirement (e.g., 401k)</label><input type="number" id="retirement401k" name="retirement401k" class="currency-input" step="0.01" min="0" value="0"></div>
+                        </div>
+                        <div id="customDeductionsContainer" class="custom-deductions"></div>
+                        <button type="button" id="addDeductionBtn" class="btn btn-secondary btn-sm">Add Another Deduction</button>
+                        <hr>
+                        <h4>Initial Year-to-Date (YTD) Figures <span class="tooltip-icon" tabindex="0" data-tooltip="Enter totals from before this batch. They accumulate with each stub." aria-describedby="initialYtdTooltipText">ℹ️</span><span id="initialYtdTooltipText" class="visually-hidden">Enter totals from before this batch. They accumulate with each stub.</span></h4>
+                        <div class="form-group checkbox-group"><label for="startYtdFromBatch"><input type="checkbox" id="startYtdFromBatch" name="startYtdFromBatch" checked> Start YTD calculations from this batch (zero initial YTD)</label></div>
+                        <div id="initialYtdFieldsContainer" style="display:none;">
+                            <div class="grid-col-2">
+                                <div class="form-group"><label for="initialYtdGrossPay">Initial YTD Gross Pay</label><input type="number" id="initialYtdGrossPay" name="initialYtdGrossPay" class="currency-input" step="0.01" min="0" value="0"></div>
+                                <div class="form-group"><label for="initialYtdFederalTax">Initial YTD Federal Tax</label><input type="number" id="initialYtdFederalTax" name="initialYtdFederalTax" class="currency-input" step="0.01" min="0" value="0"></div>
+                                <div class="form-group"><label for="initialYtdStateTax">Initial YTD State Tax</label><input type="number" id="initialYtdStateTax" name="initialYtdStateTax" class="currency-input" step="0.01" min="0" value="0"></div>
+                                <div class="form-group"><label for="initialYtdSocialSecurity">Initial YTD Social Security</label><input type="number" id="initialYtdSocialSecurity" name="initialYtdSocialSecurity" class="currency-input" step="0.01" min="0" value="0"></div>
+                                <div class="form-group"><label for="initialYtdMedicare">Initial YTD Medicare</label><input type="number" id="initialYtdMedicare" name="initialYtdMedicare" class="currency-input" step="0.01" min="0" value="0"></div>
+                                <div class="form-group"><label for="initialYtdNjSdi">Initial YTD NJ SDI</label><input type="number" id="initialYtdNjSdi" name="initialYtdNjSdi" class="currency-input" step="0.01" min="0" value="0"></div>
+                                <div class="form-group"><label for="initialYtdNjFli">Initial YTD NJ FLI</label><input type="number" id="initialYtdNjFli" name="initialYtdNjFli" class="currency-input" step="0.01" min="0" value="0"></div>
+                                <div class="form-group"><label for="initialYtdNjUiHcWf">Initial YTD NJ UI/HC/WF</label><input type="number" id="initialYtdNjUiHcWf" name="initialYtdNjUiHcWf" class="currency-input" step="0.01" min="0" value="0"></div>
+                            </div>
+                        </div>
+                    </section>
+                    <div class="step-navigation">
+                        <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
+                        <button type="button" class="btn btn-primary next-step">Next Step</button>
+                    </div>
+                </div>
+                
+                <div class="form-step" data-step="6">
+                    <section class="form-section-card">
+                        <h3>Step 6: Final Details & Submission</h3>
+                        <h4>Optional Additions</h4>
+                        <div class="grid-col-2">
+                            <div class="form-group">
+                                <label for="payrollProviderLogo">Upload Payroll Provider Logo</label>
+                                <input type="file" id="payrollProviderLogo" name="payrollProviderLogo" accept="image/*" aria-describedby="payrollProviderLogoError">
+                                <div class="logo-preview-container" id="payrollProviderLogoPreviewContainer" aria-label="Payroll provider logo preview area">
+                                    <img id="payrollProviderLogoPreview" src="#" alt="Preview of Uploaded Payroll Provider Logo" style="display:none;">
+                                    <div class="logo-placeholder-text">Logo Preview</div>
+                                </div>
+                                <button type="button" class="btn-remove-logo" data-target-input="payrollProviderLogo" data-target-preview="payrollProviderLogoPreview" data-target-placeholder="#payrollProviderLogoPreviewContainer .logo-placeholder-text">Remove</button>
+                                <span class="error-message" id="payrollProviderLogoError"></span>
+                            </div>
+                            <div class="form-group checkbox-group">
+                                <label for="includeVoidedCheck"><input type="checkbox" id="includeVoidedCheck" name="includeVoidedCheck"> Include Sample Voided Check Image</label>
+                            </div>
+                        </div>
+                        <hr>
+                        <h4>User Details</h4>
+                        <div class="form-group">
+                            <label for="employeeSsn">Employee SSN</label>
+                            <input type="text" id="employeeSsn" name="employeeSsn" placeholder="***-**-1234" aria-describedby="employeeSsnError">
+                            <span class="error-message" id="employeeSsnError"></span>
+                            <p class="info-text ssn-info">SSN is used for display on the paystub and is not stored by BuellDocs. See our <a href='privacy_policy.html'>Privacy Policy</a>.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="userNotes">Additional instructions or custom requests (optional)</label>
+                            <textarea id="userNotes" name="userNotes" rows="3" aria-describedby="userNotesError"></textarea>
+                            <span class="error-message" id="userNotesError"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="userEmail">Your Email (for order confirmation) <span class="required-asterisk">*</span></label>
+                            <input type="email" id="userEmail" name="userEmail" required aria-describedby="userEmailError" aria-required="true">
+                            <span class="error-message" id="userEmailError"></span>
+                        </div>
+                    </section>
+                    <div class="step-navigation">
+                        <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
+                        <button type="button" id="generateAndPay" class="btn btn-primary next-step">Generate & Proceed to Payment</button>
+                    </div>
+                </div>
             </form>
 
             <div class="summary-bar">
@@ -564,7 +386,6 @@
                 <div>Live Net Pay: <span id="summaryNetPay">$0.00</span></div>
             </div>
 
-            <!-- Live HTML Preview Section -->
             <section id="previewSection" class="preview-section-card">
                 <h3>Live Paystub Preview <span id="previewStubIndicator">(Previewing Stub: 1 of 1)</span></h3>
                 <div class="preview-nav-controls" style="display: none; margin-bottom: 10px; text-align: center;">
@@ -573,7 +394,6 @@
                 </div>
                 <div class="preview-watermark">SIMULATION ONLY - PREVIEW</div>
                 <div id="paystubPreviewContent" class="paystub-live-preview" aria-live="polite" aria-atomic="true">
-                    <!-- Content will be dynamically generated by JavaScript -->
                     <div class="paystub-header-preview">
                         <div class="company-info-left">
                             <img id="livePreviewCompanyLogo" src="#" alt="Company Logo" class="live-preview-logo" style="display:none;">
@@ -616,7 +436,6 @@
                             </tr>
                         </thead>
                         <tbody id="livePreviewEarningsBody">
-                            <!-- Example Row (Static for initial display, JS will populate) -->
                             <tr>
                                 <td>Regular Pay</td>
                                 <td data-label="Hours">40.00</td>
@@ -627,7 +446,7 @@
                         </tbody>
                     </table>
 
-                     <table class="deductions-table-preview">
+                    <table class="deductions-table-preview">
                         <thead>
                             <tr>
                                 <th>Description</th>
@@ -636,7 +455,6 @@
                             </tr>
                         </thead>
                         <tbody id="livePreviewDeductionsBody">
-                            <!-- Example Row (Static, JS will populate) -->
                             <tr>
                                 <td>Federal Income Tax</td>
                                 <td data-label="Current Period">$100.00</td>
@@ -671,7 +489,6 @@
         </main>
     </div>
 
-    <!-- Payment Modal -->
     <div id="paymentModal" class="modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="paymentModalTitle">
         <div class="modal-content">
             <span class="close-modal-btn" id="closePaymentModalBtn">&times;</span>
@@ -685,21 +502,21 @@
                         <p>Venmo: <strong>$BuellDocs</strong></p>
                         <div class="qr-container">
                             <img src="https://i.ibb.co/s9V5vX4/venmo-qr-code.png" alt="QR Code for Venmo Payment"
-                                 onerror="this.onerror=null; this.src='https://placehold.co/150x150/1a1a1e/ae8e5d?text=Venmo+QR';">
+                                onerror="this.onerror=null; this.src='https://placehold.co/150x150/1a1a1e/ae8e5d?text=Venmo+QR';">
                         </div>
                     </div>
                     <div class="qr-code-item">
-                         <p>Cash App: <strong>$BuellDocsPaystub</strong></p>
+                        <p>Cash App: <strong>$BuellDocsPaystub</strong></p>
                         <div class="qr-container">
                             <img src="https://i.ibb.co/mCDFg1v/cash-app-qr-code.png" alt="QR Code for Cash App Payment"
-                                 onerror="this.onerror=null; this.src='https://placehold.co/150x150/1a1a1e/ae8e5d?text=CashApp+QR';">
+                                onerror="this.onerror=null; this.src='https://placehold.co/150x150/1a1a1e/ae8e5d?text=CashApp+QR';">
                         </div>
                     </div>
                     <div class="qr-code-item">
                         <p>PayPal: <strong>buellschool@gmail.com</strong></p>
                         <div class="qr-container">
-                             <img src="https://i.ibb.co/1fRtJzh/paypal-qr-code.png" alt="QR Code for PayPal Payment"
-                                 onerror="this.onerror=null; this.src='https://placehold.co/150x150/1a1a1e/ae8e5d?text=PayPal+QR';">
+                            <img src="https://i.ibb.co/1fRtJzh/paypal-qr-code.png" alt="QR Code for PayPal Payment"
+                                onerror="this.onerror=null; this.src='https://placehold.co/150x150/1a1a1e/ae8e5d?text=PayPal+QR';">
                         </div>
                     </div>
                 </div>
@@ -727,7 +544,6 @@
     </div>
     
 
-    <!-- Notification Modal -->
     <div id="notificationModal" class="modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="notificationModalTitle">
         <div class="modal-content">
             <span class="close-modal-btn" id="closeNotificationModalBtn">&times;</span>
@@ -736,8 +552,8 @@
         </div>
     </div>
     <footer>
-        BUELLDOCS © 2025 | <!-- SYSTEM INFO --> | <a href='privacy_policy.html'>Privacy Policy</a>
+        BUELLDOCS © 2025 | | <a href='privacy_policy.html'>Privacy Policy</a>
     </footer>
     <script src="script.js"></script>
 </body>
-</html>
+</ht

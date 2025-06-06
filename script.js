@@ -1053,6 +1053,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const pageWidth = doc.internal.pageSize.getWidth();
         let yPos = 15;
 
+        // Add company logo in the header if provided
+        if (data.companyLogoDataUrl) {
+            try {
+                const imgProps = doc.getImageProperties(data.companyLogoDataUrl);
+                const logoWidth = 35;
+                const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
+                doc.addImage(data.companyLogoDataUrl, 'PNG', pageWidth - logoWidth - 15, yPos - 5, logoWidth, logoHeight);
+            } catch (e) {
+                console.error('Error adding company logo to PDF:', e);
+            }
+        }
+
         yPos = drawHeader(doc, data, pageWidth, yPos);
         yPos = drawTitle(doc, pageWidth, stubNum, totalStubs, yPos);
         yPos = drawInfoTable(doc, data, yPos);
@@ -1060,6 +1072,19 @@ document.addEventListener('DOMContentLoaded', () => {
         yPos = drawDeductionsTable(doc, data, calculations, yPos);
         yPos = drawSummary(doc, calculations, pageWidth, yPos);
         drawFooter(doc, data, pageHeight, pageWidth, isPreviewMode);
+
+        // Add payroll provider logo near the footer if provided
+        if (data.payrollProviderLogoDataUrl) {
+            try {
+                const imgProps = doc.getImageProperties(data.payrollProviderLogoDataUrl);
+                const logoWidth = 25;
+                const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
+                doc.addImage(data.payrollProviderLogoDataUrl, 'PNG', 15, pageHeight - logoHeight - 10, logoWidth, logoHeight);
+            } catch (e) {
+                console.error('Error adding payroll provider logo to PDF:', e);
+            }
+        }
+
         if (isPreviewMode) drawWatermarks(doc, pageWidth, pageHeight);
     }
 
@@ -1068,14 +1093,6 @@ document.addEventListener('DOMContentLoaded', () => {
         doc.setTextColor(174, 142, 93);
         doc.text('BUELLDOCS', 15, yPos);
         yPos += 2;
-        if (data.companyLogoDataUrl) {
-            try {
-                const imgProps = doc.getImageProperties(data.companyLogoDataUrl);
-                const imgWidth = 30;
-                const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-                doc.addImage(data.companyLogoDataUrl, 'PNG', pageWidth - 15 - imgWidth, yPos - 8, imgWidth, imgHeight);
-            } catch (e) { console.error('Error adding company logo to PDF:', e); }
-        }
         return yPos + 10;
     }
 
@@ -1264,14 +1281,7 @@ document.addEventListener('DOMContentLoaded', () => {
             doc.setTextColor(150, 150, 150);
             doc.text('[Sample Voided Check Area - Appears in HTML Preview]', 15, bottomContentY - 20);
         }
-        if (data.payrollProviderLogoDataUrl) {
-            try {
-                const imgProps = doc.getImageProperties(data.payrollProviderLogoDataUrl);
-                const imgWidth = 25;
-                const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-                doc.addImage(data.payrollProviderLogoDataUrl, 'PNG', 15, bottomContentY - imgHeight - 5, imgWidth, imgHeight);
-            } catch (e) { console.error('Error adding payroll provider logo to PDF:', e); }
-        }
+        // Logo is added in generatePdfPage if provided
     }
 
     function drawWatermarks(doc, pageWidth, pageHeight) {

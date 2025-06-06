@@ -78,8 +78,8 @@
                             <input type="number" id="desiredIncomeAmount" name="desiredIncomeAmount" step="0.01" min="0">
                         </div>
                         <div class="form-group">
-                            <label>Is this income amount:</label>
-                            <div class="radio-group">
+                            <label id="desiredIncomeTypeLabel">Is this income amount:</label>
+                            <div class="radio-group" role="radiogroup" aria-labelledby="desiredIncomeTypeLabel">
                                 <input type="radio" name="desiredIncomeType" id="desiredIncomeTypeGross" value="Gross" checked>
                                 <label for="desiredIncomeTypeGross">Before Taxes &amp; Deductions (Gross Income)</label>
                                 <input type="radio" name="desiredIncomeType" id="desiredIncomeTypeNet" value="Net">
@@ -97,8 +97,8 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Represent As <span class="required-asterisk">*</span></label>
-                        <div class="radio-group">
+                        <label id="representAsLabel">Represent As <span class="required-asterisk">*</span></label>
+                        <div class="radio-group" role="radiogroup" aria-labelledby="representAsLabel">
                             <label><input type="radio" id="repAsSalaried" name="incomeRepresentationType" value="Salaried" checked> Salaried</label>
                             <label><input type="radio" id="repAsHourly" name="incomeRepresentationType" value="Hourly"> Hourly</label>
                         </div>
@@ -161,8 +161,8 @@
                         <div class="form-group">
                             <label for="companyLogo">Upload Company Logo</label>
                             <input type="file" id="companyLogo" name="companyLogo" accept="image/*" aria-describedby="companyLogoError">
-                            <div class="logo-preview-container" id="companyLogoPreviewContainer">
-                                <img id="companyLogoPreview" src="#" alt="Company Logo Preview" style="display:none;">
+                            <div class="logo-preview-container" id="companyLogoPreviewContainer" aria-label="Company logo preview area">
+                                <img id="companyLogoPreview" src="#" alt="Preview of Uploaded Company Logo" style="display:none;">
                                 <div class="logo-placeholder-text">Logo Preview</div>
                             </div>
                             <span class="error-message" id="companyLogoError"></span>
@@ -235,8 +235,8 @@
                 <section class="form-section-card form-section-minimized">
                     <h3>Earnings</h3>
                     <div class="form-group">
-                        <label>Employment Type <span class="required-asterisk">*</span></label>
-                        <div class="radio-group">
+                        <label id="employmentTypeLabel">Employment Type <span class="required-asterisk">*</span></label>
+                        <div class="radio-group" role="radiogroup" aria-labelledby="employmentTypeLabel">
                             <label><input type="radio" name="employmentType" value="Hourly" checked aria-describedby="employmentTypeError"> Hourly</label>
                             <label><input type="radio" name="employmentType" value="Salaried" aria-describedby="employmentTypeError"> Salaried</label>
                         </div>
@@ -461,8 +461,8 @@
                         <div class="form-group">
                             <label for="payrollProviderLogo">Upload Payroll Provider Logo</label>
                             <input type="file" id="payrollProviderLogo" name="payrollProviderLogo" accept="image/*" aria-describedby="payrollProviderLogoError">
-                             <div class="logo-preview-container" id="payrollProviderLogoPreviewContainer">
-                                <img id="payrollProviderLogoPreview" src="#" alt="Payroll Provider Logo Preview" style="display:none;">
+                             <div class="logo-preview-container" id="payrollProviderLogoPreviewContainer" aria-label="Payroll provider logo preview area">
+                                <img id="payrollProviderLogoPreview" src="#" alt="Preview of Uploaded Payroll Provider Logo" style="display:none;">
                                 <div class="logo-placeholder-text">Logo Preview</div>
                             </div>
                             <span class="error-message" id="payrollProviderLogoError"></span>
@@ -606,10 +606,10 @@
     </div>
 
     <!-- Payment Modal -->
-    <div id="paymentModal" class="modal" style="display:none;">
+    <div id="paymentModal" class="modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="paymentModalTitle">
         <div class="modal-content">
             <span class="close-modal-btn" id="closePaymentModalBtn">&times;</span>
-            <h2>Payment & Order Submission</h2>
+            <h2 id="paymentModalTitle">Payment & Order Submission</h2>
             
             <div id="paymentInstructions">
                 <p>Please complete your payment to finalize your order. The total amount is: <strong id="totalPaymentAmount">$29.99</strong> <span id="paymentDiscountNote" class="discount-note"></span>.</p>
@@ -618,21 +618,21 @@
                     <div class="qr-code-item">
                         <p>Venmo: <strong>$BuellDocs</strong></p>
                         <div class="qr-container">
-                            <img src="https://i.ibb.co/s9V5vX4/venmo-qr-code.png" alt="Venmo QR Code"
+                            <img src="https://i.ibb.co/s9V5vX4/venmo-qr-code.png" alt="QR Code for Venmo Payment"
                                  onerror="this.onerror=null; this.src='https://placehold.co/150x150/1a1a1e/ae8e5d?text=Venmo+QR';">
                         </div>
                     </div>
                     <div class="qr-code-item">
                          <p>Cash App: <strong>$BuellDocsPaystub</strong></p>
                         <div class="qr-container">
-                            <img src="https://i.ibb.co/mCDFg1v/cash-app-qr-code.png" alt="Cash App QR Code"
+                            <img src="https://i.ibb.co/mCDFg1v/cash-app-qr-code.png" alt="QR Code for Cash App Payment"
                                  onerror="this.onerror=null; this.src='https://placehold.co/150x150/1a1a1e/ae8e5d?text=CashApp+QR';">
                         </div>
                     </div>
                     <div class="qr-code-item">
                         <p>PayPal: <strong>buellschool@gmail.com</strong></p>
                         <div class="qr-container">
-                             <img src="https://i.ibb.co/1fRtJzh/paypal-qr-code.png" alt="PayPal QR Code"
+                             <img src="https://i.ibb.co/1fRtJzh/paypal-qr-code.png" alt="QR Code for PayPal Payment"
                                  onerror="this.onerror=null; this.src='https://placehold.co/150x150/1a1a1e/ae8e5d?text=PayPal+QR';">
                         </div>
                     </div>

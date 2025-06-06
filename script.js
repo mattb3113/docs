@@ -831,7 +831,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = gatherFormData();
         const numStubs = parseInt(numPaystubsSelect.value) || 1;
 
-        let displayDataForStub = { ...formData };
+        // Initialize running YTDs with any starting values from the form
         let runningYtdData = {
             grossPay: formData.initialYtdGrossPay,
             federalTax: formData.initialYtdFederalTax,
@@ -854,73 +854,45 @@ document.addEventListener('DOMContentLoaded', () => {
         if (formData.retirement401k > 0) runningYtdData.retirement401k = 0;
         if (formData.otherDeductionName) runningYtdData[formData.otherDeductionName] = 0;
 
-        const ssInput = document.getElementById('socialSecurityAmount');
-        const medicareInput = document.getElementById('medicareAmount');
-        const autoSs = document.getElementById('autoCalculateSocialSecurity').checked;
-        const autoMed = document.getElementById('autoCalculateMedicare').checked;
+        let currentPeriodStartDate = formData.payPeriodStartDate;
+        let currentPeriodEndDate = formData.payPeriodEndDate;
+        let currentPayDate = formData.payDate;
+        let calculations = calculateCurrentPeriodPay({
+            ...formData,
+            payPeriodStartDate: currentPeriodStartDate,
+            payPeriodEndDate: currentPeriodEndDate,
+            payDate: currentPayDate
+        }, runningYtdData);
+        runningYtdData = { ...calculations.ytdAmounts };
 
-        if(autoSs) {
-            ssInput.value = calculations.estimatedSocialSecurity.toFixed(2);
-            ssInput.readOnly = true;
-            ssInput.classList.add('auto-calc-readonly');
-        } else {
-            ssInput.readOnly = false;
-            ssInput.classList.remove('auto-calc-readonly');
-        }
+        // Iterate through stubs up to the one being previewed
+        for (let i = 1; i <= currentPreviewStubIndex; i++) {
+            const frequencyForDateCalc = formData.employmentType === 'Hourly'
+                ? hourlyPayFrequencySelect.value
+                : formData.salariedPayFrequency;
+            const nextPeriod = getNextPayPeriod(currentPeriodStartDate, currentPeriodEndDate, currentPayDate, frequencyForDateCalc);
+            currentPeriodStartDate = nextPeriod.startDate;
+            currentPeriodEndDate = nextPeriod.endDate;
+            currentPayDate = nextPeriod.payDate;
 
-        if(autoMed) {
-            medicareInput.value = calculations.estimatedMedicare.toFixed(2);
-            medicareInput.readOnly = true;
-            medicareInput.classList.add('auto-calc-readonly');
-        } else {
-            medicareInput.readOnly = false;
-            medicareInput.classList.remove('auto-calc-readonly');
-        }
-
-        if (data.autoCalculateFederalTax) {
-            federalTaxAmountInput.value = calculations.currentPeriodAmounts.federalTax.toFixed(2);
-            federalTaxAmountInput.readOnly = true;
-        } else {
-            federalTaxAmountInput.readOnly = false;
-        }
-
-        // Update stub indicator
-        const totalStubs = parseInt(numPaystubsSelect.value) || 1;
-        livePreviewStubIndicator.textContent = `(Previewing Base Stub: 1 of ${totalStubs})`;
-        livePreviewStubXofY.textContent = `Stub 1 of ${totalStubs}`;
-
-        for (let i = 0; i <= currentPreviewStubIndex; i++) {
-            displayDataForStub.payPeriodStartDate = currentPeriodStartDate;
-            displayDataForStub.payPeriodEndDate = currentPeriodEndDate;
-            displayDataForStub.payDate = currentPayDate;
-
-            calculations = calculateCurrentPeriodPay(displayDataForStub, runningYtdData);
+            calculations = calculateCurrentPeriodPay({
+                ...formData,
+                payPeriodStartDate: currentPeriodStartDate,
+                payPeriodEndDate: currentPeriodEndDate,
+                payDate: currentPayDate
+            }, runningYtdData);
             runningYtdData = { ...calculations.ytdAmounts };
-
-            if (i < currentPreviewStubIndex) {
-                const frequencyForDateCalc = formData.employmentType === 'Hourly' ? hourlyPayFrequencySelect.value : formData.salariedPayFrequency;
-                const nextPeriod = getNextPayPeriod(currentPeriodStartDate, currentPeriodEndDate, currentPayDate, frequencyForDateCalc);
-                currentPeriodStartDate = nextPeriod.startDate;
-                currentPeriodEndDate = nextPeriod.endDate;
-                currentPayDate = nextPeriod.payDate;
-            }
         }
 
-        if (currentPreviewStubIndex === 0) {
-            if (formData.autoCalculateSocialSecurity) {
-                socialSecurityAmountInput.value = calculations.currentPeriodAmounts.socialSecurity.toFixed(2);
-                socialSecurityAmountInput.readOnly = true;
-            } else {
-                socialSecurityAmountInput.readOnly = false;
-            }
-            if (formData.autoCalculateMedicare) {
-                medicareAmountInput.value = calculations.currentPeriodAmounts.medicare.toFixed(2);
-                medicareAmountInput.readOnly = true;
-            } else {
-                medicareAmountInput.readOnly = false;
-            }
-        }
-
+        const displayDataForStub = {
+            ...formData,
+            payPeriodStartDate: currentPeriodStartDate,
+            payPeriodEndDate: currentPeriodEndDate,
+            payDate: currentPayDate
+        };
+        // Update stub indicator
+        livePreviewStubIndicator.textContent = `(Previewing Stub: ${currentPreviewStubIndex + 1} of ${numStubs})`;
+        livePreviewStubXofY.textContent = `Stub ${currentPreviewStubIndex + 1} of ${numStubs}`;
         livePreviewStubIndicator.textContent = `(Previewing Stub: ${currentPreviewStubIndex + 1} of ${totalStubs})`;
         livePreviewStubXofY.textContent = `Stub ${currentPreviewStubIndex + 1} of ${totalStubs}`;
 

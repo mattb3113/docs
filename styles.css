@@ -549,6 +549,20 @@ input.invalid, select.invalid, textarea.invalid {
     text-align: center;
 }
 
+.btn-remove-logo {
+    background: none;
+    border: none;
+    color: var(--error-color);
+    cursor: pointer;
+    font-size: 12px;
+    margin-top: 5px;
+    padding: 0;
+}
+
+.btn-remove-logo:hover {
+    text-decoration: underline;
+}
+
 
 /* -------------------- */
 /* --- BUTTONS --- */
@@ -651,6 +665,15 @@ input.invalid, select.invalid, textarea.invalid {
     font-size: 12px; /* Smaller font for preview compactness */
     position: relative; /* For watermark context */
     z-index: 2; /* Above watermark */
+}
+
+/* Prevent overly long text from breaking the preview layout */
+#paystubPreviewContent,
+#paystubPreviewContent td,
+#paystubPreviewContent th,
+#paystubPreviewContent div {
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
 }
 
 .paystub-header-preview {

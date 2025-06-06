@@ -6,6 +6,7 @@
     Description: JavaScript logic for the paystub generator application,
                  including form handling, calculations, live preview, and PDF generation.
 */
+/* TODO (Build Process): For production deployment, consider minifying this file to reduce its size and improve load times. */
 
 'use strict';
 
@@ -65,6 +66,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const estimateAllDeductionsBtn = document.getElementById('estimateAllDeductionsBtn');
 
+    // New Federal Tax Elements
+    const federalFilingStatusSelect = document.getElementById('federalFilingStatus');
+    const autoCalculateFederalTaxCheckbox = document.getElementById('autoCalculateFederalTax');
+    const federalTaxAmountInput = document.getElementById('federalTaxAmount');
+
     // Live Preview Elements
     const livePreviewContent = document.getElementById('paystubPreviewContent');
     const livePreviewStubIndicator = document.getElementById('previewStubIndicator');
@@ -104,8 +110,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadDraftBtn = document.getElementById('loadDraft');
     const loadDraftBtnV2 = document.getElementById('loadDraftBtn');
     const estimateDeductionsBtn = document.getElementById('estimateDeductions');
+    const estimateAllDeductionsBtn = document.getElementById('estimateAllDeductionsBtn');
     const previewPdfWatermarkedBtn = document.getElementById('previewPdfWatermarked');
     const generateAndPayBtn = document.getElementById('generateAndPay');
+    const copyKeyDataBtn = document.getElementById('copyKeyData');
+    const sharePdfEmailLink = document.getElementById('sharePdfEmail');
+    const sharePdfInstructions = document.getElementById('sharePdfInstructions');
 
     // Modal Elements
     const paymentModal = document.getElementById('paymentModal');
@@ -128,28 +138,93 @@ document.addEventListener('DOMContentLoaded', () => {
     const successNumStubsSpan = document.getElementById('successNumStubs');
     const successUserNotesSpan = document.getElementById('successUserNotes');
 
-    // Sequential section progression
+    // Multi-step form setup
     const formSections = Array.from(document.querySelectorAll('.form-section-card'));
-    let nextSectionIndex = 1; // start after step 1
+    const stepGroups = [
+        [0],
+        [1],
+        [2],
+        [3,4],
+        [5,6,7],
+        [8,9,10]
+    ];
+    let currentStep = 0;
+    const progressContainer = document.getElementById('progressIndicator');
+    const progressSteps = [];
+
+    stepGroups.forEach((grp, idx) => {
+        const stepEl = document.createElement('div');
+        stepEl.className = 'progress-step' + (idx === 0 ? ' active' : '');
+        stepEl.textContent = idx + 1;
+        progressContainer.appendChild(stepEl);
+        progressSteps.push(stepEl);
+
+        const lastSection = formSections[grp[grp.length - 1]];
+        const nav = document.createElement('div');
+        nav.className = 'step-navigation';
+        if (idx > 0) {
+            const prev = document.createElement('button');
+            prev.type = 'button';
+            prev.className = 'btn btn-secondary prev-step';
+            prev.textContent = 'Previous Step';
+            prev.addEventListener('click', () => {
+                if (currentStep > 0) {
+                    currentStep--;
+                    showStep(currentStep);
+                }
+            });
+            nav.appendChild(prev);
+        }
+        const next = document.createElement('button');
+        next.type = 'button';
+        next.className = 'btn btn-primary next-step';
+        next.textContent = idx === stepGroups.length - 1 ? 'Generate & Proceed to Payment' : 'Next Step';
+        next.addEventListener('click', () => {
+            if (idx === stepGroups.length - 1) {
+                handleMainFormSubmit();
+            } else if (validateStep(idx)) {
+                currentStep++;
+                showStep(currentStep);
+            }
+        });
+        nav.appendChild(next);
+        lastSection.appendChild(nav);
+    });
+
+    function showStep(index) {
+        stepGroups.forEach((grp, idx) => {
+            grp.forEach(i => {
+                formSections[i].style.display = idx === index ? 'block' : 'none';
+            });
+            progressSteps[idx].classList.toggle('active', idx === index);
+        });
+        updateLivePreview();
+    }
+
+    function validateStep(index) {
+        let valid = true;
+        stepGroups[index].forEach(i => {
+            const inputs = formSections[i].querySelectorAll('input, select, textarea');
+            inputs.forEach(inp => { if (!validateField(inp)) valid = false; });
+        });
+        return valid;
+    }
+
+    showStep(currentStep);
 
     function minimizeSecondarySections() {
-        formSections.forEach((sec, idx) => {
-            if (idx > 0) sec.classList.add('form-section-minimized');
-        });
-        nextSectionIndex = 1;
+        showStep(0);
     }
 
     function revealAllSections() {
-        formSections.forEach(sec => sec.classList.remove('form-section-minimized'));
-        nextSectionIndex = formSections.length;
+        stepGroups.forEach(grp => grp.forEach(i => formSections[i].style.display = 'block'));
+        progressSteps.forEach(step => step.classList.add('active'));
     }
 
     function revealNextSection() {
-        while (nextSectionIndex < formSections.length) {
-            const sec = formSections[nextSectionIndex];
-            sec.classList.remove('form-section-minimized');
-            nextSectionIndex++;
-            if (sec.querySelectorAll('[required]').length > 0) break;
+        if (currentStep < stepGroups.length - 1) {
+            currentStep++;
+            showStep(currentStep);
         }
     }
 
@@ -181,8 +256,6 @@ document.addEventListener('DOMContentLoaded', () => {
         4: { price: 99.99, note: "Save $20" },
         5: { price: 125.00, note: "$25 each - Bulk rate applied!" }
     };
-
-    const SOCIAL_SECURITY_RATE = 0.062;
     const SOCIAL_SECURITY_WAGE_LIMIT_2024 = 168600; // 2024 limit
     const MEDICARE_RATE = 0.0145;
     const FEDERAL_TAX_RATE = 0.12; // Simplified flat rate for estimation
@@ -218,6 +291,24 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     };
 
+    // Simplified federal tax brackets for quick estimation
+    const FEDERAL_TAX_BRACKETS = {
+        'Single': [
+            { upto: 10000, rate: 0.10 },
+            { upto: 40000, rate: 0.12 },
+            { upto: 85000, rate: 0.22 },
+            { upto: 160000, rate: 0.24 },
+            { upto: Infinity, rate: 0.32 }
+        ],
+        'Married Filing Jointly': [
+            { upto: 20000, rate: 0.10 },
+            { upto: 80000, rate: 0.12 },
+            { upto: 170000, rate: 0.22 },
+            { upto: 320000, rate: 0.24 },
+            { upto: Infinity, rate: 0.32 }
+        ]
+    };
+
     // --- Event Listeners --- //
 
     // Toggle Hourly/Salaried Fields
@@ -243,21 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
     employmentTypeRadios.forEach(radio => radio.addEventListener('change', updateHourlyPayFrequencyVisibility));
     isForNjEmploymentCheckbox.addEventListener('change', handleNjEmploymentChange);
 
-    // Sequentially reveal sections once required fields are complete
-    formSections.slice(1).forEach((section, idx) => {
-        const sectionIndex = idx + 1;
-        const requiredInputs = section.querySelectorAll('[required]');
-        if (requiredInputs.length === 0) return;
-        const checkAndAdvance = () => {
-            if (sectionIndex + 1 === nextSectionIndex && isSectionComplete(sectionIndex)) {
-                revealNextSection();
-            }
-        };
-        requiredInputs.forEach(input => {
-            input.addEventListener('input', checkAndAdvance);
-            input.addEventListener('change', checkAndAdvance);
-        });
-    });
+    // Sequential reveal disabled in favor of multi-step navigation
 
 
     // Handle Logo Uploads
@@ -315,6 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
     estimateDeductionsBtn.addEventListener('click', estimateAllDeductions);
     if (estimateAllDeductionsBtn) estimateAllDeductionsBtn.addEventListener('click', estimateAllStandardDeductions);
     previewPdfWatermarkedBtn.addEventListener('click', () => generateAndDownloadPdf(true));
+    if (copyKeyDataBtn) copyKeyDataBtn.addEventListener('click', copyKeyPaystubData);
     generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
 
     // Modal Interactions
@@ -427,11 +505,28 @@ document.addEventListener('DOMContentLoaded', () => {
         if (file && file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                previewImgElement.src = e.target.result;
-                previewImgElement.style.display = 'block';
-                if (placeholderElement) placeholderElement.style.display = 'none';
-                updateLivePreview(); // Update the main live preview
-            }
+                const img = new Image();
+                img.onload = () => {
+                    const MAX_DIMENSION = 500; // basic client-side resize
+                    let { width, height } = img;
+                    if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+                        const scale = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
+                        width = Math.round(width * scale);
+                        height = Math.round(height * scale);
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const dataUrl = canvas.toDataURL('image/png', 0.8);
+                    previewImgElement.src = dataUrl;
+                    previewImgElement.style.display = 'block';
+                    if (placeholderElement) placeholderElement.style.display = 'none';
+                    updateLivePreview();
+                };
+                img.src = e.target.result;
+            };
             reader.readAsDataURL(file);
             clearError(event.target);
         } else if (file) {
@@ -525,6 +620,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if(data.bonus > 0) results.currentPeriodAmounts.bonus = data.bonus;
         if(data.miscEarningAmount > 0 && data.miscEarningName) results.currentPeriodAmounts[data.miscEarningName || 'miscEarning'] = data.miscEarningAmount;
 
+        const estimatedSocialSecurity = results.grossPay * SOCIAL_SECURITY_RATE;
+        const estimatedMedicare = results.grossPay * MEDICARE_RATE;
+
+        let socialSecurityAmount = data.socialSecurityAmount || 0;
+        if(data.autoCalculateSocialSecurity) {
+            socialSecurityAmount = estimatedSocialSecurity;
+        }
+
+        let medicareAmount = data.medicareAmount || 0;
+        if(data.autoCalculateMedicare) {
+            medicareAmount = estimatedMedicare;
+        }
+
+        results.estimatedSocialSecurity = estimatedSocialSecurity;
+        results.estimatedMedicare = estimatedMedicare;
+
 
         const calculatedSocialSecurity = results.grossPay * SOCIAL_SECURITY_RATE;
         const calculatedMedicare = results.grossPay * MEDICARE_RATE;
@@ -535,19 +646,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const medicareUsed = data.autoCalculateMedicare ? calculatedMedicare : (data.medicareAmount || 0);
 
         // --- Calculate Total Taxes for Period ---
-        results.totalTaxes += (data.federalTaxAmount || 0);
+        let federalTaxForPeriod = data.federalTaxAmount || 0;
+        if (data.autoCalculateFederalTax) {
+            const freq = data.employmentType === 'Salaried'
+                ? data.salariedPayFrequency
+                : (data.hourlyPayFrequency || 'Weekly');
+            federalTaxForPeriod = estimateFederalTax(results.grossPay, freq, data.federalFilingStatus || 'Single');
+        }
+        results.totalTaxes += federalTaxForPeriod;
         results.totalTaxes += (data.stateTaxAmount || 0);
-        results.totalTaxes += socialSecurityUsed;
-        results.totalTaxes += medicareUsed;
+        results.totalTaxes += socialSecurityAmount;
+        results.totalTaxes += medicareAmount;
         results.totalTaxes += (data.njSdiAmount || 0);
         results.totalTaxes += (data.njFliAmount || 0);
         results.totalTaxes += (data.njUiHcWfAmount || 0);
 
-        results.currentPeriodAmounts.federalTax = data.federalTaxAmount || 0;
+        results.currentPeriodAmounts.federalTax = federalTaxForPeriod;
         if (data.stateTaxName) results.currentPeriodAmounts[data.stateTaxName || 'stateTax'] = data.stateTaxAmount || 0;
         else results.currentPeriodAmounts.stateTax = data.stateTaxAmount || 0;
-        results.currentPeriodAmounts.socialSecurity = socialSecurityUsed;
-        results.currentPeriodAmounts.medicare = medicareUsed;
+        results.currentPeriodAmounts.socialSecurity = socialSecurityAmount;
+        results.currentPeriodAmounts.medicare = medicareAmount;
         results.currentPeriodAmounts.njSdi = data.njSdiAmount || 0;
         results.currentPeriodAmounts.njFli = data.njFliAmount || 0;
         results.currentPeriodAmounts.njUiHcWf = data.njUiHcWfAmount || 0;
@@ -596,10 +714,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         results.ytdAmounts.grossPay = (ytdBase.grossPay || 0) + results.grossPay;
-        results.ytdAmounts.federalTax = (ytdBase.federalTax || 0) + (data.federalTaxAmount || 0);
+        results.ytdAmounts.federalTax = (ytdBase.federalTax || 0) + federalTaxForPeriod;
         results.ytdAmounts.stateTax = (ytdBase.stateTax || 0) + (data.stateTaxAmount || 0);
-        results.ytdAmounts.socialSecurity = (ytdBase.socialSecurity || 0) + socialSecurityUsed;
-        results.ytdAmounts.medicare = (ytdBase.medicare || 0) + medicareUsed;
+        results.ytdAmounts.socialSecurity = (ytdBase.socialSecurity || 0) + socialSecurityAmount;
+        results.ytdAmounts.medicare = (ytdBase.medicare || 0) + medicareAmount;
         results.ytdAmounts.njSdi = (ytdBase.njSdi || 0) + (data.njSdiAmount || 0);
         results.ytdAmounts.njFli = (ytdBase.njFli || 0) + (data.njFliAmount || 0);
         results.ytdAmounts.njUiHcWf = (ytdBase.njUiHcWf || 0) + (data.njUiHcWfAmount || 0);
@@ -726,10 +844,40 @@ document.addEventListener('DOMContentLoaded', () => {
         if (formData.retirement401k > 0) runningYtdData.retirement401k = 0;
         if (formData.otherDeductionName) runningYtdData[formData.otherDeductionName] = 0;
 
-        let currentPeriodStartDate = formData.payPeriodStartDate;
-        let currentPeriodEndDate = formData.payPeriodEndDate;
-        let currentPayDate = formData.payDate;
-        let calculations = null;
+        const ssInput = document.getElementById('socialSecurityAmount');
+        const medicareInput = document.getElementById('medicareAmount');
+        const autoSs = document.getElementById('autoCalculateSocialSecurity').checked;
+        const autoMed = document.getElementById('autoCalculateMedicare').checked;
+
+        if(autoSs) {
+            ssInput.value = calculations.estimatedSocialSecurity.toFixed(2);
+            ssInput.readOnly = true;
+            ssInput.classList.add('auto-calc-readonly');
+        } else {
+            ssInput.readOnly = false;
+            ssInput.classList.remove('auto-calc-readonly');
+        }
+
+        if(autoMed) {
+            medicareInput.value = calculations.estimatedMedicare.toFixed(2);
+            medicareInput.readOnly = true;
+            medicareInput.classList.add('auto-calc-readonly');
+        } else {
+            medicareInput.readOnly = false;
+            medicareInput.classList.remove('auto-calc-readonly');
+        }
+
+        if (data.autoCalculateFederalTax) {
+            federalTaxAmountInput.value = calculations.currentPeriodAmounts.federalTax.toFixed(2);
+            federalTaxAmountInput.readOnly = true;
+        } else {
+            federalTaxAmountInput.readOnly = false;
+        }
+
+        // Update stub indicator
+        const totalStubs = parseInt(numPaystubsSelect.value) || 1;
+        livePreviewStubIndicator.textContent = `(Previewing Base Stub: 1 of ${totalStubs})`;
+        livePreviewStubXofY.textContent = `Stub 1 of ${totalStubs}`;
 
         for (let i = 0; i <= currentPreviewStubIndex; i++) {
             displayDataForStub.payPeriodStartDate = currentPeriodStartDate;
@@ -879,13 +1027,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const firstError = paystubForm.querySelector('.invalid');
             if (firstError) firstError.focus();
             showNotificationModal('Validation Error', 'Please fix the errors in the form before generating the PDF.'); // Replace with custom modal later
+            showNotificationModal('Validation Error', 'Please fix the errors in the form before generating the PDF.');
             return;
         }
 
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const formData = gatherFormData();
-        const numStubsToGenerate = parseInt(numPaystubsSelect.value) || 1;
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const formData = gatherFormData();
+            const numStubsToGenerate = parseInt(numPaystubsSelect.value) || 1;
 
         let runningYtdData = { // Initial YTDs from form for the first stub
             grossPay: formData.initialYtdGrossPay,
@@ -940,6 +1090,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         doc.save(isPreviewMode ? 'BuellDocs_Paystub_Preview.pdf' : 'BuellDocs_Paystub.pdf');
+        if (isPreviewMode && sharePdfEmailLink && sharePdfInstructions) {
+            sharePdfEmailLink.style.display = 'block';
+            sharePdfInstructions.style.display = 'block';
+        }
+        } catch (err) {
+            console.error('Failed to generate PDF', err);
+            showNotificationModal('Error', 'Failed to generate PDF. Please try again.');
+        }
     }
 
     function generatePdfPage(doc, data, calculations, isPreviewMode, stubNum, totalStubs) {
@@ -1205,6 +1363,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // TODO (Future Backend): When a real backend is implemented, ensure all data submitted from the client (especially if it includes any sensitive form details beyond just TXID and email for manual processing) is transmitted over HTTPS and handled securely on the server according to best practices for data protection and encryption at rest.
     function handlePaymentConfirmationSubmit() {
         const txId = cashAppTxIdInput.value.trim();
         if (!txId) {
@@ -1226,6 +1385,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function resetAllFormFields() {
         paystubForm.reset();
+        if (sharePdfEmailLink) sharePdfEmailLink.style.display = 'none';
+        if (sharePdfInstructions) sharePdfInstructions.style.display = 'none';
         if (netIncomeAdjustmentNote) {
             netIncomeAdjustmentNote.textContent = '';
             netIncomeAdjustmentNote.style.display = 'none';
@@ -1246,7 +1407,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields(); // Ensure correct fields are shown based on default radio
         updateHourlyPayFrequencyVisibility(); // And update conditional dropdown
-        minimizeSecondarySections();
+        showStep(0);
         updateLivePreview(); // Refresh live preview
     }
 
@@ -1267,7 +1428,12 @@ document.addEventListener('DOMContentLoaded', () => {
         data.companyLogoDataUrl = companyLogoPreviewImg.style.display !== 'none' ? companyLogoPreviewImg.src : null;
         data.payrollProviderLogoDataUrl = payrollProviderLogoPreviewImg.style.display !== 'none' ? payrollProviderLogoPreviewImg.src : null;
         try {
-            localStorage.setItem('buellDocsPaystubDraft_v2', JSON.stringify(data));
+            const json = JSON.stringify(data);
+            if (json.length > 4000000) { // ~4MB safety check
+                alert('Draft is too large to save. Please use smaller logo images.');
+                return;
+            }
+            localStorage.setItem('buellDocsPaystubDraft_v2', json);
             const originalText = saveDraftBtn.textContent;
             saveDraftBtn.textContent = 'Draft Saved!';
             setTimeout(() => { saveDraftBtn.textContent = originalText; }, 1500);
@@ -1509,7 +1675,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleEmploymentFields();
         updateHourlyPayFrequencyVisibility();
-        revealNextSection();
+        if (currentStep < stepGroups.length - 1) {
+            currentStep++;
+            showStep(currentStep);
+        }
         updateLivePreview();
 
         if (populateDetailsBtn) {
@@ -1591,10 +1760,24 @@ document.addEventListener('DOMContentLoaded', () => {
     function estimateAllStandardDeductions() {
         const data = gatherFormData();
         const calculations = calculateCurrentPeriodPay(data);
+        const grossPay = calculations.grossPay;
 
         const payFrequency = data.employmentType === 'Hourly'
             ? (hourlyPayFrequencySelect.value || 'Weekly')
             : (data.salariedPayFrequency || 'Bi-Weekly');
+
+        const filingStatus = data.federalFilingStatus || data.filingStatus || 'Single';
+        const isForNJ = data.isForNJEmployment || false;
+
+        if (typeof estimateFederalTax === 'function') {
+            const fedTax = estimateFederalTax(grossPay, payFrequency, filingStatus);
+            const fedInput = document.getElementById('federalTaxAmount');
+            if (fedInput) {
+                fedInput.value = fedTax.toFixed(2);
+                fedInput.classList.add('auto-calculated-field');
+                fedInput.readOnly = true;
+            }
+=======
         const filingStatus = data.federalFilingStatus || data.filingStatus || 'Single';
 
         const gross = calculations.grossPay;
@@ -1605,10 +1788,16 @@ document.addEventListener('DOMContentLoaded', () => {
             fedInput.value = fed.toFixed(2);
             fedInput.readOnly = true;
             fedInput.classList.add('auto-calculated-field');
+          
             if (autoCalculateFederalTaxCheckbox) autoCalculateFederalTaxCheckbox.checked = true;
         }
 
         if (typeof estimateSocialSecurity === 'function') {
+            const ytdSS = parseFloat(document.getElementById('initialYtdSocialSecurity')?.value) || 0;
+            const ss = estimateSocialSecurity(grossPay, ytdSS);
+            socialSecurityAmountInput.value = ss.toFixed(2);
+            socialSecurityAmountInput.classList.add('auto-calculated-field');
+            socialSecurityAmountInput.readOnly = true;
             const ssInput = document.getElementById('socialSecurityAmount');
             if (ssInput) {
                 const ss = estimateSocialSecurity(gross, payFrequency);
@@ -1620,6 +1809,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (typeof estimateMedicare === 'function') {
+            const med = estimateMedicare(grossPay);
+            medicareAmountInput.value = med.toFixed(2);
+            medicareAmountInput.classList.add('auto-calculated-field');
+            medicareAmountInput.readOnly = true;
+            if (autoCalculateMedicareCheckbox) autoCalculateMedicareCheckbox.checked = true;
+        }
+
+        if (isForNJ) {
+            if (typeof estimateNJStateTax === 'function') {
+                const stateTax = estimateNJStateTax(grossPay, payFrequency, filingStatus);
+                const stateAmountInput = document.getElementById('stateTaxAmount');
+                const stateNameInput = document.getElementById('stateTaxName');
+                if (stateAmountInput) {
+                    stateAmountInput.value = stateTax.toFixed(2);
+                    stateAmountInput.classList.add('auto-calculated-field');
+                    stateAmountInput.readOnly = true;
+                }
+                if (stateNameInput && !stateNameInput.value) stateNameInput.value = 'NJ State Tax';
+            }
+
+            const sdiInput = document.getElementById('njSdiAmount');
+            if (sdiInput && typeof estimateNJ_SDI === 'function') {
+                sdiInput.value = estimateNJ_SDI(grossPay).toFixed(2);
+                sdiInput.classList.add('auto-calculated-field');
+                sdiInput.readOnly = true;
+            }
+
+            const fliInput = document.getElementById('njFliAmount');
+            if (fliInput && typeof estimateNJ_FLI === 'function') {
+                fliInput.value = estimateNJ_FLI(grossPay).toFixed(2);
+                fliInput.classList.add('auto-calculated-field');
+                fliInput.readOnly = true;
+            }
+
+            const uiInput = document.getElementById('njUiHcWfAmount');
+            if (uiInput && typeof estimateNJ_UIHCWF === 'function') {
+                uiInput.value = estimateNJ_UIHCWF(grossPay).toFixed(2);
+                uiInput.classList.add('auto-calculated-field');
+                uiInput.readOnly = true;
             const medInput = document.getElementById('medicareAmount');
             if (medInput) {
                 const med = estimateMedicare(gross);
@@ -1723,7 +1951,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Required validation
         if (field.hasAttribute('required') && !value && field.offsetParent !== null) { // Check offsetParent to only validate visible required fields
             isValid = false;
-            errorMessage = `${field.labels[0] ? field.labels[0].textContent.replace(' *','').replace('(XXX-XX-NNNN)','').trim() : 'This field'} is required.`;
+            errorMessage = `${field.labels[0] ? field.labels[0].textContent.replace(' *','').replace('(XXX-XX-NNNN)','').replace('(Last 4 Digits Only)','').trim() : 'This field'} is required.`;
         }
 
         // Specific validations
@@ -1732,9 +1960,9 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage = 'Please enter a valid email address.';
         }
 
-        if (isValid && field.name === 'employeeSsn' && value && !/^\d{3}-?\d{2}-?\d{4}$/.test(value) && !/^\d{9}$/.test(value)) {
+        if (isValid && field.name === 'employeeSsn' && value && !/^\d{4}$/.test(value)) {
             isValid = false;
-            errorMessage = 'SSN must be in NNN-NN-NNNN or NNNNNNNNN format.';
+            errorMessage = 'Please enter the last 4 digits of the SSN.';
         }
 
         if (isValid && field.type === 'number' && parseFloat(value) < 0) {
@@ -1808,6 +2036,22 @@ document.addEventListener('DOMContentLoaded', () => {
             element.removeAttribute('required');
             clearError(element); // Clear any errors if it's no longer required
         }
+    }
+
+    // Estimate federal tax using a simplified bracket model
+    function estimateFederalTax(grossPayPerPeriod, payFrequency, filingStatus) {
+        const periods = PAY_PERIODS_PER_YEAR[payFrequency] || 1;
+        const annualIncome = grossPayPerPeriod * periods;
+        const brackets = FEDERAL_TAX_BRACKETS[filingStatus] || FEDERAL_TAX_BRACKETS['Single'];
+        let tax = 0;
+        let prev = 0;
+        for (const { upto, rate } of brackets) {
+            const limit = Math.min(annualIncome, upto);
+            if (limit > prev) tax += (limit - prev) * rate;
+            if (annualIncome <= upto) break;
+            prev = upto;
+        }
+        return parseFloat((tax / periods).toFixed(2));
     }
 
 
@@ -1896,14 +2140,76 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Intl.NumberFormat('en-US', options).format(amount || 0);
     }
 
+    function compileCurrentPreviewText() {
+        const lines = [];
+        lines.push(`Company: ${livePreviewCompanyName.textContent}`);
+        lines.push(`Employee: ${livePreviewEmployeeName.textContent}`);
+        lines.push(`Pay Period: ${livePreviewPayPeriodStart.textContent} to ${livePreviewPayPeriodEnd.textContent}`);
+        lines.push(`Pay Date: ${livePreviewPayDate.textContent}`);
+        lines.push('');
+        lines.push('Earnings:');
+        livePreviewEarningsBody.querySelectorAll('tr').forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 4) {
+                const desc = cells[0].textContent.trim();
+                const amt = cells[3].textContent.trim();
+                lines.push(`  ${desc}: ${amt}`);
+            }
+        });
+        lines.push('Deductions:');
+        livePreviewDeductionsBody.querySelectorAll('tr').forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 2) {
+                const desc = cells[0].textContent.trim();
+                const amt = cells[1].textContent.trim();
+                lines.push(`  ${desc}: ${amt}`);
+            }
+        });
+        lines.push('');
+        lines.push(`Gross Pay: ${livePreviewGrossPay.textContent}`);
+        lines.push(`Total Deductions: ${livePreviewTotalDeductions.textContent}`);
+        lines.push(`Net Pay: ${livePreviewNetPay.textContent}`);
+        return lines.join('\n');
+    }
+
+    function copyKeyPaystubData() {
+        const text = compileCurrentPreviewText();
+        const onSuccess = () => {
+            showNotificationModal('Copy Success', 'Key data copied to clipboard. Paste into your document.');
+        };
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(onSuccess).catch(() => fallbackCopy(text, onSuccess));
+            } else {
+                fallbackCopy(text, onSuccess);
+            }
+        } catch (e) {
+            fallbackCopy(text, onSuccess);
+        }
+    }
+
+    function fallbackCopy(text, callback) {
+        try {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            if (callback) callback();
+        } catch (err) {
+            showNotificationModal('Copy Failed', 'Unable to copy text to clipboard.');
+        }
+    }
+
 
     function maskSSN(ssn) {
         if (!ssn) return '';
-        const cleaned = ssn.replace(/-/g, '');
-        if (cleaned.length === 9) {
-            return `XXX-XX-${cleaned.substring(5)}`;
-        }
-        return ssn; // Return original if not in expected format
+        const digits = ssn.replace(/\D/g, '');
+        const last4 = digits.slice(-4);
+        return last4 ? `XXX-XX-${last4}` : '';
     }
 
     function debounce(func, delay) {
@@ -1925,5 +2231,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateHourlyPayFrequencyVisibility(); // Set initial state of hourly frequency dropdown
     toggleRepresentationFields(); // Set initial state of representation fields
     minimizeSecondarySections();
+    if (sharePdfEmailLink) sharePdfEmailLink.style.display = 'none';
+    if (sharePdfInstructions) sharePdfInstructions.style.display = 'none';
+=======
+    showStep(0);
 
 });

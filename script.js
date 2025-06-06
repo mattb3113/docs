@@ -860,8 +860,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update stub indicator
         livePreviewStubIndicator.textContent = `(Previewing Stub: ${currentPreviewStubIndex + 1} of ${numStubs})`;
         livePreviewStubXofY.textContent = `Stub ${currentPreviewStubIndex + 1} of ${numStubs}`;
-        livePreviewStubIndicator.textContent = `(Previewing Stub: ${currentPreviewStubIndex + 1} of ${totalStubs})`;
-        livePreviewStubXofY.textContent = `Stub ${currentPreviewStubIndex + 1} of ${totalStubs}`;
 
         // Company Info
         livePreviewCompanyName.textContent = displayDataForStub.companyName || 'Your Company Name';

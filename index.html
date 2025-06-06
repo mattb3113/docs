@@ -213,9 +213,6 @@
                         </div>
                     </div>
                     <div class="form-group">
-                    <label for="employeeSsn">Employee SSN (XXX-XX-NNNN)</label>
-                        <input type="text" id="employeeSsn" name="employeeSsn" placeholder="1234" aria-describedby="employeeSsnError">
-
                     <label for="employeeSsn">Employee SSN</label>
                         <input type="text" id="employeeSsn" name="employeeSsn" placeholder="123-45-6789" aria-describedby="employeeSsnError">
                         <span class="error-message" id="employeeSsnError"></span>
@@ -277,7 +274,11 @@
                         <div class="grid-col-3">
                             <div class="form-group">
                                 <label for="hourlyRate">Hourly Rate (per pay period) <span class="required-asterisk">*</span></label>
+
+                                <input type="number" id="hourlyRate" name="hourlyRate" step="0.01" required aria-required="true" min="0" value="0" aria-describedby="hourlyRateError">
+
                                 <input type="number" id="hourlyRate" name="hourlyRate" step="0.01" min="0" value="0" aria-describedby="hourlyRateError">
+
                                 <span class="error-message" id="hourlyRateError"></span>
                             </div>
                             <div class="form-group">

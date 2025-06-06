@@ -415,6 +415,16 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     };
 
+    // Calculate deductions at standard tax rates
+    function calculateSocialSecurity(grossPay) {
+        const taxable = Math.min(grossPay, SOCIAL_SECURITY_WAGE_LIMIT_2024);
+        return taxable * SOCIAL_SECURITY_RATE;
+    }
+
+    function calculateMedicare(grossPay) {
+        return grossPay * MEDICARE_RATE;
+    }
+
     // --- Event Listeners --- //
 
     // Toggle Hourly/Salaried Fields
@@ -569,8 +579,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     closePaymentModalBtn.addEventListener('click', closePaymentModal);
     closeSuccessMessageBtn.addEventListener('click', closePaymentModal);
-
-    confirmPaymentBtn.addEventListener('click', handlePaymentConfirmationSubmit);
 
     closeNotificationModalBtn.addEventListener("click", closeNotificationModal);
     // Close modal if clicked outside of modal-content
@@ -1619,22 +1627,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    function handleMainFormSubmit() {
+    async function handleMainFormSubmit() {
         if (generateAndPayBtn) generateAndPayBtn.disabled = true;
         clearSummaryError();
-        if (validateAllFormFields()) {
-            // Update dynamic pricing in modal
-            const numStubs = parseInt(numPaystubsSelect.value);
-            const pricingInfo = PRICING[numStubs] || PRICING[1];
-            totalPaymentAmountSpan.textContent = formatCurrency(pricingInfo.price);
-            paymentDiscountNoteSpan.textContent = pricingInfo.note;
-
-            openPaymentModal();
-        } else {
+        if (!validateAllFormFields()) {
             showSummaryError('Please review the highlighted fields below.');
             const firstError = paystubForm.querySelector('.invalid');
             if (firstError) firstError.focus();
             showNotificationModal('Validation Error', 'Please correct the errors in the form.');
+            if (generateAndPayBtn) generateAndPayBtn.disabled = false;
+            return;
+        }
+
+        const formData = gatherFormData();
+        try {
+            const response = await fetch('/create-checkout-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: formData.userEmail, formData })
+            });
+            const data = await response.json();
+            if (data.url) {
+                window.location = data.url;
+            } else {
+                showNotificationModal('Payment Error', 'Unable to initiate payment.');
+                if (generateAndPayBtn) generateAndPayBtn.disabled = false;
+            }
+        } catch (err) {
+            showNotificationModal('Payment Error', 'Unable to initiate payment.');
             if (generateAndPayBtn) generateAndPayBtn.disabled = false;
         }
     }
@@ -1996,10 +2016,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (autoCalculateSocialSecurityCheckbox && autoCalculateSocialSecurityCheckbox.checked) {
+
+            const val = calculateSocialSecurity(gross);
           
             const val = calculateSocialSecurityDeduction(gross, ytdGross);
-=======
+          
             const val = calculateSocialSecurity(gross);
+
 
             socialSecurityAmountInput.value = val.toFixed(2);
             socialSecurityAmountInput.readOnly = true;
@@ -2010,11 +2033,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (autoCalculateMedicareCheckbox && autoCalculateMedicareCheckbox.checked) {
-
-            const val = calculateMedicareDeduction(gross);
-=======
             const val = calculateMedicare(gross);
 
+            const val = calculateMedicareDeduction(gross);
+
+            const val = calculateMedicare(gross);
+
+ 
             medicareAmountInput.value = val.toFixed(2);
             medicareAmountInput.readOnly = true;
             medicareAmountInput.classList.add('auto-calculated-field');
@@ -2096,6 +2121,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateSocialSecurityCheckbox.checked) {
             const data = gatherFormData();
             const gross = calculateCurrentPeriodPay(data).grossPay;
+            const val = calculateSocialSecurity(gross);
 
             const ytd = parseFloat(document.getElementById('initialYtdSocialSecurity')?.value) || 0;
             const val = calculateSocialSecurityDeduction(gross, ytd);
@@ -2116,6 +2142,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateMedicareCheckbox.checked) {
             const data = gatherFormData();
             const gross = calculateCurrentPeriodPay(data).grossPay;
+
+            const val = calculateMedicare(gross);
 
             const val = calculateMedicareDeduction(gross);
 

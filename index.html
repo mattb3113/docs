@@ -49,15 +49,15 @@
                     </select>
                 </div>
 
-                <button id="resetAllFields" class="btn btn-secondary btn-full-width">Reset All Fields</button>
-                <button id="saveDraft" class="btn btn-secondary btn-full-width">Save Draft</button>
-                <button id="loadDraft" class="btn btn-secondary btn-full-width">Load Draft</button>
+                <button id="resetAllFieldsBtn" class="btn btn-secondary btn-full-width">Reset All Fields</button>
+                <button id="saveDraftBtn" class="btn btn-secondary btn-full-width">Save Draft</button>
+                <button id="loadDraftBtn" class="btn btn-secondary btn-full-width">Load Draft</button>
                 <button id="estimateAllDeductionsBtn" class="btn btn-secondary btn-full-width">Estimate All Deductions</button>
-                <button id="previewPdfWatermarked" class="btn btn-secondary btn-full-width">Preview PDF (Watermarked)</button>
+                <button id="previewPdfWatermarkedBtn" class="btn btn-secondary btn-full-width">Preview PDF (Watermarked)</button>
                 <button id="copyKeyData" class="btn btn-secondary btn-full-width">Copy Key Paystub Data</button>
                 <a id="sharePdfEmail" class="btn btn-secondary btn-full-width" style="display:none;" href="mailto:?subject=BuellDocs Paystub Preview&amp;body=Please find my generated paystub preview attached. (Note: You will need to manually attach the PDF downloaded from BuellDocs.)">Share PDF via Email</a>
                 <p id="sharePdfInstructions" class="info-text" style="display:none;">First, download the PDF, then click here to open your email client. You'll need to manually attach the downloaded PDF.</p>
-                <button id="generateAndPay" class="btn btn-primary btn-full-width">Generate & Proceed to Payment</button>
+                <button id="generateAndPayBtn" class="btn btn-primary btn-full-width">Generate & Proceed to Payment</button>
             </div>
         </aside>
 
@@ -76,7 +76,8 @@
                     <div class="grid-col-2">
                         <div class="form-group">
                             <label for="desiredIncomeAmount">Desired Income Amount <span class="required-asterisk">*</span></label>
-                            <input type="number" id="desiredIncomeAmount" name="desiredIncomeAmount" step="0.01" min="0">
+                            <input type="number" id="desiredIncomeAmount" name="desiredIncomeAmount" step="0.01" required aria-required="true" aria-describedby="desiredIncomeAmountError" min="0">
+                            <span class="error-message" id="desiredIncomeAmountError"></span>
                         </div>
                         <div class="form-group">
                             <label id="desiredIncomeTypeLabel">Is this income amount:</label>
@@ -90,18 +91,20 @@
                         </div>
                         <div class="form-group">
                             <label for="desiredIncomePeriod">Income Period <span class="required-asterisk">*</span></label>
-                            <select id="desiredIncomePeriod" name="desiredIncomePeriod">
+                            <select id="desiredIncomePeriod" required aria-required="true" aria-describedby="desiredIncomePeriodError" name="desiredIncomePeriod">
                                 <option value="Annual" selected>Annual</option>
                                 <option value="Monthly">Monthly</option>
                                 <option value="Weekly">Weekly</option>
                             </select>
+                            <span class="error-message" id="desiredIncomePeriodError"></span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label id="representAsLabel">Represent As <span class="required-asterisk">*</span></label>
                         <div class="radio-group" role="radiogroup" aria-labelledby="representAsLabel">
-                            <label><input type="radio" id="repAsSalaried" name="incomeRepresentationType" value="Salaried" checked> Salaried</label>
-                            <label><input type="radio" id="repAsHourly" name="incomeRepresentationType" value="Hourly"> Hourly</label>
+                            <label><input type="radio" aria-describedby="incomeRepresentationTypeError" id="repAsSalaried" name="incomeRepresentationType" value="Salaried" checked> Salaried</label>
+                            <label><input type="radio" aria-describedby="incomeRepresentationTypeError" id="repAsHourly" name="incomeRepresentationType" value="Hourly"> Hourly</label>
+                            <span class="error-message" id="incomeRepresentationTypeError"></span>
                         </div>
                     </div>
                     <div class="form-group" id="assumedHourlyHoursGroup" style="display:none;">
@@ -204,6 +207,9 @@
                     <div class="form-group">
                     <label for="employeeSsn">Employee SSN (XXX-XX-NNNN)</label>
                         <input type="text" id="employeeSsn" name="employeeSsn" placeholder="1234" aria-describedby="employeeSsnError">
+
+                    <label for="employeeSsn">Employee SSN</label>
+                        <input type="text" id="employeeSsn" name="employeeSsn" placeholder="123-45-6789" aria-describedby="employeeSsnError">
                         <span class="error-message" id="employeeSsnError"></span>
                         <p class="info-text ssn-info">SSN is used for display on the paystub and is not stored by BuellDocs for this generator tool. See our <a href='privacy_policy.html'>Privacy Policy</a>.</p>
                     </div>
@@ -257,11 +263,13 @@
                             <div class="form-group">
                                 <label for="hourlyRate">Hourly Rate (per pay period) <span class="required-asterisk">*</span></label>
                                 <input type="number" id="hourlyRate" name="hourlyRate" step="0.01" min="0" value="0" aria-describedby="hourlyRateError">
+                                <label for="hourlyRate">Hourly Rate <span class="required-asterisk">*</span></label>
+                                <input type="number" id="hourlyRate" name="hourlyRate" step="0.01" required aria-required="true" min="0" value="0" aria-describedby="hourlyRateError">
                                 <span class="error-message" id="hourlyRateError"></span>
                             </div>
                             <div class="form-group">
                                 <label for="regularHours">Regular Hours (per period) <span class="required-asterisk">*</span></label>
-                                <input type="number" id="regularHours" name="regularHours" step="0.01" min="0" value="0" aria-describedby="regularHoursError">
+                                <input type="number" id="regularHours" name="regularHours" step="0.01" required aria-required="true" min="0" value="0" aria-describedby="regularHoursError">
                                 <span class="error-message" id="regularHoursError"></span>
                             </div>
                             <div class="form-group">
@@ -276,12 +284,12 @@
                         <div class="grid-col-2">
                             <div class="form-group">
                                 <label for="annualSalary">Annual Salary <span class="required-asterisk">*</span></label>
-                                <input type="number" id="annualSalary" name="annualSalary" step="0.01" min="0" value="0" aria-describedby="annualSalaryError">
+                                <input type="number" id="annualSalary" name="annualSalary" step="0.01" required aria-required="true" min="0" value="0" aria-describedby="annualSalaryError">
                                 <span class="error-message" id="annualSalaryError"></span>
                             </div>
                             <div class="form-group">
                                 <label for="salariedPayFrequency">Pay Frequency (Salaried) <span class="required-asterisk">*</span></label>
-                                <select id="salariedPayFrequency" name="salariedPayFrequency" aria-describedby="salariedPayFrequencyError">
+                                <select id="salariedPayFrequency" required aria-required="true" name="salariedPayFrequency" aria-describedby="salariedPayFrequencyError">
                                     <option value="Weekly">Weekly</option>
                                     <option value="Bi-Weekly" selected>Bi-Weekly</option>
                                     <option value="Semi-Monthly">Semi-Monthly</option>

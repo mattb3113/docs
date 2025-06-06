@@ -52,6 +52,12 @@ body {
     position: relative;
 }
 
+/* Ensure all typographic elements use the base font family */
+h1, h2, h3, h4, h5, h6,
+label, input, select, textarea, button {
+    font-family: var(--font-family);
+}
+
 /* Noise Overlay & Backdrop Glow */
 .noise-overlay {
     position: fixed;

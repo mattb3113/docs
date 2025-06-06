@@ -150,6 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeNotificationModalBtn = document.getElementById("closeNotificationModalBtn");
     // Success Message Placeholders
     const successUserEmailSpan = document.getElementById('successUserEmail');
+    const successUserEmailInlineSpan = document.getElementById('successUserEmailInline');
     const successTxIdSpan = document.getElementById('successTxId');
     const successNumStubsSpan = document.getElementById('successNumStubs');
     const successUserNotesSpan = document.getElementById('successUserNotes');
@@ -1421,6 +1422,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = gatherFormData();
         successUserEmailSpan.textContent = formData.userEmail;
+        successUserEmailInlineSpan.textContent = formData.userEmail;
         successTxIdSpan.textContent = txId;
         successNumStubsSpan.textContent = numPaystubsSelect.value;
         successUserNotesSpan.textContent = formData.userNotes || 'None provided';

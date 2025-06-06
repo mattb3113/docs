@@ -55,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const annualSalaryInput = document.getElementById('annualSalary');
 
-    const firstNextBtn = document.querySelector('.form-step .next-step-btn');
     const firstNextBtn = document.querySelector('.form-step .next-step');
 
     function parseCurrencyValue(val) {
@@ -371,6 +370,48 @@ document.addEventListener('DOMContentLoaded', () => {
         stepTitles.push(heading ? heading.textContent.trim() : `Step ${idx + 1}`);
     });
 
+    let currentStepIndex = 0;
+
+    function showActiveStep(index) {
+        if (index < 0 || index >= formSteps.length) return;
+        currentStepIndex = index;
+        formSteps.forEach((step, i) => {
+            step.style.display = i === index ? 'block' : 'none';
+            step.classList.toggle('active', i === index);
+        });
+        progressSteps.forEach((el, i) => {
+            el.classList.toggle('active', i === index);
+            el.classList.toggle('completed', i < index);
+        });
+        updateProgressIndicator(index + 1);
+        updateLivePreview();
+    }
+
+    function validateStepInputs(index) {
+        const stepEl = formSteps[index];
+        if (!stepEl) return true;
+        let valid = true;
+        stepEl.querySelectorAll('input, select, textarea').forEach(inp => {
+            if (!validateField(inp)) valid = false;
+        });
+        return valid;
+    }
+
+    function initStepNavigation() {
+        document.querySelectorAll('.next-step').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (validateStepInputs(currentStepIndex)) {
+                    showActiveStep(Math.min(currentStepIndex + 1, formSteps.length - 1));
+                }
+            });
+        });
+        document.querySelectorAll('.prev-step').forEach(btn => {
+            btn.addEventListener('click', () => {
+                showActiveStep(Math.max(currentStepIndex - 1, 0));
+            });
+        });
+    }
+
     function updateProgressIndicator(currentStepNumber) {
         const indicators = document.querySelectorAll('.progress-step');
         console.log('Current step:', currentStepNumber);
@@ -434,8 +475,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const prevBtn = stepEl.querySelector('.prev-step');
             if (prevBtn) prevBtn.disabled = stepNumber === 1;
         }
-        const prevBtn = formSteps[stepIndex].querySelector('.prev-step-btn');
-        if (prevBtn) prevBtn.disabled = stepIndex === 0;
         updateProgressIndicator(stepIndex + 1);
 
         updateLivePreview();
@@ -467,82 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return valid;
         return true;
     }
-    function handleDelegatedStepButtons(e) {
-        const nextBtn = e.target.closest('.next-step-btn');
-        const prevBtn = e.target.closest('.prev-step-btn');
-    document.body.addEventListener('click', (e) => {
-        const nextBtn = e.target.closest('.next-step');
-        if (nextBtn) {
-            if (nextBtn.id === 'generateAndPay') {
-                if (validateAllFormFields()) {
-                    handleMainFormSubmit();
-                } else {
-                    showSummaryError('Please review the highlighted fields.');
-                }
-            } else if (validateFormStep(currentFormStep)) {
-                currentFormStep = Math.min(currentFormStep + 1, formSteps.length - 1);
-                showFormStep(currentFormStep);
-            }
-        } else if (prevBtn) {
-            });
-        } else {
-            btn.addEventListener('click', function () {
-                if (DEBUG_MODE) console.log(`Attempting to validate step ${currentFormStep}`);
-                if (validateFormStep(currentFormStep)) {
-                    if (DEBUG_MODE) console.log(`Step ${currentFormStep} validation passed`);
-                if (validateStep(currentFormStep)) {
-                    currentFormStep = Math.min(currentFormStep + 1, formSteps.length - 1);
-                    if (DEBUG_MODE) console.log(`Navigating to step ${currentFormStep}`);
-                    showFormStep(currentFormStep);
-                } else {
-                    if (DEBUG_MODE) console.log(`Step ${currentFormStep} validation failed`);
-                }
-            });
-        }
-    }
 
-    const prevButtons = document.querySelectorAll('.prev-step-btn');
-    for (let i = 0; i < prevButtons.length; i++) {
-        const btn = prevButtons[i];
-        btn.addEventListener('click', function () {
-            if (DEBUG_MODE) console.log(`Attempting to navigate to previous step from step ${currentFormStep}`);
-            if (currentFormStep > 0) {
-                currentFormStep--;
-                if (DEBUG_MODE) console.log(`Navigating to step ${currentFormStep}`);
-                showFormStep(currentFormStep);
-
-            } else {
-                const current = getCurrentStep();
-                if (validateFormStep(current)) {
-                    showFormStep(current + 1);
-                }
-            }
-        }
-    }
-
-    function setupDelegatedButtonListeners() {
-        document.addEventListener('click', handleDelegatedStepButtons);
-    }
-
-    function initializeFirstStep() {
-        currentPreviewStubIndex = 0;
-        showFormStep(0);
-    }
-
-    function initializeAllInputHandlers() {
-        setupActionButtons();
-    }
-
-            return;
-        }
-        const prevBtn = e.target.closest('.prev-step');
-        if (prevBtn) {
-            const current = getCurrentStep();
-            showFormStep(current - 1);
-        }
-    });
-
-    showFormStep(1);
 
 
     // --- Initial State & Configuration --- //
@@ -2876,9 +2840,6 @@ document.addEventListener('DOMContentLoaded', () => {
         el.addEventListener('input', updatePaystubPreview);
         el.addEventListener('blur', updatePaystubPreview);
     });
-    document.querySelectorAll('.next-step-btn, .prev-step-btn').forEach(btn => {
-        btn.addEventListener('click', () => setTimeout(updatePaystubPreview, 0));
-    });
 
     updatePaystubPreview();
 
@@ -2906,11 +2867,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateNjUiCheckbox) autoCalculateNjUiCheckbox.checked = true;
     }
     updateAutoCalculatedFields();
-    initializeFirstStep();
-    setupDelegatedButtonListeners();
-    initializeAllInputHandlers();
-    showFormStep(1);
-    showFormStep(0);
+    initStepNavigation();
+    showActiveStep(0);
     const allFormInputs = document.querySelectorAll('#paystubForm input, #paystubForm select, #paystubForm textarea');
     allFormInputs.forEach(inp => inp.addEventListener('input', updateLivePreview));
 

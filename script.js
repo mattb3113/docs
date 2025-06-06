@@ -237,6 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const estimateAllDeductionsBtn = document.getElementById('estimateAllDeductionsBtn');
     const previewPdfWatermarkedBtn = document.getElementById('previewPdfWatermarkedBtn');
     const generateAndPayBtn = document.getElementById('generateAndPayBtn');
+    const generateAndPayFinalBtn = document.getElementById('generateAndPay');
     const copyKeyDataBtn = document.getElementById('copyKeyData');
     const sharePdfEmailLink = document.getElementById('sharePdfEmail');
     const sharePdfInstructions = document.getElementById('sharePdfInstructions');
@@ -475,6 +476,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const prevBtn = stepEl.querySelector('.prev-step');
             if (prevBtn) prevBtn.disabled = stepNumber === 1;
         }
+        const prevBtn = formSteps[stepIndex].querySelector('.prev-step');
+        if (prevBtn) prevBtn.disabled = stepIndex === 0;
         updateProgressIndicator(stepIndex + 1);
 
         updateLivePreview();
@@ -506,7 +509,58 @@ document.addEventListener('DOMContentLoaded', () => {
         return valid;
         return true;
     }
+    function handleDelegatedStepButtons(e) {
+        const nextBtn = e.target.closest('.next-step');
+        const prevBtn = e.target.closest('.prev-step');
+        if (nextBtn) {
+            if (nextBtn.id === 'generateAndPay') {
+                if (validateAllFormFields()) {
+                    handleMainFormSubmit();
+                } else {
+                    showSummaryError('Please review the highlighted fields.');
+                }
+            } else if (validateFormStep(currentFormStep)) {
+                currentFormStep = Math.min(currentFormStep + 1, formSteps.length - 1);
+                showFormStep(currentFormStep);
+            }
+        } else if (prevBtn) {
+            const current = getCurrentStep();
+            showFormStep(current - 1);
+        }
+    }
 
+    const prevButtons = document.querySelectorAll('.prev-step');
+    for (let i = 0; i < prevButtons.length; i++) {
+        const btn = prevButtons[i];
+        btn.addEventListener('click', function () {
+            if (DEBUG_MODE) console.log(`Attempting to navigate to previous step from step ${currentFormStep}`);
+            if (currentFormStep > 0) {
+                currentFormStep--;
+                if (DEBUG_MODE) console.log(`Navigating to step ${currentFormStep}`);
+                showFormStep(currentFormStep);
+            } else {
+                const current = getCurrentStep();
+                if (validateFormStep(current)) {
+                    showFormStep(current + 1);
+                }
+            }
+        });
+    }
+
+    function setupDelegatedButtonListeners() {
+        document.addEventListener('click', handleDelegatedStepButtons);
+    }
+
+    function initializeFirstStep() {
+        currentPreviewStubIndex = 0;
+        showFormStep(0);
+    }
+
+    function initializeAllInputHandlers() {
+        setupActionButtons();
+    }
+
+    showFormStep(1);
 
 
     // --- Initial State & Configuration --- //
@@ -746,6 +800,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (generateAndPayBtn) generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
     }
     setupSidebarButtonActions();
+
+    if (generateAndPayFinalBtn) {
+        generateAndPayFinalBtn.addEventListener('click', () => {
+            clearSummaryError();
+            if (validateAllFormFields()) {
+                handleMainFormSubmit();
+            } else {
+                showSummaryError('Please review the highlighted fields.');
+            }
+        });
+    }
 
     // Modal Interactions
 
@@ -2839,6 +2904,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('input, select, textarea').forEach(el => {
         el.addEventListener('input', updatePaystubPreview);
         el.addEventListener('blur', updatePaystubPreview);
+    });
+    document.querySelectorAll('.next-step, .prev-step').forEach(btn => {
+        btn.addEventListener('click', () => setTimeout(updatePaystubPreview, 0));
     });
 
     updatePaystubPreview();

@@ -562,6 +562,20 @@ input.invalid, select.invalid, textarea.invalid {
     text-align: center;
 }
 
+.btn-remove-logo {
+    background: none;
+    border: none;
+    color: var(--error-color);
+    cursor: pointer;
+    font-size: 12px;
+    margin-top: 5px;
+    padding: 0;
+}
+
+.btn-remove-logo:hover {
+    text-decoration: underline;
+}
+
 
 /* -------------------- */
 /* --- BUTTONS --- */
@@ -664,6 +678,15 @@ input.invalid, select.invalid, textarea.invalid {
     font-size: 12px; /* Smaller font for preview compactness */
     position: relative; /* For watermark context */
     z-index: 2; /* Above watermark */
+}
+
+/* Prevent overly long text from breaking the preview layout */
+#paystubPreviewContent,
+#paystubPreviewContent td,
+#paystubPreviewContent th,
+#paystubPreviewContent div {
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
 }
 
 .paystub-header-preview {
@@ -1119,4 +1142,25 @@ input.invalid, select.invalid, textarea.invalid {
     background-color: rgba(174, 142, 93, 0.2);
 }
 
+}
+/* Fine-tuned responsive padding/margins for very small screens */
+@media (max-width: 480px), (max-height: 600px) {
+    .app-header {
+        padding: 10px 15px;
+    }
+    .main-content {
+        padding: 15px;
+    }
+    .sidebar {
+        padding: 20px;
+        margin-bottom: 15px;
+    }
+    .form-section-card,
+    .preview-section-card {
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+    .form-group {
+        margin-bottom: 18px;
+    }
 }

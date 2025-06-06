@@ -133,41 +133,50 @@
                     <div class="grid-col-2">
                         <div class="form-group">
                             <label for="companyName">Company Name <span class="required-asterisk">*</span></label>
-                            <input type="text" id="companyName" name="companyName" required aria-describedby="companyNameError" aria-required="true">
+                            <input type="text" id="companyName" name="companyName" required aria-describedby="companyNameError" aria-required="true" maxlength="100">
                             <span class="error-message" id="companyNameError"></span>
                         </div>
                         <div class="form-group">
                             <label for="companyPhone">Company Phone</label>
-                            <input type="tel" id="companyPhone" name="companyPhone" aria-describedby="companyPhoneError">
+                            <input type="tel" id="companyPhone" name="companyPhone" placeholder="(###) ###-####" aria-describedby="companyPhoneError">
                             <span class="error-message" id="companyPhoneError"></span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="companyStreetAddress">Company Street Address</label>
-                        <input type="text" id="companyStreetAddress" name="companyStreetAddress" aria-describedby="companyStreetAddressError">
+                        <input type="text" id="companyStreetAddress" name="companyStreetAddress" aria-describedby="companyStreetAddressError" maxlength="100">
                         <span class="error-message" id="companyStreetAddressError"></span>
                     </div>
                     <div class="grid-col-3">
                         <div class="form-group">
                             <label for="companyCity">City</label>
-                            <input type="text" id="companyCity" name="companyCity" aria-describedby="companyCityError">
+                            <input type="text" id="companyCity" name="companyCity" aria-describedby="companyCityError" maxlength="50">
                             <span class="error-message" id="companyCityError"></span>
                         </div>
                         <div class="form-group">
                             <label for="companyState">State</label>
-                            <input type="text" id="companyState" name="companyState" aria-describedby="companyStateError">
+                            <input type="text" id="companyState" name="companyState" aria-describedby="companyStateError" maxlength="50">
                             <span class="error-message" id="companyStateError"></span>
                         </div>
                         <div class="form-group">
                             <label for="companyZip">ZIP Code</label>
-                            <input type="text" id="companyZip" name="companyZip" aria-describedby="companyZipError">
+                            <input type="text" id="companyZip" name="companyZip" aria-describedby="companyZipError" maxlength="10">
                             <span class="error-message" id="companyZipError"></span>
                         </div>
                     </div>
                      <div class="grid-col-2">
                         <div class="form-group">
+
                             <label for="companyEin">Company EIN <span class="tooltip-icon" tabindex="0" data-tooltip="Employer Identification Number (Federal Tax ID)" aria-describedby="einTooltipText">ℹ️</span><span id="einTooltipText" class="visually-hidden">Employer Identification Number (Federal Tax ID)</span></label>
                             <input type="text" id="companyEin" name="companyEin" aria-describedby="companyEinError">
+
+                            <label for="companyEin">Company EIN <span class="tooltip-icon" tabindex="0" data-tooltip="Employer Identification Number (Federal Tax ID)">ℹ️</span></label>
+
+                            <input type="text" id="companyEin" name="companyEin" placeholder="XX-XXXXXXX" aria-describedby="companyEinError">
+
+                            <input type="text" id="companyEin" name="companyEin" aria-describedby="companyEinError" maxlength="10">
+
+
                             <span class="error-message" id="companyEinError"></span>
                         </div>
                         <div class="form-group">
@@ -177,6 +186,7 @@
                                 <img id="companyLogoPreview" src="#" alt="Preview of Uploaded Company Logo" style="display:none;">
                                 <div class="logo-placeholder-text">Logo Preview</div>
                             </div>
+                            <button type="button" class="btn-remove-logo" data-target-input="companyLogo" data-target-preview="companyLogoPreview" data-target-placeholder="#companyLogoPreviewContainer .logo-placeholder-text">Remove</button>
                             <span class="error-message" id="companyLogoError"></span>
                         </div>
                     </div>
@@ -187,35 +197,32 @@
                     <h3>Employee Information</h3>
                     <div class="form-group">
                         <label for="employeeFullName">Employee Full Name <span class="required-asterisk">*</span></label>
-                        <input type="text" id="employeeFullName" name="employeeFullName" required aria-describedby="employeeFullNameError" aria-required="true">
+                        <input type="text" id="employeeFullName" name="employeeFullName" required aria-describedby="employeeFullNameError" aria-required="true" maxlength="100">
                         <span class="error-message" id="employeeFullNameError"></span>
                     </div>
                     <div class="form-group">
                         <label for="employeeStreetAddress">Employee Street Address</label>
-                        <input type="text" id="employeeStreetAddress" name="employeeStreetAddress" aria-describedby="employeeStreetAddressError">
+                        <input type="text" id="employeeStreetAddress" name="employeeStreetAddress" aria-describedby="employeeStreetAddressError" maxlength="100">
                         <span class="error-message" id="employeeStreetAddressError"></span>
                     </div>
                     <div class="grid-col-3">
                         <div class="form-group">
                             <label for="employeeCity">City</label>
-                            <input type="text" id="employeeCity" name="employeeCity" aria-describedby="employeeCityError">
+                            <input type="text" id="employeeCity" name="employeeCity" aria-describedby="employeeCityError" maxlength="50">
                             <span class="error-message" id="employeeCityError"></span>
                         </div>
                         <div class="form-group">
                             <label for="employeeState">State</label>
-                            <input type="text" id="employeeState" name="employeeState" aria-describedby="employeeStateError">
+                            <input type="text" id="employeeState" name="employeeState" aria-describedby="employeeStateError" maxlength="50">
                             <span class="error-message" id="employeeStateError"></span>
                         </div>
                         <div class="form-group">
                             <label for="employeeZip">ZIP Code</label>
-                            <input type="text" id="employeeZip" name="employeeZip" aria-describedby="employeeZipError">
+                            <input type="text" id="employeeZip" name="employeeZip" aria-describedby="employeeZipError" maxlength="10">
                             <span class="error-message" id="employeeZipError"></span>
                         </div>
                     </div>
                     <div class="form-group">
-                    <label for="employeeSsn">Employee SSN (XXX-XX-NNNN)</label>
-                        <input type="text" id="employeeSsn" name="employeeSsn" placeholder="1234" aria-describedby="employeeSsnError">
-
                     <label for="employeeSsn">Employee SSN</label>
                         <input type="text" id="employeeSsn" name="employeeSsn" placeholder="123-45-6789" aria-describedby="employeeSsnError">
                         <span class="error-message" id="employeeSsnError"></span>
@@ -277,9 +284,11 @@
                         <div class="grid-col-3">
                             <div class="form-group">
                                 <label for="hourlyRate">Hourly Rate (per pay period) <span class="required-asterisk">*</span></label>
-                                <input type="number" id="hourlyRate" name="hourlyRate" step="0.01" min="0" value="0" aria-describedby="hourlyRateError">
-                                <label for="hourlyRate">Hourly Rate <span class="required-asterisk">*</span></label>
+
                                 <input type="number" id="hourlyRate" name="hourlyRate" step="0.01" required aria-required="true" min="0" value="0" aria-describedby="hourlyRateError">
+
+                                <input type="number" id="hourlyRate" name="hourlyRate" step="0.01" min="0" value="0" aria-describedby="hourlyRateError">
+
                                 <span class="error-message" id="hourlyRateError"></span>
                             </div>
                             <div class="form-group">
@@ -357,9 +366,6 @@
                                 <input type="checkbox" id="autoCalculateFederalTax" name="autoCalculateFederalTax" checked>
                                 Auto-calculate Federal Tax?
                             </label>
-                        </div>
-                        <div class="form-group">
-                            <label><input type="checkbox" id="autoCalculateFederalTax" name="autoCalculateFederalTax"> Auto-calculate Federal Tax?</label>
                         </div>
                          <div class="form-group">
                             <label for="socialSecurityAmount">Social Security Amount</label>
@@ -533,6 +539,7 @@
                                 <img id="payrollProviderLogoPreview" src="#" alt="Preview of Uploaded Payroll Provider Logo" style="display:none;">
                                 <div class="logo-placeholder-text">Logo Preview</div>
                             </div>
+                            <button type="button" class="btn-remove-logo" data-target-input="payrollProviderLogo" data-target-preview="payrollProviderLogoPreview" data-target-placeholder="#payrollProviderLogoPreviewContainer .logo-placeholder-text">Remove</button>
                             <span class="error-message" id="payrollProviderLogoError"></span>
                         </div>
                         <div class="form-group checkbox-group">
@@ -720,14 +727,14 @@
 
             <div id="modalOrderSuccessMessage" style="display:none;">
                 <h3>Thank You!</h3>
-                <p>Your (simulated) order details have been noted. To receive your final, clean paystub(s) (without the 'PREVIEW' watermark or novelty disclaimer), please manually email a screenshot of your payment receipt AND the following information to <strong id="supportEmailAddress">buellschool@gmail.com</strong>:</p>
+                <p><strong>Payment Processed (Simulated)!</strong> Your final, clean paystub(s) will be generated and emailed to <strong id="successUserEmailInline"></strong> typically <strong id="turnaroundTime">within 24 hours</strong> after your manual payment is confirmed by our team.</p>
+                <p>To ensure your order is processed correctly, please email a screenshot of your payment receipt and the following information to <strong id="supportEmailAddress">buellschool@gmail.com</strong>:</p>
                 <ul>
                     <li>Email used on form: <strong id="successUserEmail"></strong></li>
                     <li>Cash App/Payment Transaction ID entered: <strong id="successTxId"></strong></li>
                     <li>Number of Stubs Requested: <strong id="successNumStubs"></strong></li>
                     <li>Additional Notes/Custom Requests: <strong id="successUserNotes">None provided</strong></li>
                 </ul>
-                <p>(This manual step ensures your order is processed correctly after payment verification. You will receive your document(s) via email typically <strong id="turnaroundTime">within 24 hours</strong>.)</p>
                 <button id="closeSuccessMessageBtn" class="btn btn-secondary">Close</button>
             </div>
         </div>
@@ -735,7 +742,7 @@
     
 
     <!-- Notification Modal -->
-    <div id="notificationModal" class="modal" style="display:none;">
+    <div id="notificationModal" class="modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="notificationModalTitle">
         <div class="modal-content">
             <span class="close-modal-btn" id="closeNotificationModalBtn">&times;</span>
             <h2 id="notificationModalTitle">Notice</h2>
@@ -743,7 +750,7 @@
         </div>
     </div>
     <footer>
-        BUELLDOCS © 2025 | SYSTEM INFO | <a href='privacy_policy.html'>Privacy Policy</a>
+        BUELLDOCS © 2025 | <!-- SYSTEM INFO --> | <a href='privacy_policy.html'>Privacy Policy</a>
     </footer>
     <script src="script.js"></script>
 </body>

@@ -40,10 +40,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    [desiredIncomeAmountInput, desiredIncomePeriodSelect, assumedHourlyRegularHoursInput,
+    function clearNetIncomeAdjustmentNote() {
+        if (netIncomeAdjustmentNote) {
+            netIncomeAdjustmentNote.textContent = '';
+            netIncomeAdjustmentNote.style.display = 'none';
+        }
+    }
+
+[desiredIncomeAmountInput, desiredIncomePeriodSelect, assumedHourlyRegularHoursInput,
      isForNjEmploymentCheckbox, ...incomeRepresentationRadios, ...desiredIncomeTypeRadios].forEach(el => {
         el.addEventListener('input', enablePopulateBtn);
         el.addEventListener('change', enablePopulateBtn);
+    });
+
+    // Clear net-to-gross note only when the desired amount or type is altered
+    desiredIncomeAmountInput.addEventListener('input', clearNetIncomeAdjustmentNote);
+    desiredIncomeTypeRadios.forEach(radio => {
+        radio.addEventListener('change', clearNetIncomeAdjustmentNote);
     });
 
     // Logo Preview Elements
@@ -150,15 +163,93 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeNotificationModalBtn = document.getElementById("closeNotificationModalBtn");
     // Success Message Placeholders
     const successUserEmailSpan = document.getElementById('successUserEmail');
+    const successUserEmailInlineSpan = document.getElementById('successUserEmailInline');
     const successTxIdSpan = document.getElementById('successTxId');
     const successNumStubsSpan = document.getElementById('successNumStubs');
     const successUserNotesSpan = document.getElementById('successUserNotes');
+
+    // Accessibility: Modal focus management
+    const focusableSelector = 'a[href], area[href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    let activeModal = null;
+    let lastFocusedElement = null;
+
+    function trapFocus(e) {
+        if (!activeModal) return;
+        const focusableEls = activeModal.querySelectorAll(focusableSelector);
+        if (e.key === 'Escape') {
+            if (activeModal === paymentModal) {
+                closePaymentModal();
+            } else if (activeModal === notificationModal) {
+                closeNotificationModal();
+            }
+        } else if (e.key === 'Tab') {
+            if (focusableEls.length === 0) return;
+            const first = focusableEls[0];
+            const last = focusableEls[focusableEls.length - 1];
+            if (e.shiftKey) {
+                if (document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                }
+            } else {
+                if (document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            }
+        }
+    }
+
+    function openModal(modal) {
+        lastFocusedElement = document.activeElement;
+        activeModal = modal;
+        modal.style.display = 'flex';
+        const focusableEls = modal.querySelectorAll(focusableSelector);
+        if (focusableEls.length) focusableEls[0].focus();
+        document.addEventListener('keydown', trapFocus);
+    }
+
+    function closeModal(modal) {
+        modal.style.display = 'none';
+        document.removeEventListener('keydown', trapFocus);
+        activeModal = null;
+        if (lastFocusedElement) {
+            lastFocusedElement.focus();
+            lastFocusedElement = null;
+        }
+    }
+
+    function openPaymentModal() {
+        paymentInstructionsDiv.style.display = 'block';
+        modalOrderSuccessMessageDiv.style.display = 'none';
+        openModal(paymentModal);
+    }
+
+    function closePaymentModal() {
+        const wasSuccess = modalOrderSuccessMessageDiv.style.display !== 'none';
+        closeModal(paymentModal);
+        if (wasSuccess) {
+            paymentInstructionsDiv.style.display = 'block';
+            modalOrderSuccessMessageDiv.style.display = 'none';
+            cashAppTxIdInput.value = '';
+            clearError(cashAppTxIdInput);
+        }
+    }
+
+    function openNotificationModal() {
+        openModal(notificationModal);
+    }
+
+    function closeNotificationModal() {
+        closeModal(notificationModal);
+    }
 
     // Multi-step form setup (v2)
     let currentFormStep = 0;
     const formSteps = Array.from(document.querySelectorAll('.form-step'));
     const formProgressIndicator = document.getElementById('formProgressIndicator');
     const progressSteps = [];
+    const stepTitles = [];
 
     formSteps.forEach((step, idx) => {
         const indicator = document.createElement('div');
@@ -166,6 +257,8 @@ document.addEventListener('DOMContentLoaded', () => {
         indicator.textContent = idx + 1;
         if (formProgressIndicator) formProgressIndicator.appendChild(indicator);
         progressSteps.push(indicator);
+        const heading = step.querySelector('h3');
+        stepTitles.push(heading ? heading.textContent.trim() : `Step ${idx + 1}`);
     });
 
     function showFormStep(stepIndex) {
@@ -174,7 +267,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         progressSteps.forEach((el, i) => {
             el.classList.toggle('active', i === stepIndex);
+            if (i === stepIndex) {
+                el.setAttribute('aria-current', 'step');
+            } else {
+                el.removeAttribute('aria-current');
+            }
         });
+        if (formProgressIndicator) {
+            formProgressIndicator.setAttribute('aria-label',
+                `Step ${stepIndex + 1} of ${progressSteps.length}: ${stepTitles[stepIndex]}`);
+        }
         const prevBtn = formSteps[stepIndex].querySelector('.prev-step-btn');
         if (prevBtn) prevBtn.disabled = stepIndex === 0;
         updateLivePreview();
@@ -331,6 +433,25 @@ document.addEventListener('DOMContentLoaded', () => {
     companyLogoInput.addEventListener('change', (e) => handleLogoUpload(e, companyLogoPreviewImg, companyLogoPlaceholder));
     payrollProviderLogoInput.addEventListener('change', (e) => handleLogoUpload(e, payrollProviderLogoPreviewImg, payrollProviderLogoPlaceholder));
 
+    // Handle Remove Logo Buttons
+    document.querySelectorAll('.btn-remove-logo').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const inputId = btn.dataset.targetInput;
+            const previewId = btn.dataset.targetPreview;
+            const placeholderSelector = btn.dataset.targetPlaceholder;
+            const inputEl = document.getElementById(inputId);
+            const previewEl = document.getElementById(previewId);
+            const placeholderEl = document.querySelector(placeholderSelector);
+            if (inputEl) inputEl.value = '';
+            if (previewEl) {
+                previewEl.src = '#';
+                previewEl.style.display = 'none';
+            }
+            if (placeholderEl) placeholderEl.style.display = 'block';
+            updateLivePreview();
+        });
+    });
+
     // Form input changes for live preview (debounced)
     const formInputs = paystubForm.querySelectorAll('input, select, textarea');
     formInputs.forEach(input => {
@@ -384,25 +505,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (generateAndPayBtn) generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
 
     // Modal Interactions
-    closePaymentModalBtn.addEventListener('click', () => paymentModal.style.display = 'none');
-    closeSuccessMessageBtn.addEventListener('click', () => {
-        paymentModal.style.display = 'none';
-        // Reset modal to initial state for next time
-        paymentInstructionsDiv.style.display = 'block';
-        modalOrderSuccessMessageDiv.style.display = 'none';
-        cashAppTxIdInput.value = '';
-        clearError(cashAppTxIdInput);
-    });
+    closePaymentModalBtn.addEventListener('click', closePaymentModal);
+    closeSuccessMessageBtn.addEventListener('click', closePaymentModal);
     confirmPaymentBtn.addEventListener('click', handlePaymentConfirmationSubmit);
 
-    closeNotificationModalBtn.addEventListener("click", () => notificationModal.style.display = "none");
+    closeNotificationModalBtn.addEventListener("click", closeNotificationModal);
     // Close modal if clicked outside of modal-content
     window.addEventListener('click', (event) => {
         if (event.target === paymentModal) {
-            paymentModal.style.display = 'none';
+            closePaymentModal();
         }
         if (event.target === notificationModal) {
-            notificationModal.style.display = 'none';
+            closeNotificationModal();
         }
     });
     // --- Core Logic Functions --- //
@@ -873,8 +987,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update stub indicator
         livePreviewStubIndicator.textContent = `(Previewing Stub: ${currentPreviewStubIndex + 1} of ${numStubs})`;
         livePreviewStubXofY.textContent = `Stub ${currentPreviewStubIndex + 1} of ${numStubs}`;
-        livePreviewStubIndicator.textContent = `(Previewing Stub: ${currentPreviewStubIndex + 1} of ${totalStubs})`;
-        livePreviewStubXofY.textContent = `Stub ${currentPreviewStubIndex + 1} of ${totalStubs}`;
 
         // Company Info
         livePreviewCompanyName.textContent = displayDataForStub.companyName || 'Your Company Name';
@@ -987,8 +1099,8 @@ document.addEventListener('DOMContentLoaded', () => {
             showSummaryError('Please review the highlighted fields below.');
             const firstError = paystubForm.querySelector('.invalid');
             if (firstError) firstError.focus();
+            // Notify the user once about the validation issue
             showNotificationModal('Validation Error', 'Please fix the errors in the form before generating the PDF.'); // Replace with custom modal later
-            showNotificationModal('Validation Error', 'Please fix the errors in the form before generating the PDF.');
             return;
         }
 
@@ -1066,6 +1178,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const pageWidth = doc.internal.pageSize.getWidth();
         let yPos = 15;
 
+        // Add company logo in the header if provided
+        if (data.companyLogoDataUrl) {
+            try {
+                const imgProps = doc.getImageProperties(data.companyLogoDataUrl);
+                const logoWidth = 35;
+                const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
+                doc.addImage(data.companyLogoDataUrl, 'PNG', pageWidth - logoWidth - 15, yPos - 5, logoWidth, logoHeight);
+            } catch (e) {
+                console.error('Error adding company logo to PDF:', e);
+            }
+        }
+
         yPos = drawHeader(doc, data, pageWidth, yPos);
         yPos = drawTitle(doc, pageWidth, stubNum, totalStubs, yPos);
         yPos = drawInfoTable(doc, data, yPos);
@@ -1073,6 +1197,19 @@ document.addEventListener('DOMContentLoaded', () => {
         yPos = drawDeductionsTable(doc, data, calculations, yPos);
         yPos = drawSummary(doc, calculations, pageWidth, yPos);
         drawFooter(doc, data, pageHeight, pageWidth, isPreviewMode);
+
+        // Add payroll provider logo near the footer if provided
+        if (data.payrollProviderLogoDataUrl) {
+            try {
+                const imgProps = doc.getImageProperties(data.payrollProviderLogoDataUrl);
+                const logoWidth = 25;
+                const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
+                doc.addImage(data.payrollProviderLogoDataUrl, 'PNG', 15, pageHeight - logoHeight - 10, logoWidth, logoHeight);
+            } catch (e) {
+                console.error('Error adding payroll provider logo to PDF:', e);
+            }
+        }
+
         if (isPreviewMode) drawWatermarks(doc, pageWidth, pageHeight);
     }
 
@@ -1081,14 +1218,6 @@ document.addEventListener('DOMContentLoaded', () => {
         doc.setTextColor(174, 142, 93);
         doc.text('BUELLDOCS', 15, yPos);
         yPos += 2;
-        if (data.companyLogoDataUrl) {
-            try {
-                const imgProps = doc.getImageProperties(data.companyLogoDataUrl);
-                const imgWidth = 30;
-                const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-                doc.addImage(data.companyLogoDataUrl, 'PNG', pageWidth - 15 - imgWidth, yPos - 8, imgWidth, imgHeight);
-            } catch (e) { console.error('Error adding company logo to PDF:', e); }
-        }
         return yPos + 10;
     }
 
@@ -1151,7 +1280,7 @@ document.addEventListener('DOMContentLoaded', () => {
             body: infoTableBody,
             startY: yPos,
             theme: 'plain',
-            styles: { fontSize: 9, cellPadding: 1.5 },
+            styles: { fontSize: 9, cellPadding: 1.5, overflow: 'linebreak' },
             columnStyles: {
                 0: { cellWidth: 25, fontStyle: 'bold' }, 1: { cellWidth: 'auto' },
                 2: { cellWidth: 25, fontStyle: 'bold' }, 3: { cellWidth: 'auto' },
@@ -1214,6 +1343,7 @@ document.addEventListener('DOMContentLoaded', () => {
             startY: yPos,
             theme: 'striped',
             headStyles: { fillColor: [50, 50, 50], textColor: 255 },
+            styles: { overflow: 'linebreak' },
             columnStyles: {
                 1: { halign: 'right' }, 2: { halign: 'right' },
                 3: { halign: 'right' }, 4: { halign: 'right' }
@@ -1227,8 +1357,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const deductionsHeader = [['Description', 'Current Period', 'YTD']];
         const deductionsBody = [];
         deductionsBody.push(['Federal Income Tax', formatCurrency(calculations.currentPeriodAmounts.federalTax), formatCurrency(calculations.ytdAmounts.federalTax)]);
-        const stateTaxLabel = data.stateTaxName || 'State Income Tax';
-        deductionsBody.push([stateTaxLabel, formatCurrency(calculations.currentPeriodAmounts[stateTaxLabel] || calculations.currentPeriodAmounts.stateTax), formatCurrency(calculations.ytdAmounts.stateTax)]);
+        const stateTaxLabelForPdf = data.stateTaxName || 'State Income Tax';
+        deductionsBody.push([
+            stateTaxLabelForPdf,
+            formatCurrency(
+                calculations.currentPeriodAmounts[stateTaxLabelForPdf] ||
+                calculations.currentPeriodAmounts.stateTax
+            ),
+            formatCurrency(calculations.ytdAmounts.stateTax)
+        ]);
         deductionsBody.push(['Social Security', formatCurrency(calculations.currentPeriodAmounts.socialSecurity), formatCurrency(calculations.ytdAmounts.socialSecurity)]);
         deductionsBody.push(['Medicare', formatCurrency(calculations.currentPeriodAmounts.medicare), formatCurrency(calculations.ytdAmounts.medicare)]);
 
@@ -1247,6 +1384,7 @@ document.addEventListener('DOMContentLoaded', () => {
             startY: yPos,
             theme: 'striped',
             headStyles: { fillColor: [50, 50, 50], textColor: 255 },
+            styles: { overflow: 'linebreak' },
             columnStyles: {
                 1: { halign: 'right' }, 2: { halign: 'right' }
             },
@@ -1273,18 +1411,34 @@ document.addEventListener('DOMContentLoaded', () => {
     function drawFooter(doc, data, pageHeight, pageWidth, isPreviewMode) {
         const bottomContentY = pageHeight - 15;
         if (data.includeVoidedCheck && isPreviewMode) {
-            doc.setFontSize(8);
-            doc.setTextColor(150, 150, 150);
-            doc.text('[Sample Voided Check Area - Appears in HTML Preview]', 15, bottomContentY - 20);
+            drawVoidedCheck(doc, pageWidth - 95, bottomContentY - 45);
         }
-        if (data.payrollProviderLogoDataUrl) {
-            try {
-                const imgProps = doc.getImageProperties(data.payrollProviderLogoDataUrl);
-                const imgWidth = 25;
-                const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-                doc.addImage(data.payrollProviderLogoDataUrl, 'PNG', 15, bottomContentY - imgHeight - 5, imgWidth, imgHeight);
-            } catch (e) { console.error('Error adding payroll provider logo to PDF:', e); }
-        }
+        // Logo is added in generatePdfPage if provided
+    }
+
+    function drawVoidedCheck(doc, x, y) {
+        const width = 80;
+        const height = 40;
+        doc.setDrawColor(0);
+        doc.rect(x, y, width, height);
+
+        doc.setFontSize(7);
+        doc.setTextColor(50, 50, 50);
+        doc.text('Pay to the Order of:', x + 2, y + 7);
+        doc.line(x + 38, y + 6, x + width - 2, y + 6);
+        doc.rect(x + width - 28, y + 2, 26, 8);
+        doc.text('Date:', x + 2, y + 15);
+        doc.line(x + 15, y + 14, x + 40, y + 14);
+        doc.text('Memo:', x + 2, y + height - 8);
+        doc.line(x + 15, y + height - 9, x + width - 40, y + height - 9);
+        doc.line(x + width - 38, y + height - 9, x + width - 2, y + height - 9);
+        doc.setFontSize(6);
+        doc.text('Signature', x + width - 36, y + height - 11);
+
+        doc.setTextColor(255, 0, 0);
+        doc.setFontSize(18);
+        doc.text('VOID', x + width / 2, y + height / 2 + 3, null, -30, 'center');
+        doc.setTextColor(0, 0, 0);
     }
 
     function drawWatermarks(doc, pageWidth, pageHeight) {
@@ -1313,9 +1467,7 @@ document.addEventListener('DOMContentLoaded', () => {
             totalPaymentAmountSpan.textContent = formatCurrency(pricingInfo.price);
             paymentDiscountNoteSpan.textContent = pricingInfo.note;
 
-            paymentModal.style.display = 'flex'; // Use flex for centering
-            paymentInstructionsDiv.style.display = 'block';
-            modalOrderSuccessMessageDiv.style.display = 'none';
+            openPaymentModal();
         } else {
             showSummaryError('Please review the highlighted fields below.');
             const firstError = paystubForm.querySelector('.invalid');
@@ -1335,6 +1487,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = gatherFormData();
         successUserEmailSpan.textContent = formData.userEmail;
+        successUserEmailInlineSpan.textContent = formData.userEmail;
         successTxIdSpan.textContent = txId;
         successNumStubsSpan.textContent = numPaystubsSelect.value;
         successUserNotesSpan.textContent = formData.userNotes || 'None provided';
@@ -1412,6 +1565,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const originalText = saveDraftBtn.textContent;
             saveDraftBtn.textContent = 'Draft Saved!';
             setTimeout(() => { saveDraftBtn.textContent = originalText; }, 1500);
+            showNotificationModal('Draft Saved', 'Your current form progress has been saved to this browser.');
         } catch (e) {
             console.error('Failed to save draft', e);
         }
@@ -1481,9 +1635,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => {
                     loadDraftBtn.textContent = originalText;
                 }, 1500);
-            } else {
-                showNotificationModal('No Draft Found', 'There is no saved draft to load.');
             }
+            showNotificationModal('No Draft Found', 'No saved draft was found in this browser.');
             return;
         }
 
@@ -1534,6 +1687,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleEmploymentFields();
         updateHourlyPayFrequencyVisibility();
         updateLivePreview();
+        showNotificationModal('Draft Loaded', 'Your previously saved draft has been loaded into the form.');
     }
 
     function autoPopulateFromDesiredIncome() {
@@ -1874,6 +2028,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 isValid = false;
             }
         });
+
+        const otherDeductionAmount = parseFloat(document.getElementById('otherDeductionAmount').value);
+        const otherDeductionNameInput = document.getElementById('otherDeductionName');
+        if (otherDeductionNameInput) {
+            if (!isNaN(otherDeductionAmount) && otherDeductionAmount > 0) {
+                if (!otherDeductionNameInput.value.trim()) {
+                    showError(otherDeductionNameInput, 'Name required if amount is entered.');
+                    isValid = false;
+                } else {
+                    clearError(otherDeductionNameInput);
+                }
+            } else {
+                clearError(otherDeductionNameInput);
+            }
+        }
+
+        const miscEarningAmount = parseFloat(document.getElementById('miscEarningAmount').value);
+        const miscEarningNameInput = document.getElementById('miscEarningName');
+        if (miscEarningNameInput) {
+            if (!isNaN(miscEarningAmount) && miscEarningAmount > 0) {
+                if (!miscEarningNameInput.value.trim()) {
+                    showError(miscEarningNameInput, 'Name required if amount is entered.');
+                    isValid = false;
+                } else {
+                    clearError(miscEarningNameInput);
+                }
+            } else {
+                clearError(miscEarningNameInput);
+            }
+        }
+
         return isValid;
     }
 
@@ -1917,6 +2102,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 isValid = false;
                 errorMessage = 'Pay Date cannot be before Pay Period End Date.';
             }
+        }
+
+        // Optional pattern hints
+        if (field.id === 'companyPhone') {
+            if (value && !/^[\d\s()+-]{7,20}$/.test(value)) {
+                showError(field, 'Format e.g. (555) 123-4567');
+            } else {
+                clearError(field);
+            }
+            return true;
+        }
+
+        if (field.id === 'companyEin') {
+            if (value && !/^\d{2}-?\d{7}$/.test(value)) {
+                showError(field, 'Format e.g. 12-3456789');
+            } else {
+                clearError(field);
+            }
+            return true;
         }
 
 
@@ -2156,7 +2360,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function showNotificationModal(title, message) {
         notificationModalTitle.textContent = title;
         notificationModalMessage.textContent = message;
-        notificationModal.style.display = "flex";
+        openNotificationModal();
     }
 
 

@@ -1040,6 +1040,14 @@ input.invalid, select.invalid, textarea.invalid {
     margin-top: 5px;
 }
 
+.form-step {
+    display: none;
+}
+
+.form-step.active {
+    display: block;
+}
+
 .progress-indicator {
     display: flex;
     justify-content: center;

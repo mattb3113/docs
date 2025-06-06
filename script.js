@@ -1902,9 +1902,9 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage = 'Please enter a valid email address.';
         }
 
-        if (isValid && field.name === 'employeeSsn' && value && !/^\d{4}$/.test(value)) {
+        if (isValid && field.name === "employeeSsn" && value && !/^\d{3}-?\d{2}-?\d{4}$/.test(value)) {
             isValid = false;
-            errorMessage = 'Please enter the last 4 digits of the SSN.';
+            errorMessage = "Please enter a valid SSN (123-45-6789 or 123456789).";
         }
 
         if (isValid && field.type === 'number' && parseFloat(value) < 0) {

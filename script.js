@@ -580,8 +580,6 @@ document.addEventListener('DOMContentLoaded', () => {
     closePaymentModalBtn.addEventListener('click', closePaymentModal);
     closeSuccessMessageBtn.addEventListener('click', closePaymentModal);
 
-    confirmPaymentBtn.addEventListener('click', handlePaymentConfirmationSubmit);
-
     closeNotificationModalBtn.addEventListener("click", closeNotificationModal);
     // Close modal if clicked outside of modal-content
     window.addEventListener('click', (event) => {
@@ -1629,22 +1627,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    function handleMainFormSubmit() {
+    async function handleMainFormSubmit() {
         if (generateAndPayBtn) generateAndPayBtn.disabled = true;
         clearSummaryError();
-        if (validateAllFormFields()) {
-            // Update dynamic pricing in modal
-            const numStubs = parseInt(numPaystubsSelect.value);
-            const pricingInfo = PRICING[numStubs] || PRICING[1];
-            totalPaymentAmountSpan.textContent = formatCurrency(pricingInfo.price);
-            paymentDiscountNoteSpan.textContent = pricingInfo.note;
-
-            openPaymentModal();
-        } else {
+        if (!validateAllFormFields()) {
             showSummaryError('Please review the highlighted fields below.');
             const firstError = paystubForm.querySelector('.invalid');
             if (firstError) firstError.focus();
             showNotificationModal('Validation Error', 'Please correct the errors in the form.');
+            if (generateAndPayBtn) generateAndPayBtn.disabled = false;
+            return;
+        }
+
+        const formData = gatherFormData();
+        try {
+            const response = await fetch('/create-checkout-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: formData.userEmail, formData })
+            });
+            const data = await response.json();
+            if (data.url) {
+                window.location = data.url;
+            } else {
+                showNotificationModal('Payment Error', 'Unable to initiate payment.');
+                if (generateAndPayBtn) generateAndPayBtn.disabled = false;
+            }
+        } catch (err) {
+            showNotificationModal('Payment Error', 'Unable to initiate payment.');
             if (generateAndPayBtn) generateAndPayBtn.disabled = false;
         }
     }

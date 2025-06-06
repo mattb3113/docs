@@ -1332,8 +1332,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const deductionsHeader = [['Description', 'Current Period', 'YTD']];
         const deductionsBody = [];
         deductionsBody.push(['Federal Income Tax', formatCurrency(calculations.currentPeriodAmounts.federalTax), formatCurrency(calculations.ytdAmounts.federalTax)]);
-        const stateTaxLabel = data.stateTaxName || 'State Income Tax';
-        deductionsBody.push([stateTaxLabel, formatCurrency(calculations.currentPeriodAmounts[stateTaxLabel] || calculations.currentPeriodAmounts.stateTax), formatCurrency(calculations.ytdAmounts.stateTax)]);
+        const stateTaxLabelForPdf = data.stateTaxName || 'State Income Tax';
+        deductionsBody.push([
+            stateTaxLabelForPdf,
+            formatCurrency(
+                calculations.currentPeriodAmounts[stateTaxLabelForPdf] ||
+                calculations.currentPeriodAmounts.stateTax
+            ),
+            formatCurrency(calculations.ytdAmounts.stateTax)
+        ]);
         deductionsBody.push(['Social Security', formatCurrency(calculations.currentPeriodAmounts.socialSecurity), formatCurrency(calculations.ytdAmounts.socialSecurity)]);
         deductionsBody.push(['Medicare', formatCurrency(calculations.currentPeriodAmounts.medicare), formatCurrency(calculations.ytdAmounts.medicare)]);
 

@@ -355,6 +355,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const NJ_UIHCWF_RATE = 0.000425; // 0.0425%
     const NJ_UIHCWF_WAGE_LIMIT = 42300;
 
+    function calculateSocialSecurity(grossPay) {
+        return parseFloat((grossPay * SOCIAL_SECURITY_RATE).toFixed(2));
+    }
+
+    function calculateMedicare(grossPay) {
+        return parseFloat((grossPay * MEDICARE_RATE).toFixed(2));
+    }
+
     const NJ_TAX_BRACKETS_2024 = {
         'Single': [
             { limit: 20000, rate: 0.014 },
@@ -1928,7 +1936,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (autoCalculateSocialSecurityCheckbox && autoCalculateSocialSecurityCheckbox.checked) {
-            const val = estimateSocialSecurity(gross, ytdGross);
+            const val = calculateSocialSecurity(gross);
             socialSecurityAmountInput.value = val.toFixed(2);
             socialSecurityAmountInput.readOnly = true;
             socialSecurityAmountInput.classList.add('auto-calculated-field');
@@ -1938,7 +1946,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (autoCalculateMedicareCheckbox && autoCalculateMedicareCheckbox.checked) {
-            const val = estimateMedicare(gross);
+            const val = calculateMedicare(gross);
             medicareAmountInput.value = val.toFixed(2);
             medicareAmountInput.readOnly = true;
             medicareAmountInput.classList.add('auto-calculated-field');
@@ -2020,8 +2028,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateSocialSecurityCheckbox.checked) {
             const data = gatherFormData();
             const gross = calculateCurrentPeriodPay(data).grossPay;
-            const ytd = parseFloat(document.getElementById('initialYtdSocialSecurity')?.value) || 0;
-            const val = estimateSocialSecurity(gross, ytd);
+            const val = calculateSocialSecurity(gross);
             socialSecurityAmountInput.value = val.toFixed(2);
             socialSecurityAmountInput.readOnly = true;
             socialSecurityAmountInput.classList.add('auto-calculated-field');
@@ -2036,7 +2043,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateMedicareCheckbox.checked) {
             const data = gatherFormData();
             const gross = calculateCurrentPeriodPay(data).grossPay;
-            const val = estimateMedicare(gross);
+            const val = calculateMedicare(gross);
             medicareAmountInput.value = val.toFixed(2);
             medicareAmountInput.readOnly = true;
             medicareAmountInput.classList.add('auto-calculated-field');

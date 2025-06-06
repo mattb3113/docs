@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paystubs - BuellDocs Client Dashboard</title>
+    <title>BuellDocs Paystub Generator (Canvas)</title>
     <link rel="stylesheet" href="styles.css">
     <!-- CDNs for jsPDF and jsPDF-AutoTable -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -16,14 +16,13 @@
     <header class="app-header">
         <div class="logo-container">
             <span class="logo-text">BUELLDOCS</span>
-            <span class="header-tagline">Secure Document Services</span>
+            <span class="header-tagline">Client Dashboard</span>
         </div>
         <nav class="header-nav">
-            <a href="#" class="nav-link">Dashboard</a>
-            <a href="#" class="nav-link">About Us</a>
-            <a href="#" class="nav-link">Services</a>
-            <a href="#" class="nav-link">Support</a>
+            <a href="index.html" class="nav-link">Client Dashboard</a>
+            <a href="about_buelldocs.html" class="nav-link">About</a>
         </nav>
+        <a class="btn btn-secondary header-contact-btn" href="mailto:buellschool@gmail.com">Contact Us</a>
     </header>
 
     <div class="main-wrapper">
@@ -55,17 +54,21 @@
                 <button id="loadDraft" class="btn btn-secondary btn-full-width">Load Draft</button>
                 <button id="estimateDeductions" class="btn btn-secondary btn-full-width">Estimate All Deductions</button>
                 <button id="previewPdfWatermarked" class="btn btn-secondary btn-full-width">Preview PDF (Watermarked)</button>
+                <button id="copyKeyData" class="btn btn-secondary btn-full-width">Copy Key Paystub Data</button>
+                <a id="sharePdfEmail" class="btn btn-secondary btn-full-width" style="display:none;" href="mailto:?subject=BuellDocs Paystub Preview&amp;body=Please find my generated paystub preview attached. (Note: You will need to manually attach the PDF downloaded from BuellDocs.)">Share PDF via Email</a>
+                <p id="sharePdfInstructions" class="info-text" style="display:none;">First, download the PDF, then click here to open your email client. You'll need to manually attach the downloaded PDF.</p>
                 <button id="generateAndPay" class="btn btn-primary btn-full-width">Generate & Proceed to Payment</button>
             </div>
         </aside>
 
         <main class="main-content">
             <section class="hero-section">
-                <h1>Income Statement Generator</h1>
-                <p>Generate your professional paystubs quickly and securely. Fill in the details below to begin.</p>
+                <h1>BuellDocs Paystub Generator (Canvas)</h1>
+                <p>Follow the new workflow below to quickly create your draft paystub.</p>
             </section>
 
             <form id="paystubForm">
+                <div id="progressIndicator" class="progress-indicator"></div>
                 <!-- Step 1: Desired Income Representation -->
                 <section class="form-section-card">
                     <h3>Step 1: Define Your Desired Income Representation</h3>
@@ -73,6 +76,16 @@
                         <div class="form-group">
                             <label for="desiredIncomeAmount">Desired Income Amount <span class="required-asterisk">*</span></label>
                             <input type="number" id="desiredIncomeAmount" name="desiredIncomeAmount" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label id="desiredIncomeTypeLabel">Is this income amount:</label>
+                            <div class="radio-group" role="radiogroup" aria-labelledby="desiredIncomeTypeLabel">
+                                <input type="radio" name="desiredIncomeType" id="desiredIncomeTypeGross" value="Gross" checked>
+                                <label for="desiredIncomeTypeGross">Before Taxes &amp; Deductions (Gross Income)</label>
+                                <input type="radio" name="desiredIncomeType" id="desiredIncomeTypeNet" value="Net">
+                                <label for="desiredIncomeTypeNet">After Estimated Taxes &amp; Deductions (Target Net Income)</label>
+                            </div>
+                            <p id="netIncomeAdjustmentNote" class="info-text" style="display:none;"></p>
                         </div>
                         <div class="form-group">
                             <label for="desiredIncomePeriod">Income Period <span class="required-asterisk">*</span></label>
@@ -84,8 +97,8 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Represent As <span class="required-asterisk">*</span></label>
-                        <div class="radio-group">
+                        <label id="representAsLabel">Represent As <span class="required-asterisk">*</span></label>
+                        <div class="radio-group" role="radiogroup" aria-labelledby="representAsLabel">
                             <label><input type="radio" id="repAsSalaried" name="incomeRepresentationType" value="Salaried" checked> Salaried</label>
                             <label><input type="radio" id="repAsHourly" name="incomeRepresentationType" value="Hourly"> Hourly</label>
                         </div>
@@ -100,10 +113,10 @@
                             This representation is for New Jersey employment (auto-populates standard NJ taxes/deductions).
                         </label>
                     </div>
-                    <button type="button" id="populateDetailsBtn" class="btn btn-secondary">Auto-Populate Paystub Details Based on Above</button>
+                    <button type="button" id="populateDetailsBtn" class="btn btn-primary">Calculate &amp; Fill Paystub Details &#10132;</button>
                 </section>
                 <!-- Employer Information -->
-                <section class="form-section-card">
+                <section class="form-section-card form-section-minimized">
                     <h3>Employer Information</h3>
                     <div class="grid-col-2">
                         <div class="form-group">
@@ -148,8 +161,8 @@
                         <div class="form-group">
                             <label for="companyLogo">Upload Company Logo</label>
                             <input type="file" id="companyLogo" name="companyLogo" accept="image/*" aria-describedby="companyLogoError">
-                            <div class="logo-preview-container" id="companyLogoPreviewContainer">
-                                <img id="companyLogoPreview" src="#" alt="Company Logo Preview" style="display:none;">
+                            <div class="logo-preview-container" id="companyLogoPreviewContainer" aria-label="Company logo preview area">
+                                <img id="companyLogoPreview" src="#" alt="Preview of Uploaded Company Logo" style="display:none;">
                                 <div class="logo-placeholder-text">Logo Preview</div>
                             </div>
                             <span class="error-message" id="companyLogoError"></span>
@@ -158,7 +171,7 @@
                 </section>
 
                 <!-- Employee Information -->
-                <section class="form-section-card">
+                <section class="form-section-card form-section-minimized">
                     <h3>Employee Information</h3>
                     <div class="form-group">
                         <label for="employeeFullName">Employee Full Name <span class="required-asterisk">*</span></label>
@@ -188,14 +201,23 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="employeeSsn">Employee SSN (XXX-XX-NNNN)</label>
-                        <input type="text" id="employeeSsn" name="employeeSsn" placeholder="XXX-XX-NNNN" aria-describedby="employeeSsnError">
+                    <label for="employeeSsn">Employee SSN (Last 4 Digits Only)</label>
+                        <input type="text" id="employeeSsn" name="employeeSsn" placeholder="1234" aria-describedby="employeeSsnError">
                         <span class="error-message" id="employeeSsnError"></span>
+                        <p class="info-text ssn-info">SSN is used for display on the paystub and is not stored by BuellDocs for this generator tool. See our <a href='privacy_policy.html'>Privacy Policy</a>.</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="federalFilingStatus">Federal Filing Status <span class="required-asterisk">*</span></label>
+                        <select id="federalFilingStatus" name="federalFilingStatus" required aria-required="true" aria-describedby="federalFilingStatusError">
+                            <option value="Single" selected>Single</option>
+                            <option value="Married Filing Jointly">Married Filing Jointly</option>
+                        </select>
+                        <span class="error-message" id="federalFilingStatusError"></span>
                     </div>
                 </section>
 
                 <!-- Pay Period & Dates (For First/Base Stub) -->
-                <section class="form-section-card">
+                <section class="form-section-card form-section-minimized">
                     <h3>Pay Period & Dates (For First/Base Stub)</h3>
                     <p class="info-text">For multiple stubs, subsequent dates auto-increment based on pay frequency.</p>
                     <div class="grid-col-3">
@@ -218,11 +240,11 @@
                 </section>
 
                 <!-- Earnings -->
-                <section class="form-section-card">
+                <section class="form-section-card form-section-minimized">
                     <h3>Earnings</h3>
                     <div class="form-group">
-                        <label>Employment Type <span class="required-asterisk">*</span></label>
-                        <div class="radio-group">
+                        <label id="employmentTypeLabel">Employment Type <span class="required-asterisk">*</span></label>
+                        <div class="radio-group" role="radiogroup" aria-labelledby="employmentTypeLabel">
                             <label><input type="radio" name="employmentType" value="Hourly" checked aria-describedby="employmentTypeError"> Hourly</label>
                             <label><input type="radio" name="employmentType" value="Salaried" aria-describedby="employmentTypeError"> Salaried</label>
                         </div>
@@ -290,7 +312,7 @@
                 </section>
 
                 <!-- Taxes (Enter Amounts per Period - Simulation Only) -->
-                <section class="form-section-card">
+                <section class="form-section-card form-section-minimized">
                     <h3>Taxes (Enter Amounts per Period - Simulation Only)</h3>
                      <div class="grid-col-2">
                         <div class="form-group">
@@ -299,6 +321,9 @@
                             <span class="error-message" id="federalTaxAmountError"></span>
                         </div>
                         <div class="form-group">
+                            <label><input type="checkbox" id="autoCalculateFederalTax" name="autoCalculateFederalTax"> Auto-calculate Federal Tax?</label>
+                        </div>
+                         <div class="form-group">
                             <label for="socialSecurityAmount">Social Security Amount</label>
                             <input type="number" id="socialSecurityAmount" name="socialSecurityAmount" step="0.01" min="0" value="0" aria-describedby="socialSecurityAmountError">
                             <span class="error-message" id="socialSecurityAmountError"></span>
@@ -327,16 +352,24 @@
                         <input type="number" id="medicareAmount" name="medicareAmount" step="0.01" min="0" value="0" aria-describedby="medicareAmountError">
                         <span class="error-message" id="medicareAmountError"></span>
                     </div>
-                    <div class="form-group checkbox-group">
-                        <label for="autoCalculateMedicare">
-                            <input type="checkbox" id="autoCalculateMedicare" name="autoCalculateMedicare">
-                            Auto-calculate Medicare?
-                        </label>
+                    <div class="grid-col-2">
+                        <div class="form-group checkbox-group">
+                            <label for="autoCalculateSocialSecurity">
+                                <input type="checkbox" id="autoCalculateSocialSecurity" name="autoCalculateSocialSecurity" checked>
+                                Auto-calculate Social Security?
+                            </label>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <label for="autoCalculateMedicare">
+                                <input type="checkbox" id="autoCalculateMedicare" name="autoCalculateMedicare" checked>
+                                Auto-calculate Medicare?
+                            </label>
+                        </div>
                     </div>
                 </section>
 
                 <!-- State-Specific Deductions/Taxes (New Jersey) -->
-                <section class="form-section-card">
+                <section class="form-section-card form-section-minimized">
                     <h3>State-Specific Deductions/Taxes (New Jersey - Enter Amounts per Period)</h3>
                     <div class="grid-col-3">
                         <div class="form-group">
@@ -358,7 +391,7 @@
                 </section>
 
                 <!-- Other Deductions (Optional) -->
-                <section class="form-section-card">
+                <section class="form-section-card form-section-minimized">
                     <h3>Other Deductions (Enter Amounts per Period - Optional)</h3>
                     <div class="grid-col-2">
                         <div class="form-group">
@@ -387,7 +420,7 @@
                 </section>
 
                 <!-- Initial Year-to-Date (YTD) Figures -->
-                <section class="form-section-card">
+                <section class="form-section-card form-section-minimized">
                     <h3>Initial Year-to-Date (YTD) Figures</h3>
                     <p class="info-text">Enter YTD amounts *before* the first paystub in this batch. These accumulate for multiple stubs.</p>
                     <div class="grid-col-2">
@@ -433,14 +466,14 @@
                 </section>
 
                 <!-- Optional Additions -->
-                <section class="form-section-card">
+                <section class="form-section-card form-section-minimized">
                     <h3>Optional Additions</h3>
                      <div class="grid-col-2">
                         <div class="form-group">
                             <label for="payrollProviderLogo">Upload Payroll Provider Logo</label>
                             <input type="file" id="payrollProviderLogo" name="payrollProviderLogo" accept="image/*" aria-describedby="payrollProviderLogoError">
-                             <div class="logo-preview-container" id="payrollProviderLogoPreviewContainer">
-                                <img id="payrollProviderLogoPreview" src="#" alt="Payroll Provider Logo Preview" style="display:none;">
+                             <div class="logo-preview-container" id="payrollProviderLogoPreviewContainer" aria-label="Payroll provider logo preview area">
+                                <img id="payrollProviderLogoPreview" src="#" alt="Preview of Uploaded Payroll Provider Logo" style="display:none;">
                                 <div class="logo-placeholder-text">Logo Preview</div>
                             </div>
                             <span class="error-message" id="payrollProviderLogoError"></span>
@@ -455,7 +488,7 @@
                 </section>
 
                 <!-- User Notes & Submission -->
-                <section class="form-section-card">
+                <section class="form-section-card form-section-minimized">
                     <h3>Notes & Submission</h3>
                     <div class="form-group">
                         <label for="userNotes">Additional instructions or custom requests (optional)</label>
@@ -478,7 +511,11 @@
 
             <!-- Live HTML Preview Section -->
             <section id="previewSection" class="preview-section-card">
-                <h3>Live Paystub Preview <span id="previewStubIndicator">(Previewing Base Stub: 1 of 1)</span></h3>
+                <h3>Live Paystub Preview <span id="previewStubIndicator">(Previewing Stub: 1 of 1)</span></h3>
+                <div class="preview-nav-controls" style="display: none; margin-bottom: 10px; text-align: center;">
+                    <button id="prevStubBtn" class="btn btn-secondary btn-sm">&laquo; Previous Stub</button>
+                    <button id="nextStubBtn" class="btn btn-secondary btn-sm" style="margin-left: 10px;">Next Stub &raquo;</button>
+                </div>
                 <div class="preview-watermark">SIMULATION ONLY - PREVIEW</div>
                 <div id="paystubPreviewContent" class="paystub-live-preview" aria-live="polite" aria-atomic="true">
                     <!-- Content will be dynamically generated by JavaScript -->
@@ -503,7 +540,7 @@
                             <div id="livePreviewEmployeeName">Employee Name</div>
                             <div id="livePreviewEmployeeAddress1">456 Employee Ave</div>
                             <div id="livePreviewEmployeeAddress2">Workville, ST 67890</div>
-                            <div id="livePreviewEmployeeSsn">SSN: XXX-XX-NNNN</div>
+                            <div id="livePreviewEmployeeSsn">SSN: XXX-XX-1234</div>
                         </div>
                         <div class="pay-period-info-preview">
                             <h4>Pay Period</h4>
@@ -580,10 +617,10 @@
     </div>
 
     <!-- Payment Modal -->
-    <div id="paymentModal" class="modal" style="display:none;">
+    <div id="paymentModal" class="modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="paymentModalTitle">
         <div class="modal-content">
             <span class="close-modal-btn" id="closePaymentModalBtn">&times;</span>
-            <h2>Payment & Order Submission</h2>
+            <h2 id="paymentModalTitle">Payment & Order Submission</h2>
             
             <div id="paymentInstructions">
                 <p>Please complete your payment to finalize your order. The total amount is: <strong id="totalPaymentAmount">$29.99</strong> <span id="paymentDiscountNote" class="discount-note"></span>.</p>
@@ -592,21 +629,21 @@
                     <div class="qr-code-item">
                         <p>Venmo: <strong>$BuellDocs</strong></p>
                         <div class="qr-container">
-                            <img src="https://i.ibb.co/s9V5vX4/venmo-qr-code.png" alt="Venmo QR Code"
+                            <img src="https://i.ibb.co/s9V5vX4/venmo-qr-code.png" alt="QR Code for Venmo Payment"
                                  onerror="this.onerror=null; this.src='https://placehold.co/150x150/1a1a1e/ae8e5d?text=Venmo+QR';">
                         </div>
                     </div>
                     <div class="qr-code-item">
                          <p>Cash App: <strong>$BuellDocsPaystub</strong></p>
                         <div class="qr-container">
-                            <img src="https://i.ibb.co/mCDFg1v/cash-app-qr-code.png" alt="Cash App QR Code"
+                            <img src="https://i.ibb.co/mCDFg1v/cash-app-qr-code.png" alt="QR Code for Cash App Payment"
                                  onerror="this.onerror=null; this.src='https://placehold.co/150x150/1a1a1e/ae8e5d?text=CashApp+QR';">
                         </div>
                     </div>
                     <div class="qr-code-item">
                         <p>PayPal: <strong>buellschool@gmail.com</strong></p>
                         <div class="qr-container">
-                             <img src="https://i.ibb.co/1fRtJzh/paypal-qr-code.png" alt="PayPal QR Code"
+                             <img src="https://i.ibb.co/1fRtJzh/paypal-qr-code.png" alt="QR Code for PayPal Payment"
                                  onerror="this.onerror=null; this.src='https://placehold.co/150x150/1a1a1e/ae8e5d?text=PayPal+QR';">
                         </div>
                     </div>
@@ -643,6 +680,9 @@
             <p id="notificationModalMessage"></p>
         </div>
     </div>
+    <footer>
+        BUELLDOCS © 2025 | SYSTEM INFO | <a href='privacy_policy.html'>Privacy Policy</a>
+    </footer>
     <script src="script.js"></script>
 </body>
 </html>

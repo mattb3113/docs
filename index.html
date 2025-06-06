@@ -8,6 +8,11 @@
     <!-- CDNs for jsPDF and jsPDF-AutoTable -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <!-- Stripe.js for secure payment processing -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        window.STRIPE_PUBLISHABLE_KEY = 'pk_test_12345'; // Replace with real key in production
+    </script>
 </head>
 <body>
     <div class="noise-overlay"></div>
@@ -77,7 +82,7 @@
                     <div class="grid-col-2">
                         <div class="form-group">
                             <label for="desiredIncomeAmount">Desired Income Amount <span class="required-asterisk">*</span></label>
-                            <input type="number" id="desiredIncomeAmount" name="desiredIncomeAmount" step="0.01" required aria-required="true" aria-describedby="desiredIncomeAmountError" min="0">
+                            <input type="text" id="desiredIncomeAmount" name="desiredIncomeAmount" required aria-required="true" aria-describedby="desiredIncomeAmountError" inputmode="decimal" pattern="[0-9,\.]*">
                             <span class="error-message" id="desiredIncomeAmountError"></span>
                         </div>
                         <div class="form-group">
@@ -128,7 +133,7 @@
 
 
                 <!-- Employer Information -->
-                <section class="form-section-card form-section-minimized">
+                <section class="form-section-card">
                     <h3>Employer Information</h3>
                     <div class="grid-col-2">
                         <div class="form-group">
@@ -224,7 +229,7 @@
                     </div>
                     <div class="form-group">
                     <label for="employeeSsn">Employee SSN</label>
-                        <input type="text" id="employeeSsn" name="employeeSsn" placeholder="123-45-6789" aria-describedby="employeeSsnError">
+                        <input type="text" id="employeeSsn" name="employeeSsn" placeholder="***-**-1234" aria-describedby="employeeSsnError">
                         <span class="error-message" id="employeeSsnError"></span>
                         <p class="info-text ssn-info">SSN is used for display on the paystub and is not stored by BuellDocs for this generator tool. See our <a href='privacy_policy.html'>Privacy Policy</a>.</p>
                     </div>
@@ -232,23 +237,11 @@
                         <label for="federalFilingStatus">Federal Filing Status <span class="required-asterisk">*</span></label>
                         <select id="federalFilingStatus" name="federalFilingStatus" required aria-required="true" aria-describedby="federalFilingStatusError">
                             <option value="Single" selected>Single</option>
-                            <option value="Married Filing Jointly">Married Filing Jointly</option>
+                            <option value="Married Filing Jointly">Married filing jointly</option>
+                            <option value="Head of Household">Head of Household</option>
                         </select>
                         <span class="error-message" id="federalFilingStatusError"></span>
                     </div>
-                </section>
-                <div class="step-navigation">
-                    <button type="button" class="btn btn-secondary prev-step-btn">Previous Step</button>
-                    <button type="button" class="btn btn-primary next-step-btn">Next Step</button>
-                </div>
-            </div>
-                <div class="form-step">
-
-
-                <!-- Pay Period & Dates (For First/Base Stub) -->
-                <section class="form-section-card form-section-minimized">
-                    <h3>Pay Period & Dates (For First/Base Stub)</h3>
-                    <p class="info-text">For multiple stubs, later pay periods auto-increment based on the chosen frequency.</p>
                     <div class="grid-col-3">
                         <div class="form-group">
                             <label for="payPeriodStartDate">Pay Period Start Date <span class="required-asterisk">*</span></label>
@@ -267,6 +260,15 @@
                         </div>
                     </div>
                 </section>
+                <div class="step-navigation">
+                    <button type="button" class="btn btn-secondary prev-step-btn">Previous Step</button>
+                    <button type="button" class="btn btn-primary next-step-btn">Next Step</button>
+                </div>
+            </div>
+                <div class="form-step">
+
+
+
 
                 <!-- Earnings -->
                 <section class="form-section-card form-section-minimized">
@@ -381,20 +383,15 @@
                     </div>
                     <div class="grid-col-2">
                         <div class="form-group">
-                            <label for="stateTaxName">State Tax Name</label>
-                            <input type="text" id="stateTaxName" name="stateTaxName" placeholder="e.g., NJ State Tax" aria-describedby="stateTaxNameError">
-                            <span class="error-message" id="stateTaxNameError"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="stateTaxAmount">State Tax Amount</label>
+                            <label for="stateTaxAmount">NJ State Tax</label>
                             <input type="number" id="stateTaxAmount" name="stateTaxAmount" step="0.01" min="0" value="0" aria-describedby="stateTaxAmountError">
                             <span class="error-message" id="stateTaxAmountError"></span>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="medicareAmount">Medicare Amount</label>
-                        <input type="number" id="medicareAmount" name="medicareAmount" step="0.01" min="0" value="0" aria-describedby="medicareAmountError">
-                        <span class="error-message" id="medicareAmountError"></span>
+                        <div class="form-group">
+                            <label for="medicareAmount">Medicare</label>
+                            <input type="number" id="medicareAmount" name="medicareAmount" step="0.01" min="0" value="0" aria-describedby="medicareAmountError">
+                            <span class="error-message" id="medicareAmountError"></span>
+                        </div>
                     </div>
                     </div>
                 </section>
@@ -404,7 +401,7 @@
                     <h3>State-Specific Deductions/Taxes (New Jersey - Enter Amounts per Period)</h3>
                     <div class="grid-col-3">
                         <div class="form-group">
-                            <label for="njSdiAmount">NJ SDI Amount</label>
+                            <label for="njSdiAmount">NJ SUI/SDI (State Unemployment/Disability Insurance)</label>
                             <input type="number" id="njSdiAmount" name="njSdiAmount" step="0.01" min="0" value="0" aria-describedby="njSdiAmountError">
                             <span class="error-message" id="njSdiAmountError"></span>
                         </div>
@@ -461,18 +458,8 @@
                             <span class="error-message" id="retirement401kError"></span>
                         </div>
                     </div>
-                    <div class="grid-col-2">
-                        <div class="form-group">
-                            <label for="otherDeductionName">Other Deduction Name</label>
-                            <input type="text" id="otherDeductionName" name="otherDeductionName" placeholder="e.g., Union Dues" aria-describedby="otherDeductionNameError">
-                            <span class="error-message" id="otherDeductionNameError"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="otherDeductionAmount">Other Deduction Amount</label>
-                            <input type="number" id="otherDeductionAmount" name="otherDeductionAmount" step="0.01" min="0" value="0" aria-describedby="otherDeductionAmountError">
-                            <span class="error-message" id="otherDeductionAmountError"></span>
-                        </div>
-                    </div>
+                    <div id="customDeductionsContainer" class="custom-deductions"></div>
+                    <button type="button" id="addDeductionBtn" class="btn btn-secondary btn-sm">Add Deduction</button>
                 </section>
 
                 <!-- Initial Year-to-Date (YTD) Figures -->

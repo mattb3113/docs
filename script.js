@@ -33,6 +33,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const netIncomeAdjustmentNote = document.getElementById('netIncomeAdjustmentNote');
     const populateDetailsBtn = document.getElementById('populateDetailsBtn');
 
+    const firstNextBtn = document.querySelector('.form-step .next-step-btn');
+
+    function parseCurrencyValue(val) {
+        if (!val) return NaN;
+        const cleaned = val.replace(/[^0-9.]/g, '');
+        return parseFloat(cleaned);
+    }
+
+    function formatCurrencyInput(val) {
+        const num = parseCurrencyValue(val);
+        if (isNaN(num)) return '';
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(num);
+    }
+
+    function validateDesiredIncome() {
+        const amount = parseCurrencyValue(desiredIncomeAmountInput.value);
+        if (isNaN(amount) || amount <= 0) {
+            showError(desiredIncomeAmountInput, 'Please enter a valid salary amount.');
+            if (firstNextBtn) firstNextBtn.disabled = true;
+            return false;
+        }
+        clearError(desiredIncomeAmountInput);
+        if (firstNextBtn) firstNextBtn.disabled = false;
+        return true;
+    }
+
+    desiredIncomeAmountInput.addEventListener('input', validateDesiredIncome);
+    desiredIncomeAmountInput.addEventListener('blur', () => {
+        if (validateDesiredIncome()) {
+            desiredIncomeAmountInput.value = formatCurrencyInput(desiredIncomeAmountInput.value);
+        }
+    });
+
     function enablePopulateBtn() {
         if (populateDetailsBtn) {
             populateDetailsBtn.disabled = false;
@@ -84,6 +122,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const autoCalculateNjSdiCheckbox = document.getElementById('autoCalculateNjSdi');
     const autoCalculateNjFliCheckbox = document.getElementById('autoCalculateNjFli');
     const autoCalculateNjUiCheckbox = document.getElementById('autoCalculateNjUi');
+    function createDeductionRow(name = "", amount = 0) {
+        const row = document.createElement("div");
+        row.className = "deduction-row grid-col-2";
+        row.innerHTML = `<div class="form-group"><label>Description</label><input type="text" name="otherDeductionName[]" class="deduction-name" value="${name}"></div><div class="form-group"><label>Amount</label><input type="number" name="otherDeductionAmount[]" class="deduction-amount amount-input" step="0.01" min="0" value="${amount}"></div><button type="button" class="btn btn-secondary btn-sm remove-deduction-btn">Remove</button>`;
+        row.querySelector(".remove-deduction-btn").addEventListener("click", () => { row.remove(); updateLivePreview(); });
+        row.querySelectorAll("input").forEach(inp => inp.addEventListener("input", updateLivePreview));
+        return row;
+    }
+    function addCustomDeductionRow(name = "", amount = 0) {
+        if (!customDeductionsContainer) return;
+        const row = createDeductionRow(name, amount);
+        customDeductionsContainer.appendChild(row);
+    }
+    if (customDeductionsContainer) addCustomDeductionRow();
+    if (addDeductionBtn) addDeductionBtn.addEventListener("click", () => addCustomDeductionRow());
 
 
     // New Federal Tax Elements
@@ -293,9 +346,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const nextButtons = document.querySelectorAll('.next-step-btn');
-    nextButtons.forEach(btn => {
+    for (let i = 0; i < nextButtons.length; i++) {
+        const btn = nextButtons[i];
         if (btn.id === 'generateAndPay') {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', function () {
                 if (validateAllFormFields()) {
                     handleMainFormSubmit();
                 } else {
@@ -303,24 +357,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         } else {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', function () {
                 if (validateFormStep(currentFormStep)) {
                     currentFormStep = Math.min(currentFormStep + 1, formSteps.length - 1);
                     showFormStep(currentFormStep);
                 }
             });
         }
-    });
+    }
 
     const prevButtons = document.querySelectorAll('.prev-step-btn');
-    prevButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
+    for (let i = 0; i < prevButtons.length; i++) {
+        const btn = prevButtons[i];
+        btn.addEventListener('click', function () {
             if (currentFormStep > 0) {
                 currentFormStep--;
                 showFormStep(currentFormStep);
             }
         });
-    });
+    }
 
     showFormStep(0);
 
@@ -390,11 +445,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const remaining = SOCIAL_SECURITY_WAGE_LIMIT_2024 - ytdGross;
         if (remaining <= 0) return 0;
         const taxable = Math.min(grossPay, remaining);
-        return taxable * SOCIAL_SECURITY_RATE;
+        return parseFloat((taxable * SOCIAL_SECURITY_RATE).toFixed(2));
     }
 
     function calculateMedicareDeduction(grossPay) {
-        return grossPay * MEDICARE_RATE;
+        return parseFloat((grossPay * MEDICARE_RATE).toFixed(2));
     }
 
     // Simplified federal tax brackets for quick estimation
@@ -415,6 +470,16 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     };
 
+    // Calculate deductions at standard tax rates
+    function calculateSocialSecurity(grossPay) {
+        const taxable = Math.min(grossPay, SOCIAL_SECURITY_WAGE_LIMIT_2024);
+        return taxable * SOCIAL_SECURITY_RATE;
+    }
+
+    function calculateMedicare(grossPay) {
+        return grossPay * MEDICARE_RATE;
+    }
+
     // --- Event Listeners --- //
 
     // Toggle Hourly/Salaried Fields
@@ -427,29 +492,6 @@ document.addEventListener('DOMContentLoaded', () => {
     populateDetailsBtn.addEventListener('click', autoPopulateFromDesiredIncome);
 
     // --- Preview Navigation Helpers --- //
-    function updatePreviewNavButtons() {
-        const numStubs = parseInt(numPaystubsSelect.value) || 1;
-        if (previewNavControls) previewNavControls.style.display = numStubs > 1 ? 'block' : 'none';
-        if (prevStubBtn) prevStubBtn.disabled = currentPreviewStubIndex === 0;
-        if (nextStubBtn) nextStubBtn.disabled = currentPreviewStubIndex >= numStubs - 1;
-    }
-
-    function goToNextStub() {
-        const numStubs = parseInt(numPaystubsSelect.value) || 1;
-        if (currentPreviewStubIndex < numStubs - 1) {
-            currentPreviewStubIndex++;
-            updateLivePreview();
-        }
-        updatePreviewNavButtons();
-    }
-
-    function goToPreviousStub() {
-        if (currentPreviewStubIndex > 0) {
-            currentPreviewStubIndex--;
-            updateLivePreview();
-        }
-        updatePreviewNavButtons();
-    }
 
     // Update Hourly Pay Frequency Visibility and preview navigation when number of stubs changes
     numPaystubsSelect.addEventListener('change', () => {
@@ -459,9 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const numStubs = parseInt(numPaystubsSelect.value) || 1;
         if (previewNavControls) previewNavControls.style.display = numStubs > 1 ? 'block' : 'none';
         updatePreviewNavButtons(numStubs);
-
         updateLivePreview();
-        updatePreviewNavButtons();
     });
     // Also trigger on employment type change
     employmentTypeRadios.forEach(radio => radio.addEventListener('change', updateHourlyPayFrequencyVisibility));
@@ -516,21 +556,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (nextStubBtn && prevStubBtn) {
         nextStubBtn.addEventListener('click', showNextPreviewStub);
         prevStubBtn.addEventListener('click', showPreviousPreviewStub);
+    }
 
     const debouncedTotalsUpdate = debounce(updatePaystubTotals, 300);
     formInputs.forEach(input => {
         input.addEventListener('input', debouncedTotalsUpdate);
         input.addEventListener('change', debouncedTotalsUpdate);
     });
-
-    if (nextStubBtn && prevStubBtn) {
-        nextStubBtn.addEventListener('click', goToNextStub);
-        prevStubBtn.addEventListener('click', goToPreviousStub);
-
-    }
     // Initial preview update
     updateLivePreview();
     updatePaystubTotals();
+    const payCalcInputIds = ['hourlyRate','regularHours','overtimeHours','annualSalary','bonus','miscEarningAmount','federalTaxAmount','stateTaxAmount','socialSecurityAmount','medicareAmount','njSdiAmount','njFliAmount','njUiHcWfAmount','healthInsurance','retirement401k','otherDeductionAmount'];
+    const payCalcInputs = payCalcInputIds.map(id => document.getElementById(id)).filter(Boolean);
+    const debouncedRefreshTotals = debounce(refreshLiveTotals, 300);
+    payCalcInputs.forEach(inp => {
+        inp.addEventListener('input', debouncedRefreshTotals);
+        inp.addEventListener('change', debouncedRefreshTotals);
+    });
 
     const initialNumStubs = parseInt(numPaystubsSelect.value) || 1;
 
@@ -540,10 +582,41 @@ document.addEventListener('DOMContentLoaded', () => {
     currentPreviewStubIndex = 0;
     updatePreviewNavButtons();
 
+    const employeeSsnInput = document.getElementById('employeeSsn');
+    if (employeeSsnInput) {
+        let ssnRaw = '';
+        employeeSsnInput.addEventListener('input', e => {
+            const digits = e.target.value.replace(/\D/g, '').slice(0, 9);
+            ssnRaw = digits;
+            e.target.dataset.rawValue = ssnRaw;
+            e.target.value = digits.replace(/(\d{3})(\d{2})(\d{0,4})/, (m, p1, p2, p3) => p3 ? `${p1}-${p2}-${p3}` : `${p1}-${p2}`);
+        });
+        employeeSsnInput.addEventListener('blur', e => {
+            if (ssnRaw.length >= 4) {
+                e.target.value = `***-**-${ssnRaw.slice(-4)}`;
+            }
+        });
+        employeeSsnInput.addEventListener('focus', e => {
+            if (ssnRaw) {
+                e.target.value = ssnRaw.replace(/(\d{3})(\d{2})(\d{0,4})/, (m, p1, p2, p3) => `${p1}-${p2}-${p3}`);
+            }
+        });
+    }
+
 
 
     // Sidebar Button Actions
     setupActionButtons();
+    function setupSidebarButtonActions() {
+        if (resetAllFieldsBtn) resetAllFieldsBtn.addEventListener('click', resetAllFormFields);
+        if (saveDraftBtn) saveDraftBtn.addEventListener('click', saveDraftToLocalStorage);
+        if (loadDraftBtn) loadDraftBtn.addEventListener('click', loadDraftFromLocalStorage);
+        if (estimateAllDeductionsBtn) estimateAllDeductionsBtn.addEventListener('click', estimateAllStandardDeductions);
+        if (previewPdfWatermarkedBtn) previewPdfWatermarkedBtn.addEventListener('click', handleWatermarkedPreview);
+        if (copyKeyDataBtn) copyKeyDataBtn.addEventListener('click', copyKeyPaystubData);
+        if (generateAndPayBtn) generateAndPayBtn.addEventListener('click', handleMainFormSubmit);
+    }
+    setupSidebarButtonActions();
 
     // Modal Interactions
 
@@ -563,8 +636,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     closePaymentModalBtn.addEventListener('click', closePaymentModal);
     closeSuccessMessageBtn.addEventListener('click', closePaymentModal);
-
-    confirmPaymentBtn.addEventListener('click', handlePaymentConfirmationSubmit);
 
     closeNotificationModalBtn.addEventListener("click", closeNotificationModal);
     // Close modal if clicked outside of modal-content
@@ -629,7 +700,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function populateDetailsFromDesiredIncome() {
-        const amount = parseFloat(desiredIncomeAmountInput.value) || 0;
+        const amount = parseCurrencyValue(desiredIncomeAmountInput.value) || 0;
         const period = desiredIncomePeriodSelect.value;
         const type = document.querySelector('input[name="incomeRepresentationType"]:checked').value;
         const hours = parseFloat(assumedHourlyRegularHoursInput.value) || 40;
@@ -716,7 +787,10 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let [key, value] of formData.entries()) {
             const inputElement = paystubForm.elements[key];
             if (inputElement) {
-                if (inputElement instanceof RadioNodeList) {
+                if (key === 'employeeSsn') {
+                    const raw = inputElement.dataset.rawValue || value;
+                    data[key] = raw.trim();
+                } else if (inputElement instanceof RadioNodeList) {
                     data[key] = value;
                 } else if (inputElement.type === 'radio') {
                     if (inputElement.checked) {
@@ -724,6 +798,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } else if (inputElement.type === 'checkbox') {
                     data[key] = inputElement.checked;
+                } else if (key === 'desiredIncomeAmount') {
+                    data[key] = parseCurrencyValue(value) || 0;
                 } else if (inputElement.type === 'number' || inputElement.classList.contains('amount-input')) {
                     data[key] = parseFloat(value) || 0; // Ensure numbers, default to 0 if NaN
                 } else {
@@ -731,6 +807,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
+
+        // Gather dynamic other deductions
+        const otherNames = formData.getAll('otherDeductionName[]');
+        const otherAmounts = formData.getAll('otherDeductionAmount[]');
+        data.otherDeductions = otherNames.map((n, idx) => ({
+            description: n.trim(),
+            amount: parseFloat(otherAmounts[idx]) || 0
+        })).filter(d => d.description || d.amount);
 
         // Add logo data if available
         data.companyLogoDataUrl = companyLogoPreviewImg.style.display !== 'none' ? companyLogoPreviewImg.src : null;
@@ -741,7 +825,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'hourlyRate', 'regularHours', 'overtimeHours', 'annualSalary', 'bonus', 'miscEarningAmount',
             'federalTaxAmount', 'stateTaxAmount', 'socialSecurityAmount', 'medicareAmount',
             'njSdiAmount', 'njFliAmount', 'njUiHcWfAmount',
-            'healthInsurance', 'retirement401k', 'otherDeductionAmount',
+            'healthInsurance', 'retirement401k',
             'initialYtdGrossPay', 'initialYtdFederalTax', 'initialYtdStateTax',
             'initialYtdSocialSecurity', 'initialYtdMedicare', 'initialYtdNjSdi',
             'initialYtdNjFli', 'initialYtdNjUiHcWf'
@@ -778,9 +862,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function calculateTotalDeductions(data) {
         const fields = [
             'federalTaxAmount','stateTaxAmount','socialSecurityAmount','medicareAmount',
-            'njSdiAmount','njFliAmount','njUiHcWfAmount','healthInsurance','retirement401k','otherDeductionAmount'
+            'njSdiAmount','njFliAmount','njUiHcWfAmount','healthInsurance','retirement401k'
         ];
-        return fields.reduce((sum, f) => sum + (parseFloat(data[f]) || 0), 0);
+        let sum = fields.reduce((acc, f) => acc + (parseFloat(data[f]) || 0), 0);
+        if (Array.isArray(data.otherDeductions)) {
+            sum += data.otherDeductions.reduce((a, d) => a + (parseFloat(d.amount) || 0), 0);
+        }
+        return sum;
     }
 
     function calculateNetPay(data) {
@@ -881,11 +969,21 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Calculate Total Other Deductions for Period ---
         results.totalOtherDeductions += (data.healthInsurance || 0);
         results.totalOtherDeductions += (data.retirement401k || 0);
-        results.totalOtherDeductions += (data.otherDeductionAmount || 0);
+        if (Array.isArray(data.otherDeductions)) {
+            data.otherDeductions.forEach(d => {
+                results.totalOtherDeductions += d.amount || 0;
+            });
+        }
 
         if(data.healthInsurance > 0) results.currentPeriodAmounts.healthInsurance = data.healthInsurance;
         if(data.retirement401k > 0) results.currentPeriodAmounts.retirement401k = data.retirement401k;
-        if(data.otherDeductionAmount > 0 && data.otherDeductionName) results.currentPeriodAmounts[data.otherDeductionName || 'otherDeduction'] = data.otherDeductionAmount;
+        if (Array.isArray(data.otherDeductions)) {
+            data.otherDeductions.forEach(d => {
+                if (d.amount > 0 && d.description) {
+                    results.currentPeriodAmounts[d.description] = d.amount;
+                }
+            });
+        }
 
 
         // --- Total Deductions & Net Pay ---
@@ -909,10 +1007,14 @@ document.addEventListener('DOMContentLoaded', () => {
             miscEarning: 0,
             // Add other deduction YTDs if they were inputted as initial YTD
         };
-        if(initialYtdData && data.otherDeductionName && initialYtdData[data.otherDeductionName]) {
-            ytdBase[data.otherDeductionName] = initialYtdData[data.otherDeductionName];
-        } else if (data.otherDeductionName) {
-             ytdBase[data.otherDeductionName] = 0; // Default to 0 if not in initialYtdData
+        if (Array.isArray(data.otherDeductions)) {
+            data.otherDeductions.forEach(d => {
+                if (initialYtdData && initialYtdData[d.description] != null) {
+                    ytdBase[d.description] = initialYtdData[d.description];
+                } else {
+                    ytdBase[d.description] = 0;
+                }
+            });
         }
         if(initialYtdData && data.miscEarningName && initialYtdData[data.miscEarningName]) {
              ytdBase[data.miscEarningName] = initialYtdData[data.miscEarningName];
@@ -946,8 +1048,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if(results.currentPeriodAmounts.healthInsurance) results.ytdAmounts.healthInsurance = (ytdBase.healthInsurance || 0) + results.currentPeriodAmounts.healthInsurance;
         if(results.currentPeriodAmounts.retirement401k) results.ytdAmounts.retirement401k = (ytdBase.retirement401k || 0) + results.currentPeriodAmounts.retirement401k;
         
-        if(data.otherDeductionName && results.currentPeriodAmounts[data.otherDeductionName]) {
-            results.ytdAmounts[data.otherDeductionName] = (ytdBase[data.otherDeductionName] || 0) + results.currentPeriodAmounts[data.otherDeductionName];
+        if (Array.isArray(data.otherDeductions)) {
+            data.otherDeductions.forEach(d => {
+                if (results.currentPeriodAmounts[d.description]) {
+                    results.ytdAmounts[d.description] = (ytdBase[d.description] || 0) + results.currentPeriodAmounts[d.description];
+                }
+            });
         }
 
 
@@ -1050,7 +1156,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (formData.miscEarningName) runningYtdData[formData.miscEarningName] = 0;
         if (formData.healthInsurance > 0) runningYtdData.healthInsurance = 0;
         if (formData.retirement401k > 0) runningYtdData.retirement401k = 0;
-        if (formData.otherDeductionName) runningYtdData[formData.otherDeductionName] = 0;
+        if (Array.isArray(formData.otherDeductions)) {
+            formData.otherDeductions.forEach(d => {
+                if (d.description) runningYtdData[d.description] = 0;
+            });
+        }
 
         let currentPeriodStartDate = formData.payPeriodStartDate;
         let currentPeriodEndDate = formData.payPeriodEndDate;
@@ -1146,8 +1256,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (displayDataForStub.njUiHcWfAmount > 0) addDeductionRow('NJ UI/HC/WF', calculations.currentPeriodAmounts.njUiHcWf, calculations.ytdAmounts.njUiHcWf);
         if (displayDataForStub.healthInsurance > 0) addDeductionRow('Health Insurance', calculations.currentPeriodAmounts.healthInsurance, calculations.ytdAmounts.healthInsurance);
         if (displayDataForStub.retirement401k > 0) addDeductionRow('Retirement (401k)', calculations.currentPeriodAmounts.retirement401k, calculations.ytdAmounts.retirement401k);
-        if (displayDataForStub.otherDeductionAmount > 0 && displayDataForStub.otherDeductionName) {
-            addDeductionRow(displayDataForStub.otherDeductionName, calculations.currentPeriodAmounts[displayDataForStub.otherDeductionName], calculations.ytdAmounts[displayDataForStub.otherDeductionName]);
+        if (Array.isArray(displayDataForStub.otherDeductions)) {
+            displayDataForStub.otherDeductions.forEach(d => {
+                if (d.amount > 0 && d.description) {
+                    addDeductionRow(d.description, calculations.currentPeriodAmounts[d.description], calculations.ytdAmounts[d.description]);
+                }
+            });
         }
 
         livePreviewGrossPay.textContent = formatCurrency(calculations.grossPay);
@@ -1190,13 +1304,6 @@ document.addEventListener('DOMContentLoaded', () => {
             updateLivePreview();
         }
         updatePreviewNavButtons(numStubs);
-
-        updatePreviewNavButtons();
-
-        if (prevStubBtn && nextStubBtn) {
-            prevStubBtn.disabled = currentPreviewStubIndex === 0;
-            nextStubBtn.disabled = currentPreviewStubIndex >= numStubs - 1;
-        }
 
         // Ensure summary totals reflect latest input
         updatePayPreviewTotals();
@@ -1242,9 +1349,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updatePaystubTotals() {
-        livePreviewGrossPay.textContent = formatCurrency(calculateGrossPay());
-        livePreviewTotalDeductions.textContent = formatCurrency(calculateTotalDeductions());
-        livePreviewNetPay.textContent = formatCurrency(calculateNetPay());
+        const gross = calculateGrossPay();
+        const totalDeductions = calculateTotalDeductions();
+        const netPay = calculateNetPay();
+
+        livePreviewGrossPay.textContent = formatCurrency(gross);
+        livePreviewTotalDeductions.textContent = formatCurrency(totalDeductions);
+        livePreviewNetPay.textContent = formatCurrency(netPay);
+
+        // Also update the sticky summary bar at the bottom
+        if (summaryGrossPay && summaryTotalDeductions && summaryNetPay) {
+            summaryGrossPay.textContent = formatCurrency(gross);
+            summaryTotalDeductions.textContent = formatCurrency(totalDeductions);
+            summaryNetPay.textContent = formatCurrency(netPay);
+        }
+    }
+
+    function computeGrossPayFromInputs() {
+        const data = gatherFormData();
+        let gross = 0;
+        if (data.employmentType === 'Hourly') {
+            const rate = parseFloat(data.hourlyRate) || 0;
+            const reg = parseFloat(data.regularHours) || 0;
+            const overtime = parseFloat(data.overtimeHours) || 0;
+            gross = (rate * reg) + (rate * overtime * 1.5);
+        } else {
+            const freq = data.salariedPayFrequency;
+            const periods = PAY_PERIODS_PER_YEAR[freq] || 1;
+            gross = (parseFloat(data.annualSalary) || 0) / periods;
+        }
+        gross += parseFloat(data.bonus) || 0;
+        gross += parseFloat(data.miscEarningAmount) || 0;
+        return gross;
+    }
+
+    function computeTotalDeductionsFromInputs() {
+        const data = gatherFormData();
+        const fields = ['federalTaxAmount','stateTaxAmount','socialSecurityAmount','medicareAmount','njSdiAmount','njFliAmount','njUiHcWfAmount','healthInsurance','retirement401k','otherDeductionAmount'];
+        return fields.reduce((sum, f) => sum + (parseFloat(data[f]) || 0), 0);
+    }
+
+    function computeNetPayFromInputs() {
+        return computeGrossPayFromInputs() - computeTotalDeductionsFromInputs();
+    }
+
+    function refreshLiveTotals() {
+        livePreviewGrossPay.textContent = formatCurrency(computeGrossPayFromInputs());
+        livePreviewTotalDeductions.textContent = formatCurrency(computeTotalDeductionsFromInputs());
+        livePreviewNetPay.textContent = formatCurrency(computeNetPayFromInputs());
     }
 
 
@@ -1287,7 +1439,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if(formData.miscEarningName) runningYtdData[formData.miscEarningName] = 0;
         if(formData.healthInsurance > 0) runningYtdData.healthInsurance = 0;
         if(formData.retirement401k > 0) runningYtdData.retirement401k = 0;
-        if(formData.otherDeductionName) runningYtdData[formData.otherDeductionName] = 0;
+        if (Array.isArray(formData.otherDeductions)) {
+            formData.otherDeductions.forEach(d => {
+                if (d.description) runningYtdData[d.description] = 0;
+            });
+        }
 
 
         let currentPeriodStartDate = formData.payPeriodStartDate;
@@ -1529,8 +1685,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.njUiHcWfAmount > 0) deductionsBody.push(['NJ UI/HC/WF', formatCurrency(calculations.currentPeriodAmounts.njUiHcWf), formatCurrency(calculations.ytdAmounts.njUiHcWf)]);
         if (data.healthInsurance > 0) deductionsBody.push(['Health Insurance', formatCurrency(calculations.currentPeriodAmounts.healthInsurance), formatCurrency(calculations.ytdAmounts.healthInsurance)]);
         if (data.retirement401k > 0) deductionsBody.push(['Retirement (401k)', formatCurrency(calculations.currentPeriodAmounts.retirement401k), formatCurrency(calculations.ytdAmounts.retirement401k)]);
-        if (data.otherDeductionAmount > 0 && data.otherDeductionName) {
-            deductionsBody.push([data.otherDeductionName, formatCurrency(calculations.currentPeriodAmounts[data.otherDeductionName]), formatCurrency(calculations.ytdAmounts[data.otherDeductionName])]);
+        if (Array.isArray(data.otherDeductions)) {
+            data.otherDeductions.forEach(d => {
+                if (d.amount > 0 && d.description) {
+                    deductionsBody.push([d.description, formatCurrency(calculations.currentPeriodAmounts[d.description]), formatCurrency(calculations.ytdAmounts[d.description])]);
+                }
+            });
         }
 
         doc.autoTable({
@@ -1613,25 +1773,58 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    function handleMainFormSubmit() {
+   function handleMainFormSubmit() {
+    async function handleMainFormSubmit() {
         if (generateAndPayBtn) generateAndPayBtn.disabled = true;
         clearSummaryError();
-        if (validateAllFormFields()) {
-            // Update dynamic pricing in modal
-            const numStubs = parseInt(numPaystubsSelect.value);
-            const pricingInfo = PRICING[numStubs] || PRICING[1];
-            totalPaymentAmountSpan.textContent = formatCurrency(pricingInfo.price);
-            paymentDiscountNoteSpan.textContent = pricingInfo.note;
-
-            openPaymentModal();
-        } else {
+        if (!validateAllFormFields()) {
             showSummaryError('Please review the highlighted fields below.');
             const firstError = paystubForm.querySelector('.invalid');
             if (firstError) firstError.focus();
             showNotificationModal('Validation Error', 'Please correct the errors in the form.');
             if (generateAndPayBtn) generateAndPayBtn.disabled = false;
+            return;
         }
-    }
+
+        const formData = gatherFormData();
+        try {
+            const response = await fetch('/create-checkout-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: formData.userEmail, formData })
+            });
+            const data = await response.json();
+            if (data.url) {
+                window.location = data.url;
+            } else {
+                showNotificationModal('Payment Error', 'Unable to initiate payment.');
+                if (generateAndPayBtn) generateAndPayBtn.disabled = false;
+            }
+        } catch (err) {
+            showNotificationModal('Payment Error', 'Unable to initiate payment.');
+            if (generateAndPayBtn) generateAndPayBtn.disabled = false;
+        }
+
+        const numStubs = parseInt(numPaystubsSelect.value);
+        const pricingInfo = PRICING[numStubs] || PRICING[1];
+        const formData = gatherFormData();
+
+        fetch('/api/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ formData, amount: pricingInfo.price })
+        })
+            .then(res => res.json())
+            .then(data => {
+                const stripe = Stripe(window.STRIPE_PUBLISHABLE_KEY);
+                return stripe.redirectToCheckout({ sessionId: data.sessionId });
+            })
+            .catch(err => {
+                console.error('Checkout error', err);
+                showNotificationModal('Error', 'Unable to initiate payment.');
+                if (generateAndPayBtn) generateAndPayBtn.disabled = false;
+            });
+   }
 
     // TODO (Future Backend): When a real backend is implemented, ensure all data submitted from the client (especially if it includes any sensitive form details beyond just TXID and email for manual processing) is transmitted over HTTPS and handled securely on the server according to best practices for data protection and encryption at rest.
     function handlePaymentConfirmationSubmit() {
@@ -1684,6 +1877,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.error-message').forEach(span => span.textContent = '');
         document.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
         clearSummaryError();
+
+        if (customDeductionsContainer) {
+            customDeductionsContainer.innerHTML = '';
+            addCustomDeductionRow();
+        }
 
         toggleEmploymentFields(); // Ensure correct fields are shown based on default radio
         updateHourlyPayFrequencyVisibility(); // And update conditional dropdown
@@ -1755,6 +1953,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 el.value = value;
             }
         }
+        if (customDeductionsContainer) {
+            customDeductionsContainer.innerHTML = '';
+            const dedArr = Array.isArray(data.otherDeductions) ? data.otherDeductions : [];
+            if (dedArr.length === 0) addCustomDeductionRow();
+            else dedArr.forEach(d => addCustomDeductionRow(d.description, d.amount));
+        }
 
         if (data.companyLogoDataUrl) {
             companyLogoPreviewImg.src = data.companyLogoDataUrl;
@@ -1783,7 +1987,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function autoPopulateFromDesiredIncome() {
-        const amount = parseFloat(desiredIncomeAmountInput.value);
+        const amount = parseCurrencyValue(desiredIncomeAmountInput.value);
         const period = desiredIncomePeriodSelect.value;
         const repType = document.querySelector('input[name="incomeRepresentationType"]:checked').value;
         const desiredIncomeType = document.querySelector('input[name="desiredIncomeType"]:checked').value;
@@ -1852,6 +2056,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const hourlyRate = grossPayPerPeriod / assumedHours;
             document.getElementById('hourlyRate').value = hourlyRate.toFixed(2);
             document.getElementById('regularHours').value = assumedHours;
+        }
+
+        const filingStatus = federalFilingStatusSelect ? federalFilingStatusSelect.value : 'Single';
+        const stateTaxInput = document.getElementById('stateTaxAmount');
+        if (stateTaxInput) {
+            const estState = estimateNJStateTax(grossPayPerPeriod, payFrequency, filingStatus);
+            stateTaxInput.value = estState.toFixed(2);
         }
 
         if (forNJ) {
@@ -1967,17 +2178,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const isForNJ = data.isForNJEmployment || false;
 
         if (typeof estimateFederalTax === 'function') {
-            const fedTax = estimateFederalTax(grossPay, payFrequency, filingStatus);
+            const fedTax = estimateFederalTax(gross, payFrequency, filingStatus);
             const fedInput = document.getElementById('federalTaxAmount');
             if (fedInput) {
                 fedInput.value = fedTax.toFixed(2);
                 fedInput.classList.add('auto-calculated-field');
                 fedInput.readOnly = true;
             }
-        const filingStatus = data.federalFilingStatus || data.filingStatus || 'Single';
-        const gross = calculations.grossPay;
+        }
+
         const ytdGross = data.initialYtdGrossPay || 0;
-        const isForNJ = data.isForNJEmployment || false;
 
         if (autoCalculateFederalTaxCheckbox && autoCalculateFederalTaxCheckbox.checked) {
             const val = estimateFederalTax(gross, payFrequency, filingStatus);
@@ -1990,11 +2200,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (autoCalculateSocialSecurityCheckbox && autoCalculateSocialSecurityCheckbox.checked) {
-          
             const val = calculateSocialSecurityDeduction(gross, ytdGross);
-=======
-            const val = calculateSocialSecurity(gross);
-
             socialSecurityAmountInput.value = val.toFixed(2);
             socialSecurityAmountInput.readOnly = true;
             socialSecurityAmountInput.classList.add('auto-calculated-field');
@@ -2004,11 +2210,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (autoCalculateMedicareCheckbox && autoCalculateMedicareCheckbox.checked) {
-
             const val = calculateMedicareDeduction(gross);
-=======
-            const val = calculateMedicare(gross);
-
             medicareAmountInput.value = val.toFixed(2);
             medicareAmountInput.readOnly = true;
             medicareAmountInput.classList.add('auto-calculated-field');
@@ -2090,12 +2292,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateSocialSecurityCheckbox.checked) {
             const data = gatherFormData();
             const gross = calculateCurrentPeriodPay(data).grossPay;
-
             const ytd = parseFloat(document.getElementById('initialYtdSocialSecurity')?.value) || 0;
             const val = calculateSocialSecurityDeduction(gross, ytd);
-
-            const val = calculateSocialSecurity(gross);
-
             socialSecurityAmountInput.value = val.toFixed(2);
             socialSecurityAmountInput.readOnly = true;
             socialSecurityAmountInput.classList.add('auto-calculated-field');
@@ -2110,11 +2308,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateMedicareCheckbox.checked) {
             const data = gatherFormData();
             const gross = calculateCurrentPeriodPay(data).grossPay;
-
             const val = calculateMedicareDeduction(gross);
-
-            const val = calculateMedicare(gross);
-
             medicareAmountInput.value = val.toFixed(2);
             medicareAmountInput.readOnly = true;
             medicareAmountInput.classList.add('auto-calculated-field');
@@ -2137,20 +2331,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        const otherDeductionAmount = parseFloat(document.getElementById('otherDeductionAmount').value);
-        const otherDeductionNameInput = document.getElementById('otherDeductionName');
-        if (otherDeductionNameInput) {
-            if (!isNaN(otherDeductionAmount) && otherDeductionAmount > 0) {
-                if (!otherDeductionNameInput.value.trim()) {
-                    showError(otherDeductionNameInput, 'Name required if amount is entered.');
+        const deductionRows = customDeductionsContainer ? customDeductionsContainer.querySelectorAll('.deduction-row') : [];
+        deductionRows.forEach(row => {
+            const amountInput = row.querySelector('input[name="otherDeductionAmount[]"]');
+            const nameInput = row.querySelector('input[name="otherDeductionName[]"]');
+            const amount = parseFloat(amountInput.value);
+            if (!isNaN(amount) && amount > 0) {
+                if (!nameInput.value.trim()) {
+                    showError(nameInput, 'Name required if amount is entered.');
                     isValid = false;
                 } else {
-                    clearError(otherDeductionNameInput);
+                    clearError(nameInput);
                 }
             } else {
-                clearError(otherDeductionNameInput);
+                clearError(nameInput);
             }
-        }
+        });
 
         const miscEarningAmount = parseFloat(document.getElementById('miscEarningAmount').value);
         const miscEarningNameInput = document.getElementById('miscEarningName');
@@ -2496,8 +2692,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     updateAutoCalculatedFields();
     showFormStep(0);
+    validateDesiredIncome();
     if (sharePdfEmailLink) sharePdfEmailLink.style.display = 'none';
     if (sharePdfInstructions) sharePdfInstructions.style.display = 'none';
-    showStep(0);
 
 });

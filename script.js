@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPreviewStubIndex = 0;
     // --- DOM Elements --- //
     const paystubForm = document.getElementById('paystubForm');
+    const formSummaryError = document.getElementById('formSummaryError');
     const numPaystubsSelect = document.getElementById('numPaystubs');
     const hourlyPayFrequencyGroup = document.getElementById('hourlyPayFrequencyGroup');
     const hourlyPayFrequencySelect = document.getElementById('hourlyPayFrequency');
@@ -345,6 +346,12 @@ document.addEventListener('DOMContentLoaded', () => {
     formInputs.forEach(input => {
         input.addEventListener('input', debounce(updateLivePreview, 300));
         input.addEventListener('change', debounce(updateLivePreview, 300)); // For selects, radios, checkboxes
+        input.addEventListener('blur', () => validateField(input));
+        input.addEventListener('input', () => {
+            if (input.classList.contains('invalid')) {
+                validateField(input);
+            }
+        });
     });
 
     if (nextStubBtn && prevStubBtn) {
@@ -1014,7 +1021,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function generateAndDownloadPdf(isPreviewMode) {
+        clearSummaryError();
         if (!validateAllFormFields()) {
+            showSummaryError('Please review the highlighted fields below.');
+            const firstError = paystubForm.querySelector('.invalid');
+            if (firstError) firstError.focus();
+            showNotificationModal('Validation Error', 'Please fix the errors in the form before generating the PDF.'); // Replace with custom modal later
             showNotificationModal('Validation Error', 'Please fix the errors in the form before generating the PDF.');
             return;
         }
@@ -1332,6 +1344,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function handleMainFormSubmit() {
+        clearSummaryError();
         if (validateAllFormFields()) {
             // Update dynamic pricing in modal
             const numStubs = parseInt(numPaystubsSelect.value);
@@ -1343,7 +1356,9 @@ document.addEventListener('DOMContentLoaded', () => {
             paymentInstructionsDiv.style.display = 'block';
             modalOrderSuccessMessageDiv.style.display = 'none';
         } else {
-            // Consider a more elegant way to show this, e.g., scroll to first error
+            showSummaryError('Please review the highlighted fields below.');
+            const firstError = paystubForm.querySelector('.invalid');
+            if (firstError) firstError.focus();
             showNotificationModal('Validation Error', 'Please correct the errors in the form.');
         }
     }
@@ -1388,6 +1403,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Clear all error messages
         document.querySelectorAll('.error-message').forEach(span => span.textContent = '');
         document.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
+        clearSummaryError();
 
         toggleEmploymentFields(); // Ensure correct fields are shown based on default radio
         updateHourlyPayFrequencyVisibility(); // And update conditional dropdown
@@ -1998,6 +2014,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         inputElement.classList.remove('invalid');
+    }
+
+    function showSummaryError(message) {
+        if (formSummaryError) {
+            formSummaryError.textContent = message;
+            formSummaryError.classList.add('active');
+        }
+    }
+
+    function clearSummaryError() {
+        if (formSummaryError) {
+            formSummaryError.textContent = '';
+            formSummaryError.classList.remove('active');
+        }
     }
     function setRequired(element, isRequired) {
         if (isRequired) {

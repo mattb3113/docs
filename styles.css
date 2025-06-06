@@ -384,6 +384,18 @@ input.auto-calc-readonly[readonly] {
     margin-top: 5px;
     min-height: 15px; /* Reserve space to prevent layout shifts */
 }
+.form-summary-error {
+    display: none;
+    color: var(--error-color);
+    background-color: rgba(226, 93, 106, 0.1);
+    border: 1px solid var(--error-color);
+    padding: 10px;
+    border-radius: var(--border-radius-md);
+    margin-bottom: 15px;
+}
+.form-summary-error.active {
+    display: block;
+}
 input.invalid, select.invalid, textarea.invalid {
     border-color: var(--error-color) !important;
     box-shadow: 0 0 0 2px rgba(226, 93, 106, 0.3) !important; /* Red glow */

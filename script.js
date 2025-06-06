@@ -1069,6 +1069,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     data[key] = inputElement.checked;
                 } else if (key === 'desiredIncomeAmount' || key === 'annualSalary') {
                     data[key] = parseCurrencyValue(value) || 0;
+                } else if (inputElement.classList.contains('currency-input')) {
+                    data[key] = parseCurrencyValue(value) || 0;
                 } else if (inputElement.type === 'number' || inputElement.classList.contains('amount-input')) {
                     data[key] = parseFloat(value) || 0; // Ensure numbers, default to 0 if NaN
                 } else {
@@ -2530,7 +2532,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isForNjEmploymentCheckbox.checked) {
             if (autoCalculateNjSdiCheckbox && autoCalculateNjSdiCheckbox.checked) {
                 const val = estimateNJ_SDI(gross, payFrequency);
-                njSdiAmountInput.value = val.toFixed(2);
+                njSdiAmountInput.value = formatCurrencyInput(val.toFixed(2));
                 njSdiAmountInput.readOnly = true;
                 njSdiAmountInput.classList.add('auto-calculated-field');
             } else if (autoCalculateNjSdiCheckbox) {
@@ -2540,7 +2542,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (autoCalculateNjFliCheckbox && autoCalculateNjFliCheckbox.checked) {
                 const val = estimateNJ_FLI(gross, payFrequency);
-                njFliAmountInput.value = val.toFixed(2);
+                njFliAmountInput.value = formatCurrencyInput(val.toFixed(2));
                 njFliAmountInput.readOnly = true;
                 njFliAmountInput.classList.add('auto-calculated-field');
             } else if (autoCalculateNjFliCheckbox) {
@@ -2550,7 +2552,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (autoCalculateNjUiCheckbox && autoCalculateNjUiCheckbox.checked) {
                 const val = estimateNJ_UIHCWF(gross, payFrequency);
-                njUiAmountInput.value = val.toFixed(2);
+                njUiAmountInput.value = formatCurrencyInput(val.toFixed(2));
                 njUiAmountInput.readOnly = true;
                 njUiAmountInput.classList.add('auto-calculated-field');
             } else if (autoCalculateNjUiCheckbox) {
@@ -3075,6 +3077,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (formatted) this.value = formatted;
         });
     }
+
+    document.querySelectorAll('.currency-input').forEach(inp => {
+        inp.addEventListener('blur', function() {
+            const formatted = formatCurrencyInput(this.value);
+            if (formatted) this.value = formatted;
+        });
+    });
     validateDesiredIncome();
     validateAnnualSalary();
     if (sharePdfEmailLink) sharePdfEmailLink.style.display = 'none';

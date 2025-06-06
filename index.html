@@ -198,7 +198,7 @@
                 </section>
 
                 <!-- Employee Information -->
-                <section class="form-section-card form-section-minimized">
+                <section class="form-section-card">
                     <h3>Employee Information</h3>
                     <div class="form-group">
                         <label for="employeeFullName">Employee Full Name <span class="required-asterisk">*</span></label>
@@ -271,7 +271,7 @@
 
 
                 <!-- Earnings -->
-                <section class="form-section-card form-section-minimized">
+                <section class="form-section-card">
                     <h3>Earnings</h3>
                     <div class="form-group">
                         <label id="employmentTypeLabel">Employment Type <span class="required-asterisk">*</span></label>
@@ -354,7 +354,7 @@
 
 
                 <!-- Taxes (Enter Amounts per Period - Simulation Only) -->
-                <section class="form-section-card form-section-minimized">
+                <section class="form-section-card">
                     <h3>Taxes (Enter Amounts per Period - Simulation Only)</h3>
                     <p class="info-text">All values are per pay period. Leave blank to auto-calc where available.</p>
                      <div class="grid-col-2">
@@ -397,41 +397,40 @@
                 </section>
 
                 <!-- State-Specific Deductions/Taxes (New Jersey) -->
-                <section class="form-section-card form-section-minimized">
-                    <h3>State-Specific Deductions/Taxes (New Jersey - Enter Amounts per Period)</h3>
-                    <div class="grid-col-3">
+                <section class="form-section-card">
+                    <h3>State-Specific Deductions/Taxes (New Jersey)</h3>
+                    <div class="grid-col-2">
                         <div class="form-group">
-                            <label for="njSdiAmount">NJ SUI/SDI (State Unemployment/Disability Insurance)</label>
-                            <input type="number" id="njSdiAmount" name="njSdiAmount" step="0.01" min="0" value="0" aria-describedby="njSdiAmountError">
+                            <label for="stateTaxAmount">NJ State Income Tax</label>
+                            <input type="text" id="stateTaxAmount" name="stateTaxAmount" class="form-input currency-input" value="$0.00" autocomplete="off">
+                            <span class="info-icon" tabindex="0" aria-label="NJ State Income Tax information">ℹ️
+                                <span class="tooltip-text">Enter the amount withheld for New Jersey state income tax per pay period.</span>
+                            </span>
+                            <span class="error-message" id="stateTaxAmountError"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="njSdiAmount">NJ SDI (State Disability Insurance)</label>
+                            <input type="text" id="njSdiAmount" name="njSdiAmount" class="form-input currency-input" value="$0.00" autocomplete="off">
+                            <span class="info-icon" tabindex="0" aria-label="NJ SDI information">ℹ️
+                                <span class="tooltip-text">Enter the amount withheld for New Jersey State Disability Insurance per pay period.</span>
+                            </span>
                             <span class="error-message" id="njSdiAmountError"></span>
                         </div>
-                        <div class="form-group checkbox-group">
-                            <label for="autoCalculateNjSdi">
-                                <input type="checkbox" id="autoCalculateNjSdi" name="autoCalculateNjSdi" checked>
-                                Auto-calc SDI?
-                            </label>
-                        </div>
                         <div class="form-group">
-                            <label for="njFliAmount">NJ FLI Amount</label>
-                            <input type="number" id="njFliAmount" name="njFliAmount" step="0.01" min="0" value="0" aria-describedby="njFliAmountError">
+                            <label for="njFliAmount">NJ FLI (Family Leave Insurance)</label>
+                            <input type="text" id="njFliAmount" name="njFliAmount" class="form-input currency-input" value="$0.00" autocomplete="off">
+                            <span class="info-icon" tabindex="0" aria-label="NJ FLI information">ℹ️
+                                <span class="tooltip-text">Enter the amount withheld for New Jersey Family Leave Insurance per pay period.</span>
+                            </span>
                             <span class="error-message" id="njFliAmountError"></span>
                         </div>
-                        <div class="form-group checkbox-group">
-                            <label for="autoCalculateNjFli">
-                                <input type="checkbox" id="autoCalculateNjFli" name="autoCalculateNjFli" checked>
-                                Auto-calc FLI?
-                            </label>
-                        </div>
                         <div class="form-group">
-                            <label for="njUiHcWfAmount">NJ UI/HC/WF Amount <span class="tooltip-icon" tabindex="0" data-tooltip="New Jersey unemployment, health care and workforce tax" aria-describedby="njUiHcWfTooltipText">ℹ️</span><span id="njUiHcWfTooltipText" class="visually-hidden">New Jersey unemployment, health care and workforce tax</span></label>
-                            <input type="number" id="njUiHcWfAmount" name="njUiHcWfAmount" step="0.01" min="0" value="0" aria-describedby="njUiHcWfAmountError">
+                            <label for="njUiHcWfAmount">NJ UI/HC/WF</label>
+                            <input type="text" id="njUiHcWfAmount" name="njUiHcWfAmount" class="form-input currency-input" value="$0.00" autocomplete="off">
+                            <span class="info-icon" tabindex="0" aria-label="NJ UI/HC/WF information">ℹ️
+                                <span class="tooltip-text">Enter the amount withheld for New Jersey Unemployment Insurance, Health Care, and Workforce funds per pay period.</span>
+                            </span>
                             <span class="error-message" id="njUiHcWfAmountError"></span>
-                        </div>
-                        <div class="form-group checkbox-group">
-                            <label for="autoCalculateNjUi">
-                                <input type="checkbox" id="autoCalculateNjUi" name="autoCalculateNjUi" checked>
-                                Auto-calc UI/HC/WF?
-                            </label>
                         </div>
                     </div>
                 </section>
@@ -444,7 +443,7 @@
 
 
                 <!-- Other Deductions (Optional) -->
-                <section class="form-section-card form-section-minimized">
+                <section class="form-section-card">
                     <h3>Other Deductions (Enter Amounts per Period - Optional)</h3>
                     <div class="grid-col-2">
                         <div class="form-group">
@@ -463,7 +462,7 @@
                 </section>
 
                 <!-- Initial Year-to-Date (YTD) Figures -->
-                <section class="form-section-card form-section-minimized">
+                <section class="form-section-card">
                     <h3>Initial Year-to-Date (YTD) Figures</h3>
                     <p class="info-text">Enter totals from before this batch. They accumulate with each stub.</p>
                     <div class="grid-col-2">
@@ -516,7 +515,7 @@
 
 
                 <!-- Optional Additions -->
-                <section class="form-section-card form-section-minimized">
+                <section class="form-section-card">
                     <h3>Optional Additions</h3>
                      <div class="grid-col-2">
                         <div class="form-group">
@@ -539,7 +538,7 @@
                 </section>
 
                 <!-- User Notes & Submission -->
-                <section class="form-section-card form-section-minimized">
+                <section class="form-section-card">
                     <h3>Notes & Submission</h3>
                     <div class="form-group">
                         <label for="userNotes">Additional instructions or custom requests (optional)</label>

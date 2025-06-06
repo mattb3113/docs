@@ -2862,46 +2862,6 @@ document.addEventListener('DOMContentLoaded', () => {
         openNotificationModal();
     }
 
-    // ---- New Live Preview System ---- //
-    const previewContainer = document.querySelector('.paystub-preview');
-    const fieldMappings = [
-        { input: '#employee-name, #employeeFullName', preview: '.preview-name', fallback: 'John Doe' },
-        { input: '#salary-input, #annualSalary', preview: '.preview-salary', fallback: '$0' },
-        { input: '#payDate', preview: '.preview-pay-date', fallback: 'YYYY-MM-DD' },
-        { input: '#companyName', preview: '.preview-company', fallback: 'Company Name' }
-    ];
-
-    function updateElement(selector, value) {
-        const el = previewContainer ? previewContainer.querySelector(selector) : null;
-        if (!el) {
-            console.error('Preview element missing for selector:', selector);
-            return;
-        }
-        el.textContent = value;
-    }
-
-    function updatePaystubPreview() {
-        console.error('updatePaystubPreview cycle start');
-        if (!previewContainer) {
-            console.error('Preview container not found');
-            return;
-        }
-        fieldMappings.forEach(map => {
-            const inputEl = document.querySelector(map.input);
-            const val = inputEl && inputEl.value.trim() ? inputEl.value.trim() : map.fallback;
-            updateElement(map.preview, val);
-        });
-    }
-
-    document.querySelectorAll('input, select, textarea').forEach(el => {
-        el.addEventListener('input', updatePaystubPreview);
-        el.addEventListener('blur', updatePaystubPreview);
-    });
-    document.querySelectorAll('.next-step, .prev-step').forEach(btn => {
-        btn.addEventListener('click', () => setTimeout(updatePaystubPreview, 0));
-    });
-
-    updatePaystubPreview();
 
     function setupActionButtons() {
         if (resetAllFieldsBtn) resetAllFieldsBtn.addEventListener('click', resetAllFormFields);

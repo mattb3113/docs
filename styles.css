@@ -163,6 +163,8 @@ label, input, select, textarea, button {
 /* -------------------- */
 .main-wrapper {
     display: flex;
+    gap: 20px; /* Space between sidebar and content */
+    align-items: flex-start; /* Align panels to the top */
     padding-top: var(--header-height); /* Account for fixed header */
     min-height: calc(100vh - var(--header-height));
 }
@@ -1001,6 +1003,16 @@ input.invalid, select.invalid, textarea.invalid {
 @media (max-width: 992px) { /* Tablets and smaller desktops */
     .main-content {
         padding: 20px;
+    }
+    .main-wrapper {
+        flex-direction: column;
+        gap: 0;
+    }
+    .sidebar {
+        width: 100%;
+        position: static;
+        height: auto;
+        margin-bottom: 20px;
     }
     .app-header {
         padding: 12px 20px;

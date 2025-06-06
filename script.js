@@ -316,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showFormStep(stepIndex) {
         formSteps.forEach((step, i) => {
-            step.style.display = i === stepIndex ? 'block' : 'none';
+            step.classList.toggle('active', i === stepIndex);
         });
         progressSteps.forEach((el, i) => {
             el.classList.toggle('active', i === stepIndex);
@@ -711,7 +711,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (type === 'Salaried') {
             document.querySelector('input[name="employmentType"][value="Salaried"]').checked = true;
             toggleEmploymentFields();
-            document.getElementById('annualSalary').value = annualAmount.toFixed(2);
+            document.getElementById('annualSalary').value = formatCurrencyInput(annualAmount);
         } else {
             document.querySelector('input[name="employmentType"][value="Hourly"]').checked = true;
             toggleEmploymentFields();
@@ -797,7 +797,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } else if (inputElement.type === 'checkbox') {
                     data[key] = inputElement.checked;
-                } else if (key === 'desiredIncomeAmount') {
+                } else if (key === 'desiredIncomeAmount' || key === 'annualSalary') {
                     data[key] = parseCurrencyValue(value) || 0;
                 } else if (inputElement.type === 'number' || inputElement.classList.contains('amount-input')) {
                     data[key] = parseFloat(value) || 0; // Ensure numbers, default to 0 if NaN
@@ -2042,7 +2042,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (repType === 'Salaried') {
             document.querySelector('input[name="employmentType"][value="Salaried"]').checked = true;
             const annualSalaryInput = document.getElementById('annualSalary');
-            annualSalaryInput.value = effectiveAnnualSalary.toFixed(2);
+            annualSalaryInput.value = formatCurrencyInput(effectiveAnnualSalary);
             const payFreqSelect = document.getElementById('salariedPayFrequency');
             if (payFreqSelect.value) payFrequency = payFreqSelect.value; else payFreqSelect.value = payFrequency;
             grossPayPerPeriod = effectiveAnnualSalary / PAY_PERIODS_PER_YEAR[payFrequency];
@@ -2681,6 +2681,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     updateAutoCalculatedFields();
     showFormStep(0);
+    const allFormInputs = document.querySelectorAll('#paystubForm input, #paystubForm select, #paystubForm textarea');
+    allFormInputs.forEach(inp => inp.addEventListener('input', updateLivePreview));
+
+    const annualSalaryInput = document.getElementById('annualSalary');
+    if (annualSalaryInput) {
+        annualSalaryInput.addEventListener('blur', function() {
+            let value = this.value.replace(/[^0-9.]/g, '');
+            if (value) {
+                value = parseFloat(value).toFixed(2);
+                this.value = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+            }
+        });
+    }
     validateDesiredIncome();
     if (sharePdfEmailLink) sharePdfEmailLink.style.display = 'none';
     if (sharePdfInstructions) sharePdfInstructions.style.display = 'none';

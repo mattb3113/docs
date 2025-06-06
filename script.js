@@ -355,6 +355,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const NJ_UIHCWF_RATE = 0.000425; // 0.0425%
     const NJ_UIHCWF_WAGE_LIMIT = 42300;
 
+    function calculateSocialSecurity(grossPay) {
+        return parseFloat((grossPay * SOCIAL_SECURITY_RATE).toFixed(2));
+    }
+
+    function calculateMedicare(grossPay) {
+        return parseFloat((grossPay * MEDICARE_RATE).toFixed(2));
+    }
+
     const NJ_TAX_BRACKETS_2024 = {
         'Single': [
             { limit: 20000, rate: 0.014 },
@@ -466,15 +474,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Form input changes for live preview (debounced)
     const formInputs = paystubForm.querySelectorAll('input, select, textarea');
+    const debouncedPreview = debounce(updateLivePreview, 300);
     formInputs.forEach(input => {
-        input.addEventListener('input', debounce(updateLivePreview, 300));
-        input.addEventListener('change', debounce(updateLivePreview, 300)); // For selects, radios, checkboxes
+        input.addEventListener('input', debouncedPreview);
+        input.addEventListener('change', debouncedPreview); // For selects, radios, checkboxes
         input.addEventListener('blur', () => validateField(input));
         input.addEventListener('input', () => {
             if (input.classList.contains('invalid')) {
                 validateField(input);
             }
         });
+    });
+
+    const debouncedTotalsUpdate = debounce(updatePaystubTotals, 300);
+    formInputs.forEach(input => {
+        input.addEventListener('input', debouncedTotalsUpdate);
+        input.addEventListener('change', debouncedTotalsUpdate);
     });
 
     if (nextStubBtn && prevStubBtn) {
@@ -500,6 +515,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // Initial preview update
     updateLivePreview();
+    updatePaystubTotals();
 
     const initialNumStubs = parseInt(numPaystubsSelect.value) || 1;
     if (previewNavControls) previewNavControls.style.display = initialNumStubs > 1 ? 'block' : 'none';
@@ -727,6 +743,45 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         return data;
+    }
+
+    function calculateGrossPay(data) {
+        let gross = 0;
+        if (data.employmentType === 'Hourly') {
+            const rate = data.hourlyRate || 0;
+            const regular = data.regularHours || 0;
+            const overtime = data.overtimeHours || 0;
+            gross = (rate * regular) + (rate * overtime * 1.5);
+        } else {
+            const freq = data.salariedPayFrequency;
+            const periods = PAY_PERIODS_PER_YEAR[freq] || 1;
+            gross = (data.annualSalary || 0) / periods;
+        }
+        gross += (data.bonus || 0);
+        gross += (data.miscEarningAmount || 0);
+        return gross;
+    }
+
+    function calculateTotalDeductions(data) {
+        const fields = [
+            'federalTaxAmount','stateTaxAmount','socialSecurityAmount','medicareAmount',
+            'njSdiAmount','njFliAmount','njUiHcWfAmount','healthInsurance','retirement401k','otherDeductionAmount'
+        ];
+        return fields.reduce((sum, f) => sum + (parseFloat(data[f]) || 0), 0);
+    }
+
+    function calculateNetPay(data) {
+        return calculateGrossPay(data) - calculateTotalDeductions(data);
+    }
+
+    function updatePayPreviewTotals() {
+        const data = gatherFormData();
+        const gross = calculateGrossPay(data);
+        const deductions = calculateTotalDeductions(data);
+        const net = gross - deductions;
+        livePreviewGrossPay.textContent = formatCurrency(gross);
+        livePreviewTotalDeductions.textContent = formatCurrency(deductions);
+        livePreviewNetPay.textContent = formatCurrency(net);
     }
 
     function calculateCurrentPeriodPay(data, initialYtdData = null) {
@@ -1101,6 +1156,9 @@ document.addEventListener('DOMContentLoaded', () => {
             prevStubBtn.disabled = currentPreviewStubIndex === 0;
             nextStubBtn.disabled = currentPreviewStubIndex >= numStubs - 1;
         }
+
+        // Ensure summary totals reflect latest input
+        updatePayPreviewTotals();
     }
 
     function addEarningRow(description, hours, rate, current, ytd) {
@@ -1126,6 +1184,25 @@ document.addEventListener('DOMContentLoaded', () => {
         // For responsive table attributes
         row.cells[1].setAttribute('data-label', 'Current');
         row.cells[2].setAttribute('data-label', 'YTD');
+    }
+
+    // Basic pay calculations used for quick live updates
+    function calculateGrossPay() {
+        return calculateCurrentPeriodPay(gatherFormData()).grossPay;
+    }
+
+    function calculateTotalDeductions() {
+        return calculateCurrentPeriodPay(gatherFormData()).totalDeductions;
+    }
+
+    function calculateNetPay() {
+        return calculateCurrentPeriodPay(gatherFormData()).netPay;
+    }
+
+    function updatePaystubTotals() {
+        livePreviewGrossPay.textContent = formatCurrency(calculateGrossPay());
+        livePreviewTotalDeductions.textContent = formatCurrency(calculateTotalDeductions());
+        livePreviewNetPay.textContent = formatCurrency(calculateNetPay());
     }
 
 
@@ -1871,7 +1948,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (autoCalculateSocialSecurityCheckbox && autoCalculateSocialSecurityCheckbox.checked) {
+          
             const val = calculateSocialSecurityDeduction(gross, ytdGross);
+=======
+            const val = calculateSocialSecurity(gross);
+
             socialSecurityAmountInput.value = val.toFixed(2);
             socialSecurityAmountInput.readOnly = true;
             socialSecurityAmountInput.classList.add('auto-calculated-field');
@@ -1881,7 +1962,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (autoCalculateMedicareCheckbox && autoCalculateMedicareCheckbox.checked) {
+
             const val = calculateMedicareDeduction(gross);
+=======
+            const val = calculateMedicare(gross);
+
             medicareAmountInput.value = val.toFixed(2);
             medicareAmountInput.readOnly = true;
             medicareAmountInput.classList.add('auto-calculated-field');
@@ -1963,8 +2048,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateSocialSecurityCheckbox.checked) {
             const data = gatherFormData();
             const gross = calculateCurrentPeriodPay(data).grossPay;
+
             const ytd = parseFloat(document.getElementById('initialYtdSocialSecurity')?.value) || 0;
             const val = calculateSocialSecurityDeduction(gross, ytd);
+
+            const val = calculateSocialSecurity(gross);
+
             socialSecurityAmountInput.value = val.toFixed(2);
             socialSecurityAmountInput.readOnly = true;
             socialSecurityAmountInput.classList.add('auto-calculated-field');
@@ -1979,7 +2068,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (autoCalculateMedicareCheckbox.checked) {
             const data = gatherFormData();
             const gross = calculateCurrentPeriodPay(data).grossPay;
+
             const val = calculateMedicareDeduction(gross);
+
+            const val = calculateMedicare(gross);
+
             medicareAmountInput.value = val.toFixed(2);
             medicareAmountInput.readOnly = true;
             medicareAmountInput.classList.add('auto-calculated-field');

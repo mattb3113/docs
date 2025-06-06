@@ -146,6 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const formSteps = Array.from(document.querySelectorAll('.form-step'));
     const formProgressIndicator = document.getElementById('formProgressIndicator');
     const progressSteps = [];
+    const stepTitles = [];
 
     formSteps.forEach((step, idx) => {
         const indicator = document.createElement('div');
@@ -153,6 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
         indicator.textContent = idx + 1;
         if (formProgressIndicator) formProgressIndicator.appendChild(indicator);
         progressSteps.push(indicator);
+        const heading = step.querySelector('h3');
+        stepTitles.push(heading ? heading.textContent.trim() : `Step ${idx + 1}`);
     });
 
     function showFormStep(stepIndex) {
@@ -161,7 +164,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         progressSteps.forEach((el, i) => {
             el.classList.toggle('active', i === stepIndex);
+            if (i === stepIndex) {
+                el.setAttribute('aria-current', 'step');
+            } else {
+                el.removeAttribute('aria-current');
+            }
         });
+        if (formProgressIndicator) {
+            formProgressIndicator.setAttribute('aria-label',
+                `Step ${stepIndex + 1} of ${progressSteps.length}: ${stepTitles[stepIndex]}`);
+        }
         const prevBtn = formSteps[stepIndex].querySelector('.prev-step-btn');
         if (prevBtn) prevBtn.disabled = stepIndex === 0;
         updateLivePreview();

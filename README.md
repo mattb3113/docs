@@ -31,3 +31,4 @@ To verify a build:
 2. Confirm salary amounts format as currency when blurring the input.
 3. Modify any field and check that the preview updates immediately.
 4. Watch the progress indicator to verify accurate tracking of the current step.
+5. Confirm that YTD values reflect the number of pay periods elapsed for the selected pay frequency.

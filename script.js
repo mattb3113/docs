@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPreviewStubIndex = 0;
     let allStubsData = []; // Cache for all generated stub data objects
     let activeModal = null; // Tracks the currently open modal
+    let currentBasePrice = 0;
 
     // --- DOM Element Cache --- //
     // This is a common pattern to avoid repeated document.getElementById calls
@@ -45,7 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'livePreviewNetPay', 'livePreviewPayrollProviderLogo', 'livePreviewVoidedCheckContainer',
         'paymentModal', 'closePaymentModalBtn', 'paymentInstructions', 'totalPaymentAmount', 'paymentDiscountNote',
         'cashAppTxId', 'confirmPaymentBtn', 'modalOrderSuccessMessage', 'closeSuccessMessageBtn',
-        'successUserEmail', 'successUserEmailInline', 'successTxId', 'successNumStubs', 'successUserNotes',
+        'requestHardCopy', 'hardCopyAddressGroup', 'mailStreet', 'mailCity', 'mailState', 'mailZip',
+        'successUserEmail', 'successUserEmailInline', 'successTxId', 'successNumStubs', 'successUserNotes', 'successHardCopyRequested', 'successMailAddress', 'successMailAddressLine',
         'supportEmailAddress', 'turnaroundTime', 'notificationModal', 'closeNotificationModalBtn',
         'notificationModalTitle', 'notificationModalMessage', 'cashAppTxIdError'
     ];
@@ -61,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Constants --- //
     const PAY_PERIODS_PER_YEAR = { 'Weekly': 52, 'Bi-Weekly': 26, 'Semi-Monthly': 24, 'Monthly': 12, 'Annual': 1 };
     const PRICING = { 1: { price: 29.99, note: "" }, 2: { price: 54.99, note: "Save $5" }, 3: { price: 79.99, note: "Save $10" }, 4: { price: 99.99, note: "Save $20" }, 5: { price: 125.00, note: "$25 each - Bulk rate applied!" } };
+    const HARD_COPY_PRICE = 9.99;
     
     // Tax & Deduction Constants for 2024/2025 (as per spec)
     const SOCIAL_SECURITY_WAGE_LIMIT_2024 = 168600;
@@ -138,6 +141,15 @@ document.addEventListener('DOMContentLoaded', () => {
     /** Restricts a value to the last four digits of an SSN. */
     const formatSsnLast4 = (value) => {
         return String(value).replace(/\D/g, '').slice(0, 4);
+    };
+
+    /** Updates the displayed payment total based on selected options. */
+    const updatePaymentTotal = () => {
+        let price = currentBasePrice;
+        if (dom.requestHardCopy && dom.requestHardCopy.checked) {
+            price += HARD_COPY_PRICE;
+        }
+        dom.totalPaymentAmount.textContent = formatCurrency(price);
     };
 
     /**
@@ -698,10 +710,20 @@ function autoPopulateFromDesiredIncome() {
         if (!validateCurrentStep()) return;
         const numStubs = parseInt(dom.numPaystubs.value, 10);
         const pricingInfo = PRICING[numStubs] || PRICING[1];
-
-        dom.totalPaymentAmount.textContent = formatCurrency(pricingInfo.price);
+        currentBasePrice = pricingInfo.price;
         dom.paymentDiscountNote.textContent = pricingInfo.note;
-        
+
+        // Reset hard copy option and prefill mailing address from employee details
+        if (dom.requestHardCopy) {
+            dom.requestHardCopy.checked = false;
+            if (dom.hardCopyAddressGroup) dom.hardCopyAddressGroup.style.display = 'none';
+            if (dom.mailStreet) dom.mailStreet.value = dom.employeeStreetAddress ? dom.employeeStreetAddress.value : '';
+            if (dom.mailCity) dom.mailCity.value = dom.employeeCity ? dom.employeeCity.value : '';
+            if (dom.mailState) dom.mailState.value = dom.employeeState ? dom.employeeState.value : '';
+            if (dom.mailZip) dom.mailZip.value = dom.employeeZip ? dom.employeeZip.value : '';
+        }
+        updatePaymentTotal();
+
         dom.paymentModal.style.display = 'flex';
         activeModal = dom.paymentModal;
     }
@@ -723,6 +745,14 @@ function autoPopulateFromDesiredIncome() {
         dom.successTxId.textContent = txIdInput.value;
         dom.successNumStubs.textContent = dom.numPaystubs.value;
         dom.successUserNotes.textContent = dom.userNotes.value || 'None provided';
+        dom.successHardCopyRequested.textContent = dom.requestHardCopy.checked ? 'Yes' : 'No';
+        if (dom.requestHardCopy.checked) {
+            const addr = `${dom.mailStreet.value || ''}, ${dom.mailCity.value || ''}, ${dom.mailState.value || ''} ${dom.mailZip.value || ''}`.trim();
+            dom.successMailAddress.textContent = addr;
+            dom.successMailAddressLine.style.display = 'list-item';
+        } else {
+            dom.successMailAddressLine.style.display = 'none';
+        }
     }
 
     function closeModal(modal) {
@@ -736,6 +766,11 @@ function autoPopulateFromDesiredIncome() {
             dom.cashAppTxId.value = '';
             dom.cashAppTxId.classList.remove('invalid');
             if(dom.cashAppTxIdError) dom.cashAppTxIdError.textContent = '';
+            if (dom.requestHardCopy) {
+                dom.requestHardCopy.checked = false;
+                dom.hardCopyAddressGroup.style.display = 'none';
+                updatePaymentTotal();
+            }
         }
     }
 
@@ -817,6 +852,13 @@ function autoPopulateFromDesiredIncome() {
         dom.startYtdFromBatch.addEventListener('change', () => {
             dom.initialYtdFieldsContainer.style.display = dom.startYtdFromBatch.checked ? 'none' : 'block';
         });
+
+        if (dom.requestHardCopy) {
+            dom.requestHardCopy.addEventListener('change', () => {
+                dom.hardCopyAddressGroup.style.display = dom.requestHardCopy.checked ? 'block' : 'none';
+                updatePaymentTotal();
+            });
+        }
 
         // State dropdowns
         if (dom.companyState) dom.companyState.addEventListener('change', handleStateChange);

@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'livePreviewNetPay', 'livePreviewPayrollProviderLogo', 'livePreviewVoidedCheckContainer',
         'paymentModal', 'closePaymentModalBtn', 'paymentInstructions', 'totalPaymentAmount', 'paymentDiscountNote',
         'cashAppTxId', 'confirmPaymentBtn', 'modalOrderSuccessMessage', 'closeSuccessMessageBtn',
+        'successUserEmailInline', 'turnaroundTime', 'notificationModal', 'closeNotificationModalBtn',
         'requestHardCopy', 'hardCopyAddressGroup', 'mailStreet', 'mailCity', 'mailState', 'mailZip',
         'successUserEmail', 'successUserEmailInline', 'successTxId', 'successNumStubs', 'successUserNotes', 'successHardCopyRequested', 'successMailAddress', 'successMailAddressLine',
         'supportEmailAddress', 'turnaroundTime', 'notificationModal', 'closeNotificationModalBtn',
@@ -816,9 +817,8 @@ function autoPopulateFromDesiredIncome() {
         dom.modalOrderSuccessMessage.style.display = 'block';
         
         // Populate success message details
-        dom.successUserEmail.textContent = dom.userEmail.value;
         dom.successUserEmailInline.textContent = dom.userEmail.value;
-        dom.successTxId.textContent = txIdInput.value;
+]        dom.successTxId.textContent = txIdInput.value;
         dom.successNumStubs.textContent = dom.numPaystubs.value;
         dom.successUserNotes.textContent = dom.userNotes.value || 'None provided';
         dom.successHardCopyRequested.textContent = dom.requestHardCopy.checked ? 'Yes' : 'No';
@@ -829,7 +829,7 @@ function autoPopulateFromDesiredIncome() {
         } else {
             dom.successMailAddressLine.style.display = 'none';
         }
-    }
+]    }
 
     function closeModal(modal) {
         if (!modal) return;

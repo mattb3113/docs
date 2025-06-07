@@ -45,8 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'livePreviewNetPay', 'livePreviewPayrollProviderLogo', 'livePreviewVoidedCheckContainer',
         'paymentModal', 'closePaymentModalBtn', 'paymentInstructions', 'totalPaymentAmount', 'paymentDiscountNote',
         'cashAppTxId', 'confirmPaymentBtn', 'modalOrderSuccessMessage', 'closeSuccessMessageBtn',
-        'successUserEmail', 'successUserEmailInline', 'successTxId', 'successNumStubs', 'successUserNotes',
-        'supportEmailAddress', 'turnaroundTime', 'notificationModal', 'closeNotificationModalBtn',
+        'successUserEmailInline', 'turnaroundTime', 'notificationModal', 'closeNotificationModalBtn',
         'notificationModalTitle', 'notificationModalMessage', 'cashAppTxIdError',
         'confirmPreviewModal', 'closeConfirmPreviewModalBtn', 'confirmPreviewContainer',
         'confirmPreviewProceedBtn', 'confirmPreviewEditBtn'
@@ -721,11 +720,7 @@ function autoPopulateFromDesiredIncome() {
         dom.modalOrderSuccessMessage.style.display = 'block';
         
         // Populate success message details
-        dom.successUserEmail.textContent = dom.userEmail.value;
         dom.successUserEmailInline.textContent = dom.userEmail.value;
-        dom.successTxId.textContent = txIdInput.value;
-        dom.successNumStubs.textContent = dom.numPaystubs.value;
-        dom.successUserNotes.textContent = dom.userNotes.value || 'None provided';
     }
 
     function closeModal(modal) {

@@ -264,6 +264,9 @@ input.invalid, select.invalid, textarea.invalid { border-color: var(--error-colo
 .voided-check-css { position: relative; background: var(--bg-tertiary); padding: 10px; font-family: 'Courier New', monospace; color: var(--text-secondary); font-size: 10px; }
 .void-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; color: rgba(226, 93, 106, 0.7); font-weight: bold; z-index: 10; letter-spacing: 5px; border: 3px solid rgba(226, 93, 106, 0.7); padding: 0 10px; }
 
+.confirmation-question { text-align: center; margin: 20px 0; font-weight: 600; }
+.confirmation-actions { display: flex; justify-content: center; gap: 20px; }
+
 /* -------------------- */
 /* --- RESPONSIVE DESIGN --- */
 /* -------------------- */

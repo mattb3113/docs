@@ -199,6 +199,12 @@ input.invalid, select.invalid, textarea.invalid { border-color: var(--error-colo
 .earnings-table-preview th, .deductions-table-preview th { background-color: var(--bg-tertiary); font-weight: bold; }
 .earnings-table-preview td:nth-child(n+2), .deductions-table-preview td:nth-child(n+2) { text-align: right; }
 .summary-preview { margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border-color); text-align: right; font-weight: bold; font-size: 1.1em; }
+.preview-nav-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
 .summary-bar { position: sticky; bottom: 0; background-color: rgba(20, 20, 24, 0.8); backdrop-filter: blur(var(--blur-amount)); border-top: 1px solid var(--border-color-light); padding: 10px 20px; display: flex; justify-content: space-around; z-index: 200; font-size: 14px; font-weight: 500;}
 .summary-bar span { color: var(--accent-gold); font-weight: 600;}
 .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(var(--blur-amount)); -webkit-backdrop-filter: blur(var(--blur-amount)); align-items: center; justify-content: center; animation: fadeIn 0.3s ease; }

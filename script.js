@@ -166,6 +166,19 @@ document.addEventListener('DOMContentLoaded', () => {
         activeModal = dom.notificationModal;
     };
 
+    /**
+     * Alerts users when a non-New Jersey state is selected.
+     * @param {Event} e The change event from the state dropdown.
+     */
+    const handleStateChange = (e) => {
+        if (e.target.value && e.target.value !== 'NJ') {
+            showNotification(
+                'Auto-calculations are only available for New Jersey. This order will be treated as custom and may incur additional costs.',
+                'Custom Order Notice'
+            );
+        }
+    };
+
 
     // --- Multi-Step Form Logic --- //
     
@@ -801,9 +814,13 @@ function autoPopulateFromDesiredIncome() {
         dom.incomeRepresentationRadios.forEach(radio => radio.addEventListener('change', () => {
             dom.assumedHourlyHoursGroup.style.display = radio.value === 'Hourly' ? 'block' : 'none';
         }));
-         dom.startYtdFromBatch.addEventListener('change', () => {
+        dom.startYtdFromBatch.addEventListener('change', () => {
             dom.initialYtdFieldsContainer.style.display = dom.startYtdFromBatch.checked ? 'none' : 'block';
         });
+
+        // State dropdowns
+        if (dom.companyState) dom.companyState.addEventListener('change', handleStateChange);
+        if (dom.employeeState) dom.employeeState.addEventListener('change', handleStateChange);
 
         // Preview Navigation
         dom.prevStubBtn.addEventListener('click', () => { if (currentPreviewStubIndex > 0) { currentPreviewStubIndex--; renderPreviewForIndex(currentPreviewStubIndex); }});

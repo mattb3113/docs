@@ -474,6 +474,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.paymentInstructions.style.display = 'none';
         dom.modalOrderSuccessMessage.style.display = 'block';
         dom.successUserEmailInline.textContent = dom.userEmail.value;
+        activeModal = dom.paymentModal;
     }
 
     function populateStateDropdowns() {
@@ -555,10 +556,40 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Modal Handlers
         dom.confirmPaymentBtn.addEventListener('click', handlePaymentConfirmationSubmit);
-        dom.closePaymentModalBtn.addEventListener('click', () => closeModal(dom.paymentModal));
+
+        const resetPaymentModal = () => {
+            dom.paymentInstructions.style.display = 'block';
+            dom.modalOrderSuccessMessage.style.display = 'none';
+        };
+
+        dom.closePaymentModalBtn.addEventListener('click', () => {
+            resetPaymentModal();
+            closeModal(dom.paymentModal);
+        });
+
         dom.closeNotificationModalBtn.addEventListener('click', () => closeModal(dom.notificationModal));
-        dom.closeSuccessMessageBtn.addEventListener('click', () => closeModal(dom.paymentModal));
-        window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && activeModal) closeModal(activeModal); });
+
+        dom.closeSuccessMessageBtn.addEventListener('click', () => {
+            resetPaymentModal();
+            closeModal(dom.paymentModal);
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && activeModal) {
+                closeModal(activeModal);
+            }
+        });
+
+        dom.notificationModal.addEventListener('click', (e) => {
+            if (e.target === dom.notificationModal) closeModal(dom.notificationModal);
+        });
+
+        dom.paymentModal.addEventListener('click', (e) => {
+            if (e.target === dom.paymentModal) {
+                resetPaymentModal();
+                closeModal(dom.paymentModal);
+            }
+        });
 
         // Add-on pricing
         [dom.requestHardCopy, dom.requestExcel].forEach(addon => {

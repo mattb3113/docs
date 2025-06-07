@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us | BuellDocs</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="noise-overlay"></div>
+    <div class="backdrop-glow"></div>
+
+    <header class="app-header">
+        <div class="logo-container">
+            <span class="logo-text">BUELLDOCS</span>
+            <span class="header-tagline">Client Dashboard</span>
+        </div>
+        <nav class="header-nav">
+            <a href="index.html" class="nav-link">Dashboard</a>
+            <a href="about_buelldocs.html" class="nav-link">About</a>
+        </nav>
+        <a class="btn btn-secondary header-contact-btn" href="contact.html">Contact Us</a>
+    </header>
+
+    <main class="main-content" style="padding-top: calc(var(--header-height) + 30px); max-width: 600px; margin: 0 auto;">
+        <section class="form-section-card">
+            <h1>Contact Us</h1>
+            <form id="contactForm">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" rows="5" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+            <p id="contactSuccess" style="display:none; margin-top:15px; color:var(--success-color);">Thank you for contacting us. We will be in touch shortly.</p>
+        </section>
+    </main>
+
+    <script>
+    document.getElementById('contactForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = {
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            message: document.getElementById('message').value
+        };
+        try {
+            const res = await fetch('/contact', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                document.getElementById('contactForm').style.display = 'none';
+                document.getElementById('contactSuccess').style.display = 'block';
+            } else {
+                alert('There was an error sending your message.');
+            }
+        } catch (err) {
+            alert('There was an error sending your message.');
+        }
+    });
+    </script>
+</body>
+</html>

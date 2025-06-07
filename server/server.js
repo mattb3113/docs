@@ -63,6 +63,36 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), (req, res) =>
   res.json({ received: true });
 });
 
+app.post('/contact', async (req, res) => {
+  const { name, email, message } = req.body;
+  if (!name || !email || !message) {
+    return res.status(400).json({ error: 'Missing fields' });
+  }
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT),
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
+    }
+  });
+
+  try {
+    await transporter.sendMail({
+      from: process.env.FROM_EMAIL,
+      to: process.env.CONTACT_RECEIVER,
+      subject: 'BuellDocs Contact Form',
+      text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
+      replyTo: email
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error sending contact email:', err);
+    res.status(500).json({ error: 'Unable to send message' });
+  }
+});
+
 function generatePaystubAndEmail(email, data) {
   const doc = new PDFDocument();
   const filePath = `tmp/paystub-${Date.now()}.pdf`;

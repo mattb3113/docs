@@ -470,6 +470,11 @@ function closeModal(modal) {
     }
 
     const initializeEventListeners = () => {
+        // Wire up the auto-calculate button
+        if (dom.populateDetailsBtn) {
+            dom.populateDetailsBtn.addEventListener('click', debouncedUpdateLivePreview);
+        }
+
         // Final Submit and Review Flow
         dom.reviewAndGenerateBtn.addEventListener('click', handleFinalSubmit);
         dom.editInfoBtn.addEventListener('click', () => {

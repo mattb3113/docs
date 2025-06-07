@@ -76,9 +76,25 @@ document.addEventListener('DOMContentLoaded', () => {
         'Head of Household': [ { limit: 16550, rate: 0.10 }, { limit: 63100, rate: 0.12 }, { limit: 100500, rate: 0.22 }, { limit: 191950, rate: 0.24 }, { limit: 243700, rate: 0.32 }, { limit: 609350, rate: 0.35 }, { limit: Infinity, rate: 0.37 } ]
     };
     const STANDARD_DEDUCTION_2024 = { 'Single': 14600, 'Married Filing Jointly': 29200, 'Head of Household': 21900 };
+    const W4_ALLOWANCES = { 'Single': 2, 'Married Filing Jointly': 3, 'Head of Household': 3 };
+    const W4_ALLOWANCE_VALUE = 4300;
     const NJ_TAX_BRACKETS_2024 = {
-         'Single': [ { limit: 20000, rate: 0.014 }, { limit: 35000, rate: 0.0175 }, { limit: 40000, rate: 0.0245 }, { limit: 75000, rate: 0.035 }, { limit: 500000, rate: 0.05525 }, { limit: Infinity, rate: 0.0637 } ],
-         'Married Filing Jointly': [ { limit: 20000, rate: 0.014 }, { limit: 50000, rate: 0.0175 }, { limit: 70000, rate: 0.0245 }, { limit: 80000, rate: 0.035 }, { limit: 150000, rate: 0.05525 }, { limit: 500000, rate: 0.0637 }, { limit: Infinity, rate: 0.0897 } ]
+         'Single': [
+            { limit: 20000, rate: 0.014 },
+            { limit: 35000, rate: 0.0175 },
+            { limit: 40000, rate: 0.035 },
+            { limit: 75000, rate: 0.05525 },
+            { limit: 500000, rate: 0.0637 },
+            { limit: Infinity, rate: 0.0897 }
+        ],
+         'Married Filing Jointly': [
+            { limit: 20000, rate: 0.014 },
+            { limit: 35000, rate: 0.0175 },
+            { limit: 40000, rate: 0.035 },
+            { limit: 75000, rate: 0.05525 },
+            { limit: 500000, rate: 0.0637 },
+            { limit: Infinity, rate: 0.0897 }
+        ]
     };
 
 
@@ -257,7 +273,8 @@ document.addEventListener('DOMContentLoaded', () => {
     /** Calculates federal income tax based on annual taxable income and filing status. */
     const calculateFederalTax = (annualGross, filingStatus) => {
         const deduction = STANDARD_DEDUCTION_2024[filingStatus] || 0;
-        const taxableIncome = Math.max(0, annualGross - deduction);
+        const allowances = W4_ALLOWANCES[filingStatus] || 2;
+        const taxableIncome = Math.max(0, annualGross - deduction - allowances * W4_ALLOWANCE_VALUE);
         const brackets = FEDERAL_TAX_BRACKETS_2024[filingStatus];
         if (!brackets) return 0;
 

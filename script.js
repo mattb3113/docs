@@ -195,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         updateProgressIndicator(stepIndex);
         window.scrollTo(0, 0); // Scroll to top on step change
+        updateNextStepButtonState();
     };
 
     /**
@@ -280,7 +281,40 @@ document.addEventListener('DOMContentLoaded', () => {
             dom.formSummaryError.classList.remove('active');
         }
         
-        return isStepValid;
+    return isStepValid;
+};
+
+    /**
+     * Checks if all required fields in the current step are filled and valid.
+     * This does not display error messages and is used to toggle step buttons.
+     * @returns {boolean} True if the step is complete, false otherwise.
+     */
+    const isCurrentStepComplete = () => {
+        const currentStepEl = dom.formSteps[currentFormStep];
+        if (!currentStepEl) return true;
+
+        let isComplete = true;
+        const inputs = currentStepEl.querySelectorAll('input[required], select[required], textarea[required]');
+        inputs.forEach(input => {
+            if (input.offsetParent !== null) {
+                const valueFilled = !!input.value.trim();
+                const emailValid = input.type !== 'email' || /^\S+@\S+\.\S+$/.test(input.value);
+                if (!valueFilled || !emailValid) {
+                    isComplete = false;
+                }
+            }
+        });
+        return isComplete;
+    };
+
+    /**
+     * Enables or disables the next-step button based on field completion.
+     */
+    const updateNextStepButtonState = () => {
+        const currentStepEl = dom.formSteps[currentFormStep];
+        if (!currentStepEl) return;
+        const nextBtn = currentStepEl.querySelector('.next-step');
+        if (nextBtn) nextBtn.disabled = !isCurrentStepComplete();
     };
     
     /** Handles the click event for all "Next Step" buttons. */
@@ -639,6 +673,7 @@ function autoPopulateFromDesiredIncome() {
             dom.hourlyRate.required = true;
             dom.regularHours.required = true;
         }
+        updateNextStepButtonState();
     }
     
     function resetAllFormFields() {
@@ -654,6 +689,7 @@ function autoPopulateFromDesiredIncome() {
             currentPreviewStubIndex = 0;
             debouncedUpdateLivePreview();
             showFormStep(0);
+            updateNextStepButtonState();
         }
     }
 
@@ -758,14 +794,21 @@ function autoPopulateFromDesiredIncome() {
 
         // Form Inputs & Toggles
         dom.allFormInputs.forEach(input => {
-            input.addEventListener('input', debouncedUpdateLivePreview);
+            input.addEventListener('input', (e) => {
+                debouncedUpdateLivePreview(e);
+                updateNextStepButtonState();
+            });
             if (input.type === 'select-one' || input.type === 'checkbox' || input.name === 'incomeRepresentationType') {
-                input.addEventListener('change', debouncedUpdateLivePreview);
+                input.addEventListener('change', (e) => {
+                    debouncedUpdateLivePreview(e);
+                    updateNextStepButtonState();
+                });
             }
             if (input.required) {
                  input.addEventListener('blur', () => validateField(input));
             }
         });
+        dom.paystubForm.addEventListener('change', updateNextStepButtonState);
 
         // Input formatting & restrictions
         if (dom.companyPhone) {

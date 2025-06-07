@@ -32,3 +32,7 @@ To verify a build:
 3. Modify any field and check that the preview updates immediately.
 4. Watch the progress indicator to verify accurate tracking of the current step.
 5. Confirm that YTD values reflect the number of pay periods elapsed for the selected pay frequency.
+
+## Tax Rate Data
+
+The repository stores tax constants for calculations in a standalone JSON file located at `server/data/tax_rates_2025.json`. Updating the data for a new year only requires replacing this file or adding another year-specific JSON file, keeping the application logic unchanged.

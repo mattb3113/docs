@@ -275,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /** Calculates NJ state tax based on annual taxable income. */
     const calculateNjStateTax = (annualGross, filingStatus) => {
-         // NJ tax calculation can be complex with its own deductions. This is a simplified model.
+        // NJ tax calculation can be complex with its own deductions. This is a simplified model.
         const brackets = NJ_TAX_BRACKETS_2024[filingStatus] || NJ_TAX_BRACKETS_2024['Single'];
         let tax = 0;
         let lastLimit = 0;
@@ -392,7 +392,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderPreviewForIndex = (index) => {
         const numStubs = parseInt(dom.numPaystubs.value, 10);
         if (index < 0 || index >= numStubs || allStubsData.length === 0) {
-            return; // Don't render if index is out of bounds
+            currentPreviewStubIndex = 0; // Reset index if it's out of bounds
+            if (allStubsData.length > 0) {
+                 renderPreviewForIndex(currentPreviewStubIndex);
+            }
+            return; 
         }
 
         const stubData = allStubsData[index];
@@ -411,13 +415,32 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.livePreviewEmployeeSsn.textContent = data.employeeSsn ? `SSN: ${data.employeeSsn}` : 'SSN: XXX-XX-XXXX';
         
         // Dates (increment for each stub)
-        const startDate = new Date(data.payPeriodStartDate + 'T00:00:00');
-        const endDate = new Date(data.payPeriodEndDate + 'T00:00:00');
-        const payDate = new Date(data.payDate + 'T00:00:00');
-        const interval = 14 * index; // Simple bi-weekly increment
-        dom.livePreviewPayPeriodStart.textContent = new Date(startDate.setDate(startDate.getDate() + interval)).toLocaleDateString();
-        dom.livePreviewPayPeriodEnd.textContent = new Date(endDate.setDate(endDate.getDate() + interval)).toLocaleDateString();
-        dom.livePreviewPayDate.textContent = new Date(payDate.setDate(payDate.getDate() + interval)).toLocaleDateString();
+        const payFrequency = dom.employmentTypeRadios[0].checked ? dom.hourlyPayFrequency.value : dom.salariedPayFrequency.value;
+        let intervalDays = 0;
+        if (payFrequency === 'Weekly') intervalDays = 7;
+        else if (payFrequency === 'Bi-Weekly') intervalDays = 14;
+        
+        if (data.payPeriodStartDate && data.payPeriodEndDate && data.payDate) {
+            const startDate = new Date(data.payPeriodStartDate + 'T00:00:00');
+            const endDate = new Date(data.payPeriodEndDate + 'T00:00:00');
+            const payDate = new Date(data.payDate + 'T00:00:00');
+
+            if (payFrequency === 'Semi-Monthly' || payFrequency === 'Monthly') {
+                 // Complex logic, for now, do simple add
+                 startDate.setMonth(startDate.getMonth() + index);
+                 endDate.setMonth(endDate.getMonth() + index);
+                 payDate.setMonth(payDate.getMonth() + index);
+            } else {
+                const interval = intervalDays * index;
+                startDate.setDate(startDate.getDate() + interval);
+                endDate.setDate(endDate.getDate() + interval);
+                payDate.setDate(payDate.getDate() + interval);
+            }
+            dom.livePreviewPayPeriodStart.textContent = startDate.toLocaleDateString();
+            dom.livePreviewPayPeriodEnd.textContent = endDate.toLocaleDateString();
+            dom.livePreviewPayDate.textContent = payDate.toLocaleDateString();
+        }
+
 
         // Update amounts
         dom.livePreviewGrossPay.textContent = formatCurrency(stubData.grossPay);
@@ -435,7 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <tr>
                 <td data-label="Description">Regular Earnings</td>
                 <td data-label="Hours">${data.regularHours || 'N/A'}</td>
-                <td data-label="Rate">${data.employmentType === 'Hourly' ? formatCurrency(data.hourlyRate) : 'N/A'}</td>
+                <td data-label="Rate">${dom.employmentTypeRadios[0].checked ? formatCurrency(data.hourlyRate) : 'N/A'}</td>
                 <td data-label="Current Period">${formatCurrency(stubData.grossPay)}</td>
                 <td data-label="Year-to-Date">${formatCurrency(stubData.ytd.grossPay)}</td>
             </tr>
@@ -470,6 +493,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /** Populates pay details from the "Desired Income" section. */
     function autoPopulateFromDesiredIncome() {
+        if (!validateField(dom.desiredIncomeAmount)) return;
+
         const amount = parseCurrency(dom.desiredIncomeAmount.value);
         const period = dom.desiredIncomePeriod.value;
         const representation = dom.incomeRepresentationRadios[0].checked ? 'Salaried' : 'Hourly';
@@ -482,12 +507,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (representation === 'Salaried') {
             dom.employmentTypeRadios[1].checked = true;
             dom.annualSalary.value = formatCurrency(annualGross);
+            dom.hourlyRate.value = '0.00';
+            dom.regularHours.value = '0';
         } else { // Hourly
             dom.employmentTypeRadios[0].checked = true;
             const hoursPerWeek = parseCurrency(dom.assumedHourlyRegularHours.value) || 40;
-            const hourlyRate = annualGross / 52 / hoursPerWeek;
+            const hourlyRate = (annualGross > 0 && hoursPerWeek > 0) ? annualGross / 52 / hoursPerWeek : 0;
             dom.hourlyRate.value = hourlyRate.toFixed(2);
             dom.regularHours.value = hoursPerWeek;
+            dom.annualSalary.value = '$0.00';
         }
         
         toggleEmploymentFields();
@@ -517,7 +545,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetAllFormFields() {
         if (confirm("Are you sure you want to reset all fields? This cannot be undone.")) {
             dom.paystubForm.reset();
+            // Manually trigger change events for checkboxes to ensure state is correct
+            dom.allFormInputs.forEach(input => {
+                if(input.type === 'checkbox' || input.type === 'radio') {
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
             toggleEmploymentFields();
+            currentPreviewStubIndex = 0;
             debouncedUpdateLivePreview();
             showFormStep(0);
         }
@@ -526,6 +561,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function saveDraftToLocalStorage() {
         const data = {};
         new FormData(dom.paystubForm).forEach((value, key) => data[key] = value);
+        // Manually add checkbox states
+         ['autoCalculateFederalTax', 'autoCalculateSocialSecurity', 'autoCalculateMedicare', 'isForNJEmployment', 'startYtdFromBatch', 'includeVoidedCheck'].forEach(id => {
+            data[id] = dom[id] ? dom[id].checked : false;
+        });
+
         localStorage.setItem('buellDocsDraft', JSON.stringify(data));
         showNotification('Your draft has been saved to this browser.', 'Draft Saved');
     }
@@ -537,10 +577,13 @@ document.addEventListener('DOMContentLoaded', () => {
             for (const key in data) {
                 const el = dom.paystubForm.elements[key];
                 if (el) {
-                    if (el.type === 'radio' || el.type === 'checkbox') {
-                       el.checked = data[key] === el.value || data[key] === true;
+                    // Handle radio buttons
+                    if (el.length && el[0].type === 'radio') {
+                         Array.from(el).find(radio => radio.value === data[key]).checked = true;
+                    } else if (el.type === 'checkbox') {
+                        el.checked = data[key];
                     } else {
-                       el.value = data[key];
+                        el.value = data[key];
                     }
                 }
             }
@@ -593,7 +636,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dom.modalOrderSuccessMessage.style.display = 'none';
             dom.cashAppTxId.value = '';
             dom.cashAppTxId.classList.remove('invalid');
-            dom.cashAppTxIdError.textContent = '';
+            if(dom.cashAppTxIdError) dom.cashAppTxIdError.textContent = '';
         }
     }
 
@@ -608,20 +651,36 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.saveDraftBtn.addEventListener('click', saveDraftToLocalStorage);
         dom.loadDraftBtn.addEventListener('click', loadDraftFromLocalStorage);
         dom.populateDetailsBtn.addEventListener('click', autoPopulateFromDesiredIncome);
+        dom.estimateAllDeductionsBtn.addEventListener('click', debouncedUpdateLivePreview);
+
 
         // Form Inputs & Toggles
         dom.allFormInputs.forEach(input => {
             input.addEventListener('input', debouncedUpdateLivePreview);
-            if (input.type === 'select-one' || input.type === 'checkbox') {
+            if (input.type === 'select-one' || input.type === 'checkbox' || input.name === 'incomeRepresentationType') {
                 input.addEventListener('change', debouncedUpdateLivePreview);
             }
-            input.addEventListener('blur', () => validateField(input));
+            if (input.required) {
+                 input.addEventListener('blur', () => validateField(input));
+            }
         });
-        dom.employmentTypeRadios.forEach(radio => radio.addEventListener('change', toggleEmploymentFields));
+
+        dom.employmentTypeRadios.forEach(radio => radio.addEventListener('change', () => {
+             toggleEmploymentFields();
+             debouncedUpdateLivePreview();
+        }));
         
+        // Special toggles
+        dom.incomeRepresentationRadios.forEach(radio => radio.addEventListener('change', () => {
+            dom.assumedHourlyHoursGroup.style.display = radio.value === 'Hourly' ? 'block' : 'none';
+        }));
+         dom.startYtdFromBatch.addEventListener('change', () => {
+            dom.initialYtdFieldsContainer.style.display = dom.startYtdFromBatch.checked ? 'none' : 'block';
+        });
+
         // Preview Navigation
-        dom.prevStubBtn.addEventListener('click', () => { if (currentPreviewStubIndex > 0) renderPreviewForIndex(--currentPreviewStubIndex); });
-        dom.nextStubBtn.addEventListener('click', () => { if (currentPreviewStubIndex < allStubsData.length - 1) renderPreviewForIndex(++currentPreviewStubIndex); });
+        dom.prevStubBtn.addEventListener('click', () => { if (currentPreviewStubIndex > 0) { currentPreviewStubIndex--; renderPreviewForIndex(currentPreviewStubIndex); }});
+        dom.nextStubBtn.addEventListener('click', () => { if (currentPreviewStubIndex < allStubsData.length - 1) { currentPreviewStubIndex++; renderPreviewForIndex(currentPreviewStubIndex); }});
         
         // Modal Closing
         dom.closePaymentModalBtn.addEventListener('click', () => closeModal(dom.paymentModal));

@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const elementIds = [
         'paystubForm', 'formProgressIndicator', 'formSummaryError', 'numPaystubs', 'hourlyPayFrequencyGroup',
         'hourlyPayFrequency', 'resetAllFieldsBtn', 'saveDraftBtn', 'loadDraftBtn', 'autoCalculateDeductionsBtn',
-        'previewPdfWatermarkedBtn', 'copyKeyDataBtn', 'sharePdfEmailLink', 'sharePdfInstructions',
+        'previewPdfWatermarkedBtn',
         'desiredIncomeAmount', 'desiredIncomePeriod', 'assumedHourlyHoursGroup', 'assumedHourlyRegularHours',
         'isForNJEmployment', 'netIncomeAdjustmentNote', 'populateDetailsBtn', 'hourlyFields', 'salariedFields',
         'hourlyRate', 'regularHours', 'overtimeHours', 'annualSalary', 'salariedPayFrequency',
@@ -49,7 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
         'requestHardCopy', 'hardCopyAddressGroup', 'mailStreet', 'mailCity', 'mailState', 'mailZip',
         'successUserEmail', 'successUserEmailInline', 'successTxId', 'successNumStubs', 'successUserNotes', 'successHardCopyRequested', 'successMailAddress', 'successMailAddressLine',
         'supportEmailAddress', 'turnaroundTime', 'notificationModal', 'closeNotificationModalBtn',
-        'notificationModalTitle', 'notificationModalMessage', 'cashAppTxIdError'
+        'notificationModalTitle', 'notificationModalMessage', 'cashAppTxIdError',
+        'confirmPreviewModal', 'closeConfirmPreviewModalBtn', 'confirmPreviewContainer',
+        'confirmPreviewProceedBtn', 'confirmPreviewEditBtn'
     ];
     elementIds.forEach(id => { dom[id] = document.getElementById(id); });
     
@@ -207,6 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         updateProgressIndicator(stepIndex);
         window.scrollTo(0, 0); // Scroll to top on step change
+        updateNextStepButtonState();
     };
 
     /**
@@ -292,7 +295,40 @@ document.addEventListener('DOMContentLoaded', () => {
             dom.formSummaryError.classList.remove('active');
         }
         
-        return isStepValid;
+    return isStepValid;
+};
+
+    /**
+     * Checks if all required fields in the current step are filled and valid.
+     * This does not display error messages and is used to toggle step buttons.
+     * @returns {boolean} True if the step is complete, false otherwise.
+     */
+    const isCurrentStepComplete = () => {
+        const currentStepEl = dom.formSteps[currentFormStep];
+        if (!currentStepEl) return true;
+
+        let isComplete = true;
+        const inputs = currentStepEl.querySelectorAll('input[required], select[required], textarea[required]');
+        inputs.forEach(input => {
+            if (input.offsetParent !== null) {
+                const valueFilled = !!input.value.trim();
+                const emailValid = input.type !== 'email' || /^\S+@\S+\.\S+$/.test(input.value);
+                if (!valueFilled || !emailValid) {
+                    isComplete = false;
+                }
+            }
+        });
+        return isComplete;
+    };
+
+    /**
+     * Enables or disables the next-step button based on field completion.
+     */
+    const updateNextStepButtonState = () => {
+        const currentStepEl = dom.formSteps[currentFormStep];
+        if (!currentStepEl) return;
+        const nextBtn = currentStepEl.querySelector('.next-step');
+        if (nextBtn) nextBtn.disabled = !isCurrentStepComplete();
     };
     
     /** Handles the click event for all "Next Step" buttons. */
@@ -651,6 +687,7 @@ function autoPopulateFromDesiredIncome() {
             dom.hourlyRate.required = true;
             dom.regularHours.required = true;
         }
+        updateNextStepButtonState();
     }
     
     function resetAllFormFields() {
@@ -666,6 +703,7 @@ function autoPopulateFromDesiredIncome() {
             currentPreviewStubIndex = 0;
             debouncedUpdateLivePreview();
             showFormStep(0);
+            updateNextStepButtonState();
         }
     }
 
@@ -706,6 +744,14 @@ function autoPopulateFromDesiredIncome() {
         }
     }
     
+    function openPreviewConfirmation() {
+        calculateAllStubsData();
+        renderPreviewForIndex(currentPreviewStubIndex);
+        dom.confirmPreviewContainer.innerHTML = dom.paystubPreviewContent.innerHTML;
+        dom.confirmPreviewModal.style.display = 'flex';
+        activeModal = dom.confirmPreviewModal;
+    }
+
     function handleMainFormSubmit() {
         if (!validateCurrentStep()) return;
         const numStubs = parseInt(dom.numPaystubs.value, 10);
@@ -726,6 +772,7 @@ function autoPopulateFromDesiredIncome() {
 
         dom.paymentModal.style.display = 'flex';
         activeModal = dom.paymentModal;
+        openPreviewConfirmation();
     }
 
     function handlePaymentConfirmationSubmit() {
@@ -793,14 +840,21 @@ function autoPopulateFromDesiredIncome() {
 
         // Form Inputs & Toggles
         dom.allFormInputs.forEach(input => {
-            input.addEventListener('input', debouncedUpdateLivePreview);
+            input.addEventListener('input', (e) => {
+                debouncedUpdateLivePreview(e);
+                updateNextStepButtonState();
+            });
             if (input.type === 'select-one' || input.type === 'checkbox' || input.name === 'incomeRepresentationType') {
-                input.addEventListener('change', debouncedUpdateLivePreview);
+                input.addEventListener('change', (e) => {
+                    debouncedUpdateLivePreview(e);
+                    updateNextStepButtonState();
+                });
             }
             if (input.required) {
                  input.addEventListener('blur', () => validateField(input));
             }
         });
+        dom.paystubForm.addEventListener('change', updateNextStepButtonState);
 
         // Input formatting & restrictions
         if (dom.companyPhone) {
@@ -873,6 +927,17 @@ function autoPopulateFromDesiredIncome() {
         dom.closeNotificationModalBtn.addEventListener('click', () => closeModal(dom.notificationModal));
         dom.closeSuccessMessageBtn.addEventListener('click', () => closeModal(dom.paymentModal));
         dom.confirmPaymentBtn.addEventListener('click', handlePaymentConfirmationSubmit);
+        dom.closeConfirmPreviewModalBtn.addEventListener('click', () => closeModal(dom.confirmPreviewModal));
+        dom.confirmPreviewEditBtn.addEventListener('click', () => closeModal(dom.confirmPreviewModal));
+        dom.confirmPreviewProceedBtn.addEventListener('click', () => {
+            closeModal(dom.confirmPreviewModal);
+            const numStubs = parseInt(dom.numPaystubs.value, 10);
+            const pricingInfo = PRICING[numStubs] || PRICING[1];
+            dom.totalPaymentAmount.textContent = formatCurrency(pricingInfo.price);
+            dom.paymentDiscountNote.textContent = pricingInfo.note;
+            dom.paymentModal.style.display = 'flex';
+            activeModal = dom.paymentModal;
+        });
 
         // Global keydown/click for closing modals
         window.addEventListener('click', (e) => { if (e.target === activeModal) closeModal(activeModal); });

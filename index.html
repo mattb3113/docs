@@ -52,9 +52,6 @@
                 <button id="saveDraftBtn" class="btn btn-secondary btn-full-width">Save Draft</button>
                 <button id="loadDraftBtn" class="btn btn-secondary btn-full-width">Load Draft</button>
                 <button id="previewPdfWatermarkedBtn" class="btn btn-secondary btn-full-width">Preview PDF (Watermarked)</button>
-                <button id="copyKeyDataBtn" class="btn btn-secondary btn-full-width">Copy Key Paystub Data</button>
-                <a id="sharePdfEmailLink" class="btn btn-secondary btn-full-width" style="display:none;" href="mailto:?subject=BuellDocs Paystub Preview&amp;body=Please find my generated paystub preview attached. (Note: You will need to manually attach the PDF downloaded from BuellDocs.)">Share PDF via Email</a>
-                <p id="sharePdfInstructions" class="info-text" style="display:none;">First, download the PDF, then click here to open your email client. You'll need to manually attach the downloaded PDF.</p>
             </div>
         </aside>
 
@@ -654,7 +651,21 @@
             </div>
         </div>
     </div>
-    
+
+    <div id="confirmPreviewModal" class="modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="confirmPreviewTitle">
+        <div class="modal-content">
+            <span class="close-modal-btn" id="closeConfirmPreviewModalBtn">&times;</span>
+            <h2 id="confirmPreviewTitle">Paystub Preview</h2>
+            <div class="preview-watermark">BUELLDOCS</div>
+            <div id="confirmPreviewContainer" class="paystub-live-preview"></div>
+            <p class="confirmation-question">Are you satisfied with your paystub?</p>
+            <div class="confirmation-actions">
+                <button id="confirmPreviewProceedBtn" class="btn btn-primary">Proceed</button>
+                <button id="confirmPreviewEditBtn" class="btn btn-secondary">Edit</button>
+            </div>
+        </div>
+    </div>
+
     <div id="notificationModal" class="modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="notificationModalTitle">
         <div class="modal-content">
             <span class="close-modal-btn" id="closeNotificationModalBtn">&times;</span>

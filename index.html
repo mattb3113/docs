@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BuellDocs Paystub Generator</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
+    <!-- Overlays -->
     <div class="noise-overlay"></div>
     <div class="backdrop-glow"></div>
 
+    <!-- Header -->
     <header class="app-header">
         <div class="logo-container">
             <span class="logo-text">BUELLDOCS</span>
@@ -24,96 +24,58 @@
         <a class="btn btn-secondary header-contact-btn" href="contact.html">Contact Us</a>
     </header>
 
+    <!-- Main Content Wrapper -->
     <div class="main-wrapper">
+        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-content">
                 <h2 class="sidebar-title">Global Controls</h2>
-
                 <div class="form-group">
                     <label for="numPaystubs">Number of Paystubs Needed</label>
                     <select id="numPaystubs" name="numPaystubs">
                         <option value="1" selected>1</option>
                         <option value="2">2</option>
                         <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
                     </select>
                 </div>
-
-                <div class="form-group" id="hourlyPayFrequencyGroup" style="display: none;">
-                    <label for="hourlyPayFrequency">Pay Frequency (for Hourly)</label>
-                    <select id="hourlyPayFrequency" name="hourlyPayFrequency">
-                        <option value="Weekly" selected>Weekly</option>
-                        <option value="Bi-Weekly">Bi-Weekly</option>
-                    </select>
-                </div>
-
-                <button id="resetAllFieldsBtn" class="btn btn-secondary btn-full-width">Reset All Fields</button>
-                <button id="saveDraftBtn" class="btn btn-secondary btn-full-width">Save Draft</button>
-                <button id="loadDraftBtn" class="btn btn-secondary btn-full-width">Load Draft</button>
                 <button id="previewPdfWatermarkedBtn" class="btn btn-secondary btn-full-width">Preview PDF (Watermarked)</button>
+                <button id="resetAllFieldsBtn" class="btn btn-secondary btn-full-width">Reset All Fields</button>
             </div>
         </aside>
 
+        <!-- Form & Preview Content -->
         <main class="main-content">
             <section class="hero-section">
                 <h1>Create Your Income Statement</h1>
-                <p>Start by defining your desired income. We'll help you estimate the rest for your New Jersey paystub.</p>
+                <p>Start by defining your desired income. We'll handle all the math for you.</p>
             </section>
 
             <form id="paystubForm" novalidate>
-                <div id="formSummaryError" class="form-summary-error" aria-live="polite"></div>
-                
-                <div id="mainFormContent">
-                    <section class="form-section-card">
-                        <h3>Step 1: Define Your Desired Income</h3>
-                        <div class="grid-col-2">
-                            <div class="form-group">
-                                <label for="desiredIncomeAmount">Desired Income Amount <span class="required-asterisk">*</span></label>
-                                <input type="text" id="desiredIncomeAmount" name="desiredIncomeAmount" required aria-required="true" aria-describedby="desiredIncomeAmountError" inputmode="decimal" pattern="[0-9,\.]*">
-                                <span class="error-message" id="desiredIncomeAmountError"></span>
-                            </div>
-                            <div class="form-group">
-                                <label id="desiredIncomeTypeLabel">Is this income amount:</label>
-                                <div class="radio-group" role="radiogroup" aria-labelledby="desiredIncomeTypeLabel">
-                                    <label><input type="radio" name="desiredIncomeType" id="desiredIncomeTypeGross" value="Gross" checked> Before Taxes (Gross)</label>
-                                    <label><input type="radio" name="desiredIncomeType" id="desiredIncomeTypeNet" value="Net"> After Taxes (Net)</label>
-                                </div>
-                                <p id="netIncomeAdjustmentNote" class="info-text" style="display:none;"></p>
-                            </div>
-                            <div class="form-group">
-                                <label for="desiredIncomePeriod">Income Period <span class="required-asterisk">*</span></label>
-                                <select id="desiredIncomePeriod" required aria-required="true" aria-describedby="desiredIncomePeriodError" name="desiredIncomePeriod">
-                                    <option value="Annual" selected>Annual</option>
-                                    <option value="Monthly">Monthly</option>
-                                    <option value="Weekly">Weekly</option>
-                                </select>
-                                <span class="error-message" id="desiredIncomePeriodError"></span>
-                            </div>
+                <!-- This is now a single-page form, so no multi-step containers are needed -->
+                <section class="form-section-card">
+                    <h3>Income &amp; Pay Structure</h3>
+                    <div class="grid-col-2">
+                        <div class="form-group">
+                            <label for="annualSalary">Annual Salary <span class="required-asterisk">*</span></label>
+                            <input type="text" id="annualSalary" name="annualSalary" required class="currency-input">
+                            <span class="error-message" id="annualSalaryError"></span>
                         </div>
                         <div class="form-group">
-                            <label id="representAsLabel">Represent As <span class="required-asterisk">*</span></label>
-                            <div class="radio-group" role="radiogroup" aria-labelledby="representAsLabel">
-                                <label><input type="radio" aria-describedby="incomeRepresentationTypeError" id="repAsSalaried" name="incomeRepresentationType" value="Salaried" checked> Salaried</label>
-                                <label><input type="radio" aria-describedby="incomeRepresentationTypeError" id="repAsHourly" name="incomeRepresentationType" value="Hourly"> Hourly</label>
-                                <span class="error-message" id="incomeRepresentationTypeError"></span>
-                            </div>
+                            <label for="salariedPayFrequency">Pay Frequency <span class="required-asterisk">*</span></label>
+                            <select id="salariedPayFrequency" name="salariedPayFrequency" required>
+                                <option value="Weekly">Weekly</option>
+                                <option value="Bi-Weekly" selected>Bi-Weekly</option>
+                                <option value="Semi-Monthly">Semi-Monthly</option>
+                                <option value="Monthly">Monthly</option>
+                            </select>
+                            <span class="error-message" id="salariedPayFrequencyError"></span>
                         </div>
-                        <div class="form-group" id="assumedHourlyHoursGroup" style="display:none;">
-                            <label for="assumedHourlyRegularHours">Assumed Regular Hours per Period</label>
-                            <input type="number" id="assumedHourlyRegularHours" name="assumedHourlyRegularHours" step="0.01" min="0" max="168" value="40">
-                        </div>
-                        <div class="form-group checkbox-group">
-                            <label for="isForNJEmployment">
-                                <input type="checkbox" id="isForNJEmployment" name="isForNJEmployment" checked>
-                                This representation is for New Jersey employment.
-                            </label>
-                        </div>
-                        <button type="button" id="populateDetailsBtn" class="btn btn-primary">Calculate &amp; Fill Paystub Details &#10132;</button>
-                    </section>
-                    
-                    <section class="form-section-card">
-                        <h3>Step 2: Company & Employee Details</h3>
+                    </div>
+                    <button type="button" id="populateDetailsBtn" class="btn btn-primary">Auto-Calculate Deductions</button>
+                </section>
+
+                <section class="form-section-card">
+                    <h3>Company &amp; Employee Details</h3>
                         <h4>Employer Information</h4>
                         <div class="grid-col-2">
                             <div class="form-group"><label for="companyName">Company Name <span class="required-asterisk">*</span></label><input type="text" id="companyName" name="companyName" required aria-describedby="companyNameError" aria-required="true" maxlength="100"><span class="error-message" id="companyNameError"></span></div>
@@ -509,13 +471,8 @@
         BUELLDOCS © 2025 | | <a href='privacy_policy.html'>Privacy Policy</a>
     </footer>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.2/math.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bignumber.js/9.1.2/bignumber.min.js"></script>
-    <script src="js/precisionMath.js"></script>
-    <script src="js/paystubEngine.js"></script>
-    <script src="js/precisionMath.js"></script>
-    <script src="js/paystubEngine.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
-    <script src="js/precisionMath.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script src="js/paystubEngine.js"></script>
     <script src="script.js"></script>
 </body>

@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dom = {};
     const elementIds = [
         'paystubForm', 'formProgressIndicator', 'formSummaryError', 'numPaystubs', 'hourlyPayFrequencyGroup',
-        'hourlyPayFrequency', 'resetAllFieldsBtn', 'saveDraftBtn', 'loadDraftBtn', 'estimateAllDeductionsBtn',
+        'hourlyPayFrequency', 'resetAllFieldsBtn', 'saveDraftBtn', 'loadDraftBtn', 'autoCalculateDeductionsBtn',
         'previewPdfWatermarkedBtn', 'copyKeyDataBtn', 'sharePdfEmailLink', 'sharePdfInstructions',
         'desiredIncomeAmount', 'desiredIncomePeriod', 'assumedHourlyHoursGroup', 'assumedHourlyRegularHours',
         'isForNJEmployment', 'netIncomeAdjustmentNote', 'populateDetailsBtn', 'hourlyFields', 'salariedFields',
@@ -76,9 +76,25 @@ document.addEventListener('DOMContentLoaded', () => {
         'Head of Household': [ { limit: 16550, rate: 0.10 }, { limit: 63100, rate: 0.12 }, { limit: 100500, rate: 0.22 }, { limit: 191950, rate: 0.24 }, { limit: 243700, rate: 0.32 }, { limit: 609350, rate: 0.35 }, { limit: Infinity, rate: 0.37 } ]
     };
     const STANDARD_DEDUCTION_2024 = { 'Single': 14600, 'Married Filing Jointly': 29200, 'Head of Household': 21900 };
+    const W4_ALLOWANCES = { 'Single': 2, 'Married Filing Jointly': 3, 'Head of Household': 3 };
+    const W4_ALLOWANCE_VALUE = 4300;
     const NJ_TAX_BRACKETS_2024 = {
-         'Single': [ { limit: 20000, rate: 0.014 }, { limit: 35000, rate: 0.0175 }, { limit: 40000, rate: 0.0245 }, { limit: 75000, rate: 0.035 }, { limit: 500000, rate: 0.05525 }, { limit: Infinity, rate: 0.0637 } ],
-         'Married Filing Jointly': [ { limit: 20000, rate: 0.014 }, { limit: 50000, rate: 0.0175 }, { limit: 70000, rate: 0.0245 }, { limit: 80000, rate: 0.035 }, { limit: 150000, rate: 0.05525 }, { limit: 500000, rate: 0.0637 }, { limit: Infinity, rate: 0.0897 } ]
+         'Single': [
+            { limit: 20000, rate: 0.014 },
+            { limit: 35000, rate: 0.0175 },
+            { limit: 40000, rate: 0.035 },
+            { limit: 75000, rate: 0.05525 },
+            { limit: 500000, rate: 0.0637 },
+            { limit: Infinity, rate: 0.0897 }
+        ],
+         'Married Filing Jointly': [
+            { limit: 20000, rate: 0.014 },
+            { limit: 35000, rate: 0.0175 },
+            { limit: 40000, rate: 0.035 },
+            { limit: 75000, rate: 0.05525 },
+            { limit: 500000, rate: 0.0637 },
+            { limit: Infinity, rate: 0.0897 }
+        ]
     };
 
 
@@ -257,7 +273,8 @@ document.addEventListener('DOMContentLoaded', () => {
     /** Calculates federal income tax based on annual taxable income and filing status. */
     const calculateFederalTax = (annualGross, filingStatus) => {
         const deduction = STANDARD_DEDUCTION_2024[filingStatus] || 0;
-        const taxableIncome = Math.max(0, annualGross - deduction);
+        const allowances = W4_ALLOWANCES[filingStatus] || 2;
+        const taxableIncome = Math.max(0, annualGross - deduction - allowances * W4_ALLOWANCE_VALUE);
         const brackets = FEDERAL_TAX_BRACKETS_2024[filingStatus];
         if (!brackets) return 0;
 
@@ -492,7 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- UI Handlers & Event Listeners Setup --- //
 
     /** Populates pay details from the "Desired Income" section. */
-    function autoPopulateFromDesiredIncome() {
+function autoPopulateFromDesiredIncome() {
         if (!validateField(dom.desiredIncomeAmount)) return;
 
         const amount = parseCurrency(dom.desiredIncomeAmount.value);
@@ -516,7 +533,56 @@ document.addEventListener('DOMContentLoaded', () => {
             dom.hourlyRate.value = hourlyRate.toFixed(2);
             dom.regularHours.value = hoursPerWeek;
             dom.annualSalary.value = '$0.00';
+}
+
+    /** Auto-calculates deduction fields based on current form data. */
+    function autoCalculateDeductions() {
+        const data = {};
+        new FormData(dom.paystubForm).forEach((value, key) => data[key] = value);
+
+        data.isForNJEmployment = dom.isForNJEmployment.checked;
+        data.startYtdFromBatch = dom.startYtdFromBatch ? dom.startYtdFromBatch.checked : true;
+
+        const employmentType = dom.employmentTypeRadios[0].checked ? 'Hourly' : 'Salaried';
+        const payFrequency = (employmentType === 'Salaried') ? data.salariedPayFrequency : data.hourlyPayFrequency;
+        const periodsPerYear = PAY_PERIODS_PER_YEAR[payFrequency] || 52;
+
+        let annualGross;
+        if (employmentType === 'Salaried') {
+            annualGross = parseCurrency(data.annualSalary);
+        } else {
+            const rate = parseCurrency(data.hourlyRate);
+            const hours = parseCurrency(data.regularHours);
+            annualGross = rate * hours * periodsPerYear;
         }
+
+        const grossPay = annualGross / periodsPerYear + parseCurrency(data.bonus) + parseCurrency(data.miscEarningAmount);
+        const ytdGross = data.startYtdFromBatch ? 0 : parseCurrency(data.initialYtdGrossPay);
+
+        const federalTax = calculateFederalTax(annualGross, data.federalFilingStatus) / periodsPerYear;
+        const stateTax = data.isForNJEmployment ? calculateNjStateTax(annualGross, data.federalFilingStatus) / periodsPerYear : 0;
+        const socialSecurity = (ytdGross < SOCIAL_SECURITY_WAGE_LIMIT_2024)
+            ? Math.min(grossPay, SOCIAL_SECURITY_WAGE_LIMIT_2024 - ytdGross) * SOCIAL_SECURITY_RATE
+            : 0;
+        const medicare = grossPay * MEDICARE_RATE;
+        const njSdi = data.isForNJEmployment ? grossPay * NJ_SDI_RATE : 0;
+        const njFli = data.isForNJEmployment ? grossPay * NJ_FLI_RATE : 0;
+        const njUiHcWf = data.isForNJEmployment && (ytdGross < NJ_UIHCWF_WAGE_LIMIT_2024)
+            ? Math.min(grossPay, NJ_UIHCWF_WAGE_LIMIT_2024 - ytdGross) * NJ_UIHCWF_RATE
+            : 0;
+
+        dom.federalTaxAmount.value = federalTax.toFixed(2);
+        dom.stateTaxAmount.value = stateTax.toFixed(2);
+        dom.socialSecurityAmount.value = socialSecurity.toFixed(2);
+        dom.medicareAmount.value = medicare.toFixed(2);
+        if (dom.njDeductionsSection) {
+            dom.njSdiAmount.value = njSdi.toFixed(2);
+            dom.njFliAmount.value = njFli.toFixed(2);
+            dom.njUiHcWfAmount.value = njUiHcWf.toFixed(2);
+        }
+
+        showNotification('Deduction fields populated based on current pay details.', 'Deductions Calculated');
+    }
         
         toggleEmploymentFields();
         showNotification('Pay details have been calculated and populated in Step 3.', 'Auto-Population Complete');
@@ -651,7 +717,10 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.saveDraftBtn.addEventListener('click', saveDraftToLocalStorage);
         dom.loadDraftBtn.addEventListener('click', loadDraftFromLocalStorage);
         dom.populateDetailsBtn.addEventListener('click', autoPopulateFromDesiredIncome);
-        dom.estimateAllDeductionsBtn.addEventListener('click', debouncedUpdateLivePreview);
+        dom.autoCalculateDeductionsBtn.addEventListener('click', () => {
+            autoCalculateDeductions();
+            debouncedUpdateLivePreview();
+        });
 
 
         // Form Inputs & Toggles

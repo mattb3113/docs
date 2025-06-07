@@ -297,3 +297,18 @@ input.invalid, select.invalid, textarea.invalid { border-color: var(--error-colo
     .earnings-table-preview td:last-child, .deductions-table-preview td:last-child { border-bottom: 0; }
     .earnings-table-preview td::before, .deductions-table-preview td::before { content: attr(data-label); position: absolute; left: 10px; font-weight: bold; text-align: left !important; width: 45%; }
 }
+/* --- PDF Preview Modal --- */
+.modal-content-pdf {
+    width: 95%;
+    max-width: 900px; /* Wider for PDF viewing */
+    height: 90%;
+    display: flex;
+    flex-direction: column;
+}
+
+#pdfPreviewFrame {
+    flex-grow: 1; /* Allow iframe to fill the space */
+    border: none;
+    border-radius: var(--border-radius-sm);
+    background-color: #fff; /* White background for the PDF */
+}

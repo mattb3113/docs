@@ -78,6 +78,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const NJ_TAX_BRACKETS_2024_SINGLE = [ { limit: 20000, rate: 0.014 }, { limit: 35000, rate: 0.0175 }, { limit: 40000, rate: 0.035 }, { limit: 75000, rate: 0.05525 }, { limit: 500000, rate: 0.0637 }, { limit: Infinity, rate: 0.0897 } ];
     const US_STATES = [ 'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming' ];
 
+    paystubEngine.init().then(() => {
+        console.log('Paystub Engine Initialized with 2025 Tax Data.');
+        debouncedUpdateLivePreview();
+    });
+
     // --- Utility Functions --- //
     
     const formatCurrency = (value) => {
@@ -226,126 +231,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const calculateAllStubsData = () => {
         const formData = Object.fromEntries(new FormData(dom.paystubForm).entries());
-        
+
         const numStubs = parseInt(formData.numPaystubs, 10);
-        const employmentType = formData.employmentType;
-        const payFrequency = (employmentType === 'Salaried') ? formData.salariedPayFrequency : formData.hourlyPayFrequency;
+        const payFrequency = formData.salariedPayFrequency || formData.hourlyPayFrequency;
         const periodsPerYear = PAY_PERIODS_PER_YEAR[payFrequency] || 52;
-        
-        let annualGross = 0;
-        if (employmentType === 'Salaried') {
-            annualGross = parseCurrency(formData.annualSalary);
+        const filingStatus = formData.federalFilingStatus || 'Single';
+        const otherDeductions = precisionMath.add(formData.healthInsurance, formData.retirement401k);
+
+        let grossPerPeriod;
+        if (formData.incomeRepresentationType === 'Net') {
+             const desiredNet = formData.desiredIncomeAmount;
+             grossPerPeriod = paystubEngine.solveNetToGross(desiredNet, periodsPerYear, filingStatus, otherDeductions);
         } else {
-            const rate = parseCurrency(formData.hourlyRate);
-            const regularHours = parseFloat(formData.regularHours) || 0;
-            const otHours = parseFloat(formData.overtimeHours) || 0;
-            const otRate = rate * 1.5;
-            const annualRegular = rate * regularHours * periodsPerYear;
-            const annualOt = otRate * otHours * periodsPerYear;
-            annualGross = annualRegular + (otHours > 0 ? annualOt : 0);
+             const desiredGross = precisionMath.toBig(formData.desiredIncomeAmount);
+             const incomePeriod = formData.desiredIncomePeriod;
+             const annualGross = (incomePeriod === 'Annual') ? desiredGross : precisionMath.mul(desiredGross, PAY_PERIODS_PER_YEAR[incomePeriod]);
+             grossPerPeriod = precisionMath.div(annualGross, periodsPerYear);
         }
-
-        const grossPerPeriod = annualGross / periodsPerYear;
-        const bonusPerPeriod = parseCurrency(formData.bonus);
-
-        // Federal Tax Calculation
-        const federalFilingStatus = formData.federalFilingStatus; // Future use for other brackets
-        const annualTaxable = Math.max(0, annualGross - STANDARD_DEDUCTION_2024_SINGLE); // Simplified
-        const annualFederalTax = calculateTax(annualTaxable, FEDERAL_TAX_BRACKETS_2024_SINGLE);
-        const fedTaxPerPeriod = annualFederalTax / periodsPerYear;
-        
-        // State Tax Calculation
-        const annualStateTax = dom.isForNJEmployment.checked ? calculateTax(annualGross, NJ_TAX_BRACKETS_2024_SINGLE) : 0;
-        const stateTaxPerPeriod = annualStateTax / periodsPerYear;
-        
-        const startYTDFromBatch = dom.startYtdFromBatch.checked;
-        const initialYtd = {
-            grossPay: startYTDFromBatch ? 0 : parseCurrency(formData.initialYtdGrossPay),
-            federalTax: startYTDFromBatch ? 0 : parseCurrency(formData.initialYtdFederalTax),
-            stateTax: startYTDFromBatch ? 0 : parseCurrency(formData.initialYtdStateTax),
-            socialSecurity: startYTDFromBatch ? 0 : parseCurrency(formData.initialYtdSocialSecurity),
-            medicare: startYTDFromBatch ? 0 : parseCurrency(formData.initialYtdMedicare),
-            njSdi: startYTDFromBatch ? 0 : parseCurrency(formData.initialYtdNjSdi),
-            njFli: startYTDFromBatch ? 0 : parseCurrency(formData.initialYtdNjFli),
-            njUiHcWf: startYTDFromBatch ? 0 : parseCurrency(formData.initialYtdNjUiHcWf),
-        };
 
         allStubsData = [];
-        let cumulativeYtd = { ...initialYtd };
-        
-        let lastPayDate = new Date(formData.payDate + 'T00:00:00');
-        let lastPeriodStart = new Date(formData.payPeriodStartDate + 'T00:00:00');
-        let lastPeriodEnd = new Date(formData.payPeriodEndDate + 'T00:00:00');
+        let ytdGross = precisionMath.toBig(formData.startYtdFromBatch ? 0 : formData.initialYtdGrossPay);
 
         for (let i = 0; i < numStubs; i++) {
-            const current = {};
-            const totalGrossPerPeriod = grossPerPeriod + bonusPerPeriod; // This is the 'current' gross
-            
-            current.stubIndex = i;
-            current.grossPay = totalGrossPerPeriod;
-            
-            // Deductions for the current period
-            const ytdGrossBeforeThisStub = cumulativeYtd.grossPay;
-            current.socialSecurity = (ytdGrossBeforeThisStub < SOCIAL_SECURITY_WAGE_LIMIT_2024) ? Math.min(totalGrossPerPeriod, SOCIAL_SECURITY_WAGE_LIMIT_2024 - ytdGrossBeforeThisStub) * SOCIAL_SECURITY_RATE : 0;
-            current.medicare = totalGrossPerPeriod * MEDICARE_RATE;
-            current.federalTax = fedTaxPerPeriod;
-            current.stateTax = stateTaxPerPeriod;
-            
-            if (dom.isForNJEmployment.checked) {
-                const ytdUiHcwfBase = cumulativeYtd.grossPay; // Use cumulative YTD
-                current.njSdi = totalGrossPerPeriod * NJ_SDI_RATE;
-                current.njFli = totalGrossPerPeriod * NJ_FLI_RATE;
-                current.njUiHcWf = (ytdUiHcwfBase < NJ_UIHCWF_WAGE_LIMIT_2024) ? Math.min(totalGrossPerPeriod, NJ_UIHCWF_WAGE_LIMIT_2024 - ytdUiHcwfBase) * NJ_UIHCWF_RATE : 0;
-            } else {
-                 current.njSdi = current.njFli = current.njUiHcWf = 0;
-            }
+            const bonus = precisionMath.toBig(formData.bonus);
+            const currentGrossWithBonus = precisionMath.add(grossPerPeriod, bonus);
 
-            current.healthInsurance = parseCurrency(formData.healthInsurance);
-            current.retirement401k = parseCurrency(formData.retirement401k);
+            const calcs = paystubEngine.calculate(currentGrossWithBonus, ytdGross, periodsPerYear, filingStatus, otherDeductions);
 
-            current.totalDeductions = current.federalTax + current.stateTax + current.socialSecurity + current.medicare + current.njSdi + current.njFli + current.njUiHcWf + current.healthInsurance + current.retirement401k;
-            current.netPay = current.grossPay - current.totalDeductions;
-            
-            // Dates for this stub
-            const dayIncrement = getDateIncrement(payFrequency);
-            if (i > 0) {
-                 if (payFrequency === 'Semi-Monthly') {
-                    if (lastPeriodStart.getDate() === 1) { // Was 1st-15th
-                        lastPeriodStart.setDate(16);
-                        lastPeriodEnd = new Date(lastPeriodStart.getFullYear(), lastPeriodStart.getMonth() + 1, 0);
-                    } else { // Was 16th-EOM
-                        lastPeriodStart = new Date(lastPeriodStart.getFullYear(), lastPeriodStart.getMonth() + 1, 1);
-                        lastPeriodEnd.setDate(15);
-                    }
-                    lastPayDate.setDate(lastPayDate.getDate() + 15); // Approximate
-                } else if (payFrequency === 'Monthly') {
-                    lastPeriodStart.setMonth(lastPeriodStart.getMonth() + 1);
-                    lastPeriodEnd.setMonth(lastPeriodEnd.getMonth() + 2, 0);
-                    lastPayDate.setMonth(lastPayDate.getMonth() + 1);
-                }
-                else { // Weekly or Bi-Weekly
-                    lastPayDate.setDate(lastPayDate.getDate() + dayIncrement);
-                    lastPeriodStart.setDate(lastPeriodStart.getDate() + dayIncrement);
-                    lastPeriodEnd.setDate(lastPeriodEnd.getDate() + dayIncrement);
-                }
-            }
-            current.payDate = new Date(lastPayDate);
-            current.payPeriodStartDate = new Date(lastPeriodStart);
-            current.payPeriodEndDate = new Date(lastPeriodEnd);
+            calcs.stubIndex = i;
+            allStubsData.push(calcs);
 
-            // Update cumulative YTD *after* calculating current deductions
-            cumulativeYtd.grossPay += current.grossPay;
-            cumulativeYtd.federalTax += current.federalTax;
-            cumulativeYtd.stateTax += current.stateTax;
-            cumulativeYtd.socialSecurity += current.socialSecurity;
-            cumulativeYtd.medicare += current.medicare;
-            cumulativeYtd.njSdi += current.njSdi;
-            cumulativeYtd.njFli += current.njFli;
-            cumulativeYtd.njUiHcWf += current.njUiHcWf;
-
-            current.ytd = { ...cumulativeYtd };
-            allStubsData.push(current);
+            ytdGross = precisionMath.add(ytdGross, currentGrossWithBonus);
         }
+
         autoFillDeductions();
     };
     
@@ -406,14 +324,14 @@ document.addEventListener('DOMContentLoaded', () => {
         getEl('#livePreviewStubXofY').textContent = `Stub ${index + 1} of ${numStubs}`;
 
         // Update live summary bar
-        dom.summaryGrossPay.textContent = formatCurrency(stubData.grossPay);
-        dom.summaryTotalDeductions.textContent = formatCurrency(stubData.totalDeductions);
-        dom.summaryNetPay.textContent = formatCurrency(stubData.netPay);
+        dom.summaryGrossPay.textContent = precisionMath.format(stubData.grossPay);
+        dom.summaryTotalDeductions.textContent = precisionMath.format(stubData.totalDeductions);
+        dom.summaryNetPay.textContent = precisionMath.format(stubData.netPay);
 
         // Update preview totals
-        getEl('#livePreviewGrossPay').textContent = formatCurrency(stubData.grossPay);
-        getEl('#livePreviewTotalDeductions').textContent = formatCurrency(stubData.totalDeductions);
-        getEl('#livePreviewNetPay').textContent = formatCurrency(stubData.netPay);
+        getEl('#livePreviewGrossPay').textContent = precisionMath.format(stubData.grossPay);
+        getEl('#livePreviewTotalDeductions').textContent = precisionMath.format(stubData.totalDeductions);
+        getEl('#livePreviewNetPay').textContent = precisionMath.format(stubData.netPay);
         
         // Update tables
         const earningsBody = getEl('#livePreviewEarningsBody');
@@ -421,20 +339,20 @@ document.addEventListener('DOMContentLoaded', () => {
             <tr>
                 <td data-label="Description">Regular Pay</td>
                 <td data-label="Hours">${data.regularHours || 'N/A'}</td>
-                <td data-label="Rate">${data.employmentType === 'Hourly' ? formatCurrency(data.hourlyRate) : 'N/A'}</td>
-                <td data-label="Current Period">${formatCurrency(stubData.grossPay)}</td>
-                <td data-label="Year-to-Date">${formatCurrency(stubData.ytd.grossPay)}</td>
+                <td data-label="Rate">${data.employmentType === 'Hourly' ? precisionMath.format(data.hourlyRate) : 'N/A'}</td>
+                <td data-label="Current Period">${precisionMath.format(stubData.grossPay)}</td>
+                <td data-label="Year-to-Date">${precisionMath.format(stubData.ytd.grossPay)}</td>
             </tr>`;
         
         const deductionsBody = getEl('#livePreviewDeductionsBody');
         deductionsBody.innerHTML = `
-            <tr><td data-label="Description">Federal Tax</td><td data-label="Current">${formatCurrency(stubData.federalTax)}</td><td data-label="YTD">${formatCurrency(stubData.ytd.federalTax)}</td></tr>
-            <tr><td data-label="Description">Social Security</td><td data-label="Current">${formatCurrency(stubData.socialSecurity)}</td><td data-label="YTD">${formatCurrency(stubData.ytd.socialSecurity)}</td></tr>
-            <tr><td data-label="Description">Medicare</td><td data-label="Current">${formatCurrency(stubData.medicare)}</td><td data-label="YTD">${formatCurrency(stubData.ytd.medicare)}</td></tr>
-            <tr><td data-label="Description">NJ State Tax</td><td data-label="Current">${formatCurrency(stubData.stateTax)}</td><td data-label="YTD">${formatCurrency(stubData.ytd.stateTax)}</td></tr>
-            <tr><td data-label="Description">NJ SDI</td><td data-label="Current">${formatCurrency(stubData.njSdi)}</td><td data-label="YTD">${formatCurrency(stubData.ytd.njSdi)}</td></tr>
-            <tr><td data-label="Description">NJ FLI</td><td data-label="Current">${formatCurrency(stubData.njFli)}</td><td data-label="YTD">${formatCurrency(stubData.ytd.njFli)}</td></tr>
-            <tr><td data-label="Description">NJ UI/HC/WF</td><td data-label="Current">${formatCurrency(stubData.njUiHcWf)}</td><td data-label="YTD">${formatCurrency(stubData.ytd.njUiHcWf)}</td></tr>
+            <tr><td data-label="Description">Federal Tax</td><td data-label="Current">${precisionMath.format(stubData.federalTax)}</td><td data-label="YTD">${precisionMath.format(stubData.ytd.federalTax)}</td></tr>
+            <tr><td data-label="Description">Social Security</td><td data-label="Current">${precisionMath.format(stubData.socialSecurity)}</td><td data-label="YTD">${precisionMath.format(stubData.ytd.socialSecurity)}</td></tr>
+            <tr><td data-label="Description">Medicare</td><td data-label="Current">${precisionMath.format(stubData.medicare)}</td><td data-label="YTD">${precisionMath.format(stubData.ytd.medicare)}</td></tr>
+            <tr><td data-label="Description">NJ State Tax</td><td data-label="Current">${precisionMath.format(stubData.stateTax)}</td><td data-label="YTD">${precisionMath.format(stubData.ytd.stateTax)}</td></tr>
+            <tr><td data-label="Description">NJ SDI</td><td data-label="Current">${precisionMath.format(stubData.njSdi)}</td><td data-label="YTD">${precisionMath.format(stubData.ytd.njSdi)}</td></tr>
+            <tr><td data-label="Description">NJ FLI</td><td data-label="Current">${precisionMath.format(stubData.njFli)}</td><td data-label="YTD">${precisionMath.format(stubData.ytd.njFli)}</td></tr>
+            <tr><td data-label="Description">NJ UI/HC/WF</td><td data-label="Current">${precisionMath.format(stubData.njUiHcWf)}</td><td data-label="YTD">${precisionMath.format(stubData.ytd.njUiHcWf)}</td></tr>
         `;
 
         dom.previewStubIndicator.textContent = `(Previewing Stub: ${index + 1} of ${numStubs})`;

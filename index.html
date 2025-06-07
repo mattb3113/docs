@@ -62,10 +62,9 @@
             </section>
 
             <form id="paystubForm" novalidate>
-                <div id="formProgressIndicator" class="progress-indicator"></div>
                 <div id="formSummaryError" class="form-summary-error" aria-live="polite"></div>
                 
-                <div class="form-step" data-step="0">
+                <div id="mainFormContent">
                     <section class="form-section-card">
                         <h3>Step 1: Define Your Desired Income</h3>
                         <div class="grid-col-2">
@@ -112,12 +111,7 @@
                         </div>
                         <button type="button" id="populateDetailsBtn" class="btn btn-primary">Calculate &amp; Fill Paystub Details &#10132;</button>
                     </section>
-                    <div class="step-navigation">
-                        <button type="button" class="btn btn-primary next-step">Next Step</button>
-                    </div>
-                </div>
-
-                <div class="form-step" data-step="1">
+                    
                     <section class="form-section-card">
                         <h3>Step 2: Company & Employee Details</h3>
                         <h4>Employer Information</h4>
@@ -153,13 +147,7 @@
                             <div class="form-group"><label for="employeeZip">ZIP</label><input type="text" id="employeeZip" name="employeeZip" aria-describedby="employeeZipError" maxlength="5" pattern="[0-9]*" inputmode="numeric"><span class="error-message" id="employeeZipError"></span></div>
                         </div>
                     </section>
-                    <div class="step-navigation">
-                        <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
-                        <button type="button" class="btn btn-primary next-step">Next Step</button>
-                    </div>
-                </div>
 
-                <div class="form-step" data-step="2">
                     <section class="form-section-card">
                         <h3>Step 3: Pay Details & Dates</h3>
                         <div class="form-group">
@@ -222,17 +210,10 @@
                             <div class="form-group"><label for="payPeriodEndDate">Period End Date <span class="required-asterisk">*</span></label><input type="date" id="payPeriodEndDate" name="payPeriodEndDate" required aria-describedby="payPeriodEndDateError" aria-required="true"><span class="error-message" id="payPeriodEndDateError"></span></div>
                         </div>
                     </section>
-                    <div class="step-navigation">
-                        <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
-                        <button type="button" class="btn btn-primary next-step">Next Step</button>
-                    </div>
-                </div>
-                
-                <div class="form-step" data-step="3">
+
                     <section class="form-section-card">
                         <h3>Step 4: Deductions & Withholdings</h3>
-                        <button type="button" id="estimateAllDeductionsBtn" class="btn btn-secondary" style="margin-bottom: 25px;">Estimate All Deductions</button>
-
+                        
                         <h4>Federal Taxes</h4>
                         <div class="deduction-list">
                             <div class="deduction-item">
@@ -245,15 +226,15 @@
                             </div>
                             <div class="deduction-item">
                                 <label for="federalTaxAmount">Federal Tax</label>
-                                <input type="text" id="federalTaxAmount" name="federalTaxAmount" class="currency-input" value="0.00">
+                                <input type="text" id="federalTaxAmount" name="federalTaxAmount" class="currency-input" value="0.00" data-is-auto="true">
                             </div>
                             <div class="deduction-item">
                                 <label for="socialSecurityAmount">Social Security</label>
-                                <input type="text" id="socialSecurityAmount" name="socialSecurityAmount" class="currency-input" value="0.00">
+                                <input type="text" id="socialSecurityAmount" name="socialSecurityAmount" class="currency-input" value="0.00" data-is-auto="true">
                             </div>
                             <div class="deduction-item">
                                 <label for="medicareAmount">Medicare</label>
-                                <input type="text" id="medicareAmount" name="medicareAmount" class="currency-input" value="0.00">
+                                <input type="text" id="medicareAmount" name="medicareAmount" class="currency-input" value="0.00" data-is-auto="true">
                             </div>
                         </div>
 
@@ -262,11 +243,11 @@
                         <div class="deduction-list" id="njDeductionsSection">
                              <div class="deduction-item">
                                 <label for="stateTaxAmount">NJ State Tax</label>
-                                <input type="text" id="stateTaxAmount" name="stateTaxAmount" class="currency-input" value="0.00">
+                                <input type="text" id="stateTaxAmount" name="stateTaxAmount" class="currency-input" value="0.00" data-is-auto="true">
                             </div>
-                            <div class="deduction-item"><label for="njSdiAmount">NJ SDI</label><input type="text" id="njSdiAmount" name="njSdiAmount" class="currency-input" value="0.00"></div>
-                            <div class="deduction-item"><label for="njFliAmount">NJ FLI</label><input type="text" id="njFliAmount" name="njFliAmount" class="currency-input" value="0.00"></div>
-                            <div class="deduction-item"><label for="njUiHcWfAmount">NJ UI/HC/WF</label><input type="text" id="njUiHcWfAmount" name="njUiHcWfAmount" class="currency-input" value="0.00"></div>
+                            <div class="deduction-item"><label for="njSdiAmount">NJ SDI</label><input type="text" id="njSdiAmount" name="njSdiAmount" class="currency-input" value="0.00" data-is-auto="true"></div>
+                            <div class="deduction-item"><label for="njFliAmount">NJ FLI</label><input type="text" id="njFliAmount" name="njFliAmount" class="currency-input" value="0.00" data-is-auto="true"></div>
+                            <div class="deduction-item"><label for="njUiHcWfAmount">NJ UI/HC/WF</label><input type="text" id="njUiHcWfAmount" name="njUiHcWfAmount" class="currency-input" value="0.00" data-is-auto="true"></div>
                         </div>
 
                         <hr>
@@ -293,13 +274,7 @@
                             </div>
                         </div>
                     </section>
-                    <div class="step-navigation">
-                        <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
-                        <button type="button" class="btn btn-primary next-step">Next Step</button>
-                    </div>
-                </div>
-                
-                <div class="form-step" data-step="4">
+                    
                     <section class="form-section-card">
                         <h3>Step 5: Final Details & Submission</h3>
                         <h4>Optional Additions</h4>
@@ -341,24 +316,25 @@
                             <span class="error-message" id="userEmailError"></span>
                         </div>
                     </section>
-                    <div class="step-navigation">
-                        <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
-                        <button type="button" id="generateAndPay" class="btn btn-primary next-step">Review &amp; Proceed</button>
-                    </div>
                 </div>
 
-                <div class="form-step" data-step="5">
-                    <section class="form-section-card">
-                        <h3>Step 6: Review & Confirm</h3>
+                <div id="reviewSection" style="display:none;">
+                     <section class="form-section-card">
+                        <h3>Review & Confirm</h3>
                         <h2 class="confirmation-question">Are you satisfied with your paystub?</h2>
                         <div id="reviewPreviewContainer">
                             </div>
                          <div class="step-navigation">
-                            <button type="button" class="btn btn-secondary prev-step">Edit Info</button>
+                            <button type="button" id="editInfoBtn" class="btn btn-secondary">Edit Info</button>
                             <button type="button" id="proceedToPaymentBtn" class="btn btn-primary">Proceed to Payment</button>
                         </div>
                     </section>
                 </div>
+                
+                <div class="final-submit-container">
+                    <button type="button" id="reviewAndGenerateBtn" class="btn btn-primary btn-large">Review &amp; Generate</button>
+                </div>
+
             </form>
 
             <div class="summary-bar">
@@ -367,7 +343,7 @@
                 <div>Live Net Pay: <span id="summaryNetPay">$0.00</span></div>
             </div>
 
-            <section id="previewSection" class="preview-section-card">
+            <section id="previewDisplaySection" class="preview-section-card">
                 <h3>Live Paystub Preview <span id="previewStubIndicator">(Previewing Stub: 1 of 1)</span></h3>
                 <div class="preview-nav-controls" style="display: none; margin-bottom: 10px; text-align: center;">
                     <button id="prevStubBtn" class="btn btn-secondary btn-sm">&laquo; Previous Stub</button>

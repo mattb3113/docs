@@ -120,6 +120,26 @@ document.addEventListener('DOMContentLoaded', () => {
         return parseFloat(String(value).replace(/[$,]/g, '')) || 0;
     };
 
+    /** Formats a 10-digit phone number as XXX-XXX-XXXX. */
+    const formatPhoneNumber = (value) => {
+        const digits = String(value).replace(/\D/g, '').slice(0, 10);
+        const parts = [];
+        if (digits.length > 0) parts.push(digits.slice(0, 3));
+        if (digits.length > 3) parts.push(digits.slice(3, 6));
+        if (digits.length > 6) parts.push(digits.slice(6));
+        return parts.join('-');
+    };
+
+    /** Restricts a value to 5 numeric ZIP digits. */
+    const formatZip = (value) => {
+        return String(value).replace(/\D/g, '').slice(0, 5);
+    };
+
+    /** Restricts a value to the last four digits of an SSN. */
+    const formatSsnLast4 = (value) => {
+        return String(value).replace(/\D/g, '').slice(0, 4);
+    };
+
     /**
      * Debounces a function to limit the rate at which it gets called.
      * @param {Function} func The function to debounce.
@@ -442,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.livePreviewEmployeeName.textContent = data.employeeFullName || 'Employee Name';
         dom.livePreviewEmployeeAddress1.textContent = data.employeeStreetAddress || '456 Employee Ave';
         dom.livePreviewEmployeeAddress2.textContent = `${data.employeeCity || 'Workville'}, ${data.employeeState || 'ST'} ${data.employeeZip || '67890'}`;
-        dom.livePreviewEmployeeSsn.textContent = data.employeeSsn ? `SSN: ${data.employeeSsn}` : 'SSN: XXX-XX-XXXX';
+        dom.livePreviewEmployeeSsn.textContent = data.employeeSsn ? `SSN: XXX-XX-${data.employeeSsn}` : 'SSN: XXX-XX-XXXX';
         
         // Dates (increment for each stub)
         const payFrequency = dom.employmentTypeRadios[0].checked ? dom.hourlyPayFrequency.value : dom.salariedPayFrequency.value;
@@ -744,6 +764,44 @@ function autoPopulateFromDesiredIncome() {
             }
             if (input.required) {
                  input.addEventListener('blur', () => validateField(input));
+            }
+        });
+
+        // Input formatting & restrictions
+        if (dom.companyPhone) {
+            dom.companyPhone.addEventListener('input', () => {
+                dom.companyPhone.value = formatPhoneNumber(dom.companyPhone.value);
+            });
+        }
+
+        [dom.companyZip, dom.employeeZip].forEach(zipInput => {
+            if (zipInput) {
+                zipInput.addEventListener('input', () => {
+                    zipInput.value = formatZip(zipInput.value);
+                });
+            }
+        });
+
+        if (dom.employeeSsn) {
+            dom.employeeSsn.addEventListener('input', () => {
+                dom.employeeSsn.value = formatSsnLast4(dom.employeeSsn.value);
+            });
+        }
+
+        if (dom.annualSalary) {
+            dom.annualSalary.addEventListener('input', () => {
+                dom.annualSalary.value = dom.annualSalary.value.replace(/[^0-9.]/g, '');
+            });
+            dom.annualSalary.addEventListener('blur', () => {
+                dom.annualSalary.value = formatCurrency(dom.annualSalary.value);
+            });
+        }
+
+        [dom.companyName, dom.employeeFullName, dom.companyCity, dom.employeeCity, dom.companyState, dom.employeeState].forEach(nameInput => {
+            if (nameInput) {
+                nameInput.addEventListener('input', () => {
+                    nameInput.value = nameInput.value.replace(/[^a-zA-Z\s]/g, '');
+                });
             }
         });
 

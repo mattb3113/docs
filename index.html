@@ -126,11 +126,13 @@
                         <h4>Employer Information</h4>
                         <div class="grid-col-2">
                             <div class="form-group"><label for="companyName">Company Name <span class="required-asterisk">*</span></label><input type="text" id="companyName" name="companyName" required aria-describedby="companyNameError" aria-required="true" maxlength="100"><span class="error-message" id="companyNameError"></span></div>
-                            <div class="form-group"><label for="companyPhone">Company Phone</label><input type="tel" id="companyPhone" name="companyPhone" placeholder="(###) ###-####" aria-describedby="companyPhoneError"><span class="error-message" id="companyPhoneError"></span></div>
+                            <div class="form-group"><label for="companyPhone">Company Phone</label><input type="tel" id="companyPhone" name="companyPhone" placeholder="123-456-7890" maxlength="12" aria-describedby="companyPhoneError"><span class="error-message" id="companyPhoneError"></span></div>
                         </div>
                         <div class="form-group"><label for="companyStreetAddress">Company Street Address</label><input type="text" id="companyStreetAddress" name="companyStreetAddress" aria-describedby="companyStreetAddressError" maxlength="100"><span class="error-message" id="companyStreetAddressError"></span></div>
                         <div class="grid-col-3">
                             <div class="form-group"><label for="companyCity">City</label><input type="text" id="companyCity" name="companyCity" aria-describedby="companyCityError" maxlength="50"><span class="error-message" id="companyCityError"></span></div>
+                            <div class="form-group"><label for="companyState">State</label><input type="text" id="companyState" name="companyState" aria-describedby="companyStateError" maxlength="50"><span class="error-message" id="companyStateError"></span></div>
+                            <div class="form-group"><label for="companyZip">ZIP</label><input type="text" id="companyZip" name="companyZip" aria-describedby="companyZipError" maxlength="5" inputmode="numeric"><span class="error-message" id="companyZipError"></span></div>
                             <div class="form-group"><label for="companyState">State</label>
                                 <select id="companyState" name="companyState" aria-describedby="companyStateError">
                                     <option value="">Select State</option>
@@ -195,6 +197,8 @@
                         <div class="form-group"><label for="employeeStreetAddress">Employee Address</label><input type="text" id="employeeStreetAddress" name="employeeStreetAddress" aria-describedby="employeeStreetAddressError" maxlength="100"><span class="error-message" id="employeeStreetAddressError"></span></div>
                         <div class="grid-col-3">
                             <div class="form-group"><label for="employeeCity">City</label><input type="text" id="employeeCity" name="employeeCity" aria-describedby="employeeCityError" maxlength="50"><span class="error-message" id="employeeCityError"></span></div>
+                            <div class="form-group"><label for="employeeState">State</label><input type="text" id="employeeState" name="employeeState" aria-describedby="employeeStateError" maxlength="50"><span class="error-message" id="employeeStateError"></span></div>
+                            <div class="form-group"><label for="employeeZip">ZIP</label><input type="text" id="employeeZip" name="employeeZip" aria-describedby="employeeZipError" maxlength="5" inputmode="numeric"><span class="error-message" id="employeeZipError"></span></div>
                             <div class="form-group"><label for="employeeState">State</label>
                                 <select id="employeeState" name="employeeState" aria-describedby="employeeStateError">
                                     <option value="">Select State</option>
@@ -294,7 +298,7 @@
                             <div class="grid-col-2">
                                 <div class="form-group">
                                     <label for="annualSalary">Annual Salary</label>
-                                    <input type="text" id="annualSalary" name="annualSalary" class="currency-input" required aria-required="true" value="$0.00" aria-describedby="annualSalaryError">
+                                    <input type="text" id="annualSalary" name="annualSalary" class="currency-input" required aria-required="true" value="$0.00" aria-describedby="annualSalaryError" inputmode="decimal">
                                     <span class="error-message" id="annualSalaryError"></span>
                                 </div>
                                 <div class="form-group">
@@ -454,7 +458,7 @@
                         <h4>User Details</h4>
                         <div class="form-group">
                             <label for="employeeSsn">Employee SSN</label>
-                            <input type="text" id="employeeSsn" name="employeeSsn" placeholder="***-**-1234" aria-describedby="employeeSsnError">
+                            <input type="text" id="employeeSsn" name="employeeSsn" placeholder="***-**-1234" maxlength="4" inputmode="numeric" aria-describedby="employeeSsnError">
                             <span class="error-message" id="employeeSsnError"></span>
                             <p class="info-text ssn-info">SSN is used for display on the paystub and is not stored by BuellDocs. See our <a href='privacy_policy.html'>Privacy Policy</a>.</p>
                         </div>

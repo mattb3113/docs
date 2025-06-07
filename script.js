@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dom = {};
     const elementIds = [
         'paystubForm', 'formProgressIndicator', 'formSummaryError', 'numPaystubs', 'hourlyPayFrequencyGroup',
-        'hourlyPayFrequency', 'resetAllFieldsBtn', 'saveDraftBtn', 'loadDraftBtn', 'estimateAllDeductionsBtn',
+        'hourlyPayFrequency', 'resetAllFieldsBtn', 'saveDraftBtn', 'loadDraftBtn', 'autoCalculateDeductionsBtn',
         'previewPdfWatermarkedBtn', 'copyKeyDataBtn', 'sharePdfEmailLink', 'sharePdfInstructions',
         'desiredIncomeAmount', 'desiredIncomePeriod', 'assumedHourlyHoursGroup', 'assumedHourlyRegularHours',
         'isForNJEmployment', 'netIncomeAdjustmentNote', 'populateDetailsBtn', 'hourlyFields', 'salariedFields',
@@ -492,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- UI Handlers & Event Listeners Setup --- //
 
     /** Populates pay details from the "Desired Income" section. */
-    function autoPopulateFromDesiredIncome() {
+function autoPopulateFromDesiredIncome() {
         if (!validateField(dom.desiredIncomeAmount)) return;
 
         const amount = parseCurrency(dom.desiredIncomeAmount.value);
@@ -516,7 +516,56 @@ document.addEventListener('DOMContentLoaded', () => {
             dom.hourlyRate.value = hourlyRate.toFixed(2);
             dom.regularHours.value = hoursPerWeek;
             dom.annualSalary.value = '$0.00';
+}
+
+    /** Auto-calculates deduction fields based on current form data. */
+    function autoCalculateDeductions() {
+        const data = {};
+        new FormData(dom.paystubForm).forEach((value, key) => data[key] = value);
+
+        data.isForNJEmployment = dom.isForNJEmployment.checked;
+        data.startYtdFromBatch = dom.startYtdFromBatch ? dom.startYtdFromBatch.checked : true;
+
+        const employmentType = dom.employmentTypeRadios[0].checked ? 'Hourly' : 'Salaried';
+        const payFrequency = (employmentType === 'Salaried') ? data.salariedPayFrequency : data.hourlyPayFrequency;
+        const periodsPerYear = PAY_PERIODS_PER_YEAR[payFrequency] || 52;
+
+        let annualGross;
+        if (employmentType === 'Salaried') {
+            annualGross = parseCurrency(data.annualSalary);
+        } else {
+            const rate = parseCurrency(data.hourlyRate);
+            const hours = parseCurrency(data.regularHours);
+            annualGross = rate * hours * periodsPerYear;
         }
+
+        const grossPay = annualGross / periodsPerYear + parseCurrency(data.bonus) + parseCurrency(data.miscEarningAmount);
+        const ytdGross = data.startYtdFromBatch ? 0 : parseCurrency(data.initialYtdGrossPay);
+
+        const federalTax = calculateFederalTax(annualGross, data.federalFilingStatus) / periodsPerYear;
+        const stateTax = data.isForNJEmployment ? calculateNjStateTax(annualGross, data.federalFilingStatus) / periodsPerYear : 0;
+        const socialSecurity = (ytdGross < SOCIAL_SECURITY_WAGE_LIMIT_2024)
+            ? Math.min(grossPay, SOCIAL_SECURITY_WAGE_LIMIT_2024 - ytdGross) * SOCIAL_SECURITY_RATE
+            : 0;
+        const medicare = grossPay * MEDICARE_RATE;
+        const njSdi = data.isForNJEmployment ? grossPay * NJ_SDI_RATE : 0;
+        const njFli = data.isForNJEmployment ? grossPay * NJ_FLI_RATE : 0;
+        const njUiHcWf = data.isForNJEmployment && (ytdGross < NJ_UIHCWF_WAGE_LIMIT_2024)
+            ? Math.min(grossPay, NJ_UIHCWF_WAGE_LIMIT_2024 - ytdGross) * NJ_UIHCWF_RATE
+            : 0;
+
+        dom.federalTaxAmount.value = federalTax.toFixed(2);
+        dom.stateTaxAmount.value = stateTax.toFixed(2);
+        dom.socialSecurityAmount.value = socialSecurity.toFixed(2);
+        dom.medicareAmount.value = medicare.toFixed(2);
+        if (dom.njDeductionsSection) {
+            dom.njSdiAmount.value = njSdi.toFixed(2);
+            dom.njFliAmount.value = njFli.toFixed(2);
+            dom.njUiHcWfAmount.value = njUiHcWf.toFixed(2);
+        }
+
+        showNotification('Deduction fields populated based on current pay details.', 'Deductions Calculated');
+    }
         
         toggleEmploymentFields();
         showNotification('Pay details have been calculated and populated in Step 3.', 'Auto-Population Complete');
@@ -651,7 +700,10 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.saveDraftBtn.addEventListener('click', saveDraftToLocalStorage);
         dom.loadDraftBtn.addEventListener('click', loadDraftFromLocalStorage);
         dom.populateDetailsBtn.addEventListener('click', autoPopulateFromDesiredIncome);
-        dom.estimateAllDeductionsBtn.addEventListener('click', debouncedUpdateLivePreview);
+        dom.autoCalculateDeductionsBtn.addEventListener('click', () => {
+            autoCalculateDeductions();
+            debouncedUpdateLivePreview();
+        });
 
 
         // Form Inputs & Toggles

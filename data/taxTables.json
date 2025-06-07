@@ -1,35 +1,54 @@
 {
-  "fica": {
-    "socialSecurity": { "wageLimit": 168600, "rate": 0.062 },
-    "medicare": { "rate": 0.0145, "additionalRate": 0.009, "additionalRateThreshold": 200000 }
-  },
+  "year": 2025,
   "federal": {
-    "standardDeductions": { "Single": 14600 },
+    "standardDeductions": {
+      "Single": 14600,
+      "MarriedJ": 29200,
+      "HeadOfHousehold": 21900
+    },
     "taxBrackets": {
       "Single": [
-        { "from": 0, "to": 11600, "rate": 0.10 },
-        { "from": 11600, "to": 47150, "rate": 0.12 },
-        { "from": 47150, "to": 100525, "rate": 0.22 },
-        { "from": 100525, "to": 191950, "rate": 0.24 },
-        { "from": 191950, "to": 243725, "rate": 0.32 },
-        { "from": 243725, "to": 609350, "rate": 0.35 },
-        { "from": 609350, "to": "Infinity", "rate": 0.37 }
+        {"rate": 0.10, "from": 0, "to": 11600},
+        {"rate": 0.12, "from": 11600, "to": 47150},
+        {"rate": 0.22, "from": 47150, "to": 100525},
+        {"rate": 0.24, "from": 100525, "to": 191950},
+        {"rate": 0.32, "from": 191950, "to": 243725},
+        {"rate": 0.35, "from": 243725, "to": 609350},
+        {"rate": 0.37, "from": 609350, "to": "Infinity"}
+      ],
+       "MarriedJ": [
+        {"rate": 0.10, "from": 0, "to": 23200},
+        {"rate": 0.12, "from": 23200, "to": 94300},
+        {"rate": 0.22, "from": 94300, "to": 201050},
+        {"rate": 0.24, "from": 201050, "to": 383900},
+        {"rate": 0.32, "from": 383900, "to": 487450},
+        {"rate": 0.35, "from": 487450, "to": 731200},
+        {"rate": 0.37, "from": 731200, "to": "Infinity"}
       ]
+    }
+  },
+  "fica": {
+    "socialSecurity": {
+      "rate": 0.062,
+      "wageLimit": 177300
+    },
+    "medicare": {
+      "rate": 0.0145
     }
   },
   "nj": {
     "taxBrackets": {
       "Single": [
-        { "from": 0, "to": 20000, "rate": 0.014 },
-        { "from": 20000, "to": 35000, "rate": 0.0175 },
-        { "from": 35000, "to": 40000, "rate": 0.035 },
-        { "from": 40000, "to": 75000, "rate": 0.05525 },
-        { "from": 75000, "to": 500000, "rate": 0.0637 },
-        { "from": 500000, "to": "Infinity", "rate": 0.0897 }
+        {"rate": 0.014, "from": 0, "to": 20000},
+        {"rate": 0.0175, "from": 20000, "to": 35000},
+        {"rate": 0.035, "from": 35000, "to": 40000},
+        {"rate": 0.05525, "from": 40000, "to": 75000},
+        {"rate": 0.0637, "from": 75000, "to": 500000},
+        {"rate": 0.0897, "from": 500000, "to": "Infinity"}
       ]
     },
-    "sdi": { "rate": 0.0, "wageLimit": 0 },
-    "fli": { "rate": 0.0006, "wageLimit": 156800 },
-    "ui_hc_wf": { "rate": 0.00425, "wageLimit": 42300 }
+    "sdi": { "rate": 0.00, "wageLimit": 169000 },
+    "fli": { "rate": 0.0006, "wageLimit": 169000 },
+    "ui_hc_wf": { "rate": 0.00425, "wageLimit": 43800 }
   }
 }

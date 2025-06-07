@@ -3,16 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Successful</title>
+    <title>Thank You | BuellDocs</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Thank you!</h1>
-        <p>Your payment was processed successfully. Your paystub will be emailed to you shortly.</p>
-    <div class="success-container">
-        <h1>Payment Successful</h1>
-        <p>Your payment was processed. A copy of your final paystub will be emailed shortly.</p>
+    <div class="simple-page-container">
+        <h1>Thank You for Your Order!</h1>
+        <p id="orderSummary"></p>
+        <p id="orderNotes"></p>
+        <p class="next-steps">
+            We will review your payment and email your final paystub(s) to
+            <strong id="emailDisplay"></strong> typically within 24 hours. If you have not already,
+            please send a screenshot of your receipt to
+            <a id="supportLink" href="mailto:buellschool@gmail.com">buellschool@gmail.com</a>.
+        </p>
+        <p><a href="index.html">Return to Dashboard</a></p>
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        const email = params.get('email') || '';
+        const txId = params.get('txId') || '';
+        const numStubs = params.get('numStubs') || '';
+        const notes = params.get('notes');
+
+        document.getElementById('emailDisplay').textContent = email;
+        document.getElementById('orderSummary').textContent =
+            `Transaction ${txId} confirmed for ${numStubs} stub(s).`;
+        if (notes) {
+            document.getElementById('orderNotes').textContent = `Notes: ${notes}`;
+        }
+    });
+    </script>
 </body>
 </html>
+

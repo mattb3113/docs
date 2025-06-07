@@ -800,6 +800,17 @@ function autoPopulateFromDesiredIncome() {
             return;
         }
 
+        // Close modal and redirect to thank you page with order details
+        closeModal(dom.paymentModal);
+
+        const params = new URLSearchParams({
+            email: dom.userEmail.value,
+            txId: txIdInput.value,
+            numStubs: dom.numPaystubs.value,
+            notes: dom.userNotes.value || ''
+        });
+
+        window.location.href = `success.html?${params.toString()}`;
         // Show success message inside the modal
         dom.paymentInstructions.style.display = 'none';
         dom.modalOrderSuccessMessage.style.display = 'block';

@@ -1,10 +1,10 @@
-/* BuellDocs Paystub Generator v3.1 - style.css */
 /*
+    BuellDocs Paystub Generator v3.2 - style.css (FIXED)
     Author: Gemini (Refactored for BuellDocs)
     Date: June 7, 2025
-    Project: BuellDocs Client-Side Paystub Generator v3.1
-    Description: Cleaned and enhanced styles for the paystub generator application,
-                 including custom checkboxes and refined layouts for a single-page experience.
+    Project: BuellDocs Client-Side Paystub Generator v3.2
+    Description: Cleaned and enhanced styles for the paystub generator application.
+                 Adjusted for corrected HTML structure and improved preview layout.
 */
 
 /* -------------------- */
@@ -118,28 +118,25 @@ h1, h2, h3, h4, label, input, select, textarea, button {
 .hero-section p { font-size: clamp(14px, 2vw, 16px); color: var(--text-secondary); }
 
 /* -------------------- */
-/* --- Single Page Form --- */
+/* --- Form Layout --- */
 /* -------------------- */
 .form-section-card {
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-md);
     padding: 30px;
-    margin-bottom: 30px; /* Spacing between cards */
+    margin-bottom: 30px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 .form-section-card:last-of-type {
     margin-bottom: 0;
 }
-
 .step-navigation { display: flex; justify-content: space-between; margin-top: 20px; }
-.step-navigation button:first-child:not(:last-child) { margin-right: auto; }
-.step-navigation button:last-child:not(:first-child) { margin-left: auto; }
 
 /* -------------------- */
 /* --- CARDS & FORMS --- */
 /* -------------------- */
-.preview-section-card { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 30px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+.preview-section-card { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 30px; margin-top:30px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
 .form-section-card h3, .preview-section-card h3 { font-size: 20px; color: var(--accent-gold); margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); text-transform: uppercase; letter-spacing: var(--letter-spacing-header); }
 .form-section-card h4 { font-size: 16px; color: var(--text-primary); margin-top: 25px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
 hr { border: none; height: 1px; background-color: var(--border-color); margin: 25px 0; }
@@ -150,75 +147,23 @@ hr { border: none; height: 1px; background-color: var(--border-color); margin: 2
 input.invalid, select.invalid, textarea.invalid { border-color: var(--error-color) !important; box-shadow: 0 0 0 2px rgba(226, 93, 106, 0.3) !important; }
 .error-message { display: block; color: var(--error-color); font-size: 12px; margin-top: 5px; min-height: 15px; font-weight: 500; }
 .required-asterisk { color: var(--error-color); margin-left: 2px; }
-.form-summary-error { display: none; color: var(--error-color); background-color: rgba(226, 93, 106, 0.1); border: 1px solid var(--error-color); padding: 10px; border-radius: var(--border-radius-md); margin-bottom: 20px; text-align: center; }
-.form-summary-error.active { display: block; }
-.radio-group { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; }
-.radio-group label { display: flex; align-items: center; text-transform: none; font-size: 15px; cursor: pointer; color: var(--text-secondary); }
-.radio-group input { margin-right: 8px; accent-color: var(--accent-gold); transform: scale(1.1); }
-
-.checkbox-group { display: flex; align-items: center; }
-.checkbox-group label { display: flex; align-items: center; text-transform: none; font-size: 15px; cursor: pointer; color: var(--text-secondary); gap: 10px;}
-.checkbox-group input[type="checkbox"] {
-    -webkit-appearance: none;
-    appearance: none;
-    background-color: transparent;
-    margin: 0;
-    font: inherit;
-    color: var(--text-secondary);
-    width: 1.15em;
-    height: 1.15em;
-    border: 0.15em solid var(--accent-gold);
-    border-radius: 0.15em;
-    transform: translateY(-0.075em);
-    display: grid;
-    place-content: center;
-    cursor: pointer;
-}
-.checkbox-group input[type="checkbox"]::before {
-    content: "";
-    width: 0.65em;
-    height: 0.65em;
-    transform: scale(0);
-    transition: 120ms transform ease-in-out;
-    box-shadow: inset 1em 1em var(--accent-gold);
-    transform-origin: bottom left;
-    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-}
-.checkbox-group input[type="checkbox"]:checked::before {
-    transform: scale(1);
-}
-.checkbox-group input[type="checkbox"]:focus-visible {
-    outline: max(2px, 0.15em) solid var(--accent-gold);
-    outline-offset: max(2px, 0.15em);
-}
-
+.form-summary-error { display: none; color: var(--error-color); background-color: rgba(226, 93, 106, 0.1); border: 1px solid var(--error-color); padding: 15px; border-radius: var(--border-radius-md); margin-bottom: 20px; text-align: center; }
 .grid-col-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
 .grid-col-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
 .info-text { font-size: 13px; color: var(--text-tertiary); margin-top: 5px; }
 
 /* --- Special Form Elements --- */
+.checkbox-group label { display: flex; align-items: center; text-transform: none; font-size: 15px; cursor: pointer; color: var(--text-secondary); gap: 10px;}
+.checkbox-group input[type="checkbox"] { appearance: none; background-color: transparent; margin: 0; font: inherit; color: var(--text-secondary); width: 1.15em; height: 1.15em; border: 0.15em solid var(--accent-gold); border-radius: 0.15em; transform: translateY(-0.075em); display: grid; place-content: center; cursor: pointer;}
+.checkbox-group input[type="checkbox"]::before { content: ""; width: 0.65em; height: 0.65em; transform: scale(0); transition: 120ms transform ease-in-out; box-shadow: inset 1em 1em var(--accent-gold); transform-origin: bottom left; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);}
+.checkbox-group input[type="checkbox"]:checked::before { transform: scale(1); }
 .logo-preview-container { height: 100px; background-color: var(--bg-tertiary); border: 2px dashed var(--border-color); border-radius: var(--border-radius-md); display: flex; align-items: center; justify-content: center; margin: 10px 0; overflow: hidden; }
 .logo-placeholder-text { color: var(--text-tertiary); }
 #companyLogoPreview, #payrollProviderLogoPreview { max-height: 100%; max-width: 100%; object-fit: contain; }
 .btn-remove-logo { background: none; border: none; color: var(--error-color); cursor: pointer; font-size: 12px; }
-
-/* Deductions list layout */
 .deduction-list { display: flex; flex-direction: column; gap: 15px; }
-.deduction-item {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    align-items: center;
-}
-.deduction-item label { flex: 1; margin-bottom: 0; }
-.deduction-item input, .deduction-item select { flex: 1; }
-
-.final-submit-container {
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border-color);
-    text-align: center;
-}
+.deduction-item { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; align-items: center; }
+.final-submit-container { margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color); text-align: center; }
 
 /* -------------------- */
 /* --- BUTTONS --- */
@@ -237,23 +182,25 @@ input.invalid, select.invalid, textarea.invalid { border-color: var(--error-colo
 /* -------------------- */
 /* --- PREVIEW & MODALS --- */
 /* -------------------- */
-#previewDisplaySection { position: relative; }
 .preview-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: clamp(30px, 8vw, 60px); color: rgba(255, 255, 255, 0.05); font-weight: bold; pointer-events: none; z-index: 1; text-transform: uppercase; }
 #previewStubIndicator { font-size: 0.8em; color: var(--text-tertiary); margin-left: 10px; }
 .paystub-live-preview { border: 1px solid var(--border-color); padding: 20px; border-radius: var(--border-radius-sm); background-color: var(--bg-primary); color: var(--text-primary); font-size: 12px; position: relative; z-index: 2; }
-#paystubPreviewContent div, #paystubPreviewContent td { overflow-wrap: anywhere; }
 .paystub-header-preview { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
 .company-info-left .live-preview-logo { max-width: 120px; max-height: 50px; margin-bottom: 8px; }
 #livePreviewCompanyName { font-weight: bold; font-size: 1.2em; }
 .paystub-title-preview { text-align: right; }
 .paystub-title-preview h2 { font-size: 1.4em; margin-bottom: 3px; color: var(--text-primary); letter-spacing: 0; text-transform: uppercase;}
-.employee-pay-period-preview { display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+.employee-pay-period-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
 .employee-info-preview h4, .pay-period-info-preview h4 { font-size: 1.1em; margin-bottom: 5px; color: var(--text-secondary); text-transform: uppercase; }
 .earnings-table-preview, .deductions-table-preview { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 11px; }
 .earnings-table-preview th, .earnings-table-preview td, .deductions-table-preview th, .deductions-table-preview td { border: 1px solid var(--border-color); padding: 6px 8px; text-align: left; }
 .earnings-table-preview th, .deductions-table-preview th { background-color: var(--bg-tertiary); font-weight: bold; }
-.earnings-table-preview td:nth-child(n+2), .deductions-table-preview td:nth-child(n+2) { text-align: right; }
-.summary-preview { margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border-color); text-align: right; font-weight: bold; font-size: 1.1em; }
+.earnings-table-preview td:not(:first-child), .deductions-table-preview td:not(:first-child) { text-align: right; }
+.summary-preview { margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border-color); font-size: 1.1em; }
+.summary-grid { display: grid; grid-template-columns: 1fr auto auto; gap: 5px 15px; justify-items: end; }
+.summary-grid strong { justify-self: end; font-weight: bold; }
+.summary-grid span:nth-child(3n+2) { font-weight: normal; } /* Current values */
+.summary-grid span:nth-child(3n) { font-weight: normal; color: var(--text-secondary); } /* YTD values */
 .summary-bar { position: sticky; bottom: 0; background-color: rgba(20, 20, 24, 0.8); backdrop-filter: blur(var(--blur-amount)); border-top: 1px solid var(--border-color-light); padding: 10px 20px; display: flex; justify-content: space-around; z-index: 200; font-size: 14px; font-weight: 500;}
 .summary-bar span { color: var(--accent-gold); font-weight: 600;}
 .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(var(--blur-amount)); -webkit-backdrop-filter: blur(var(--blur-amount)); align-items: center; justify-content: center; animation: fadeIn 0.3s ease; }
@@ -264,15 +211,13 @@ input.invalid, select.invalid, textarea.invalid { border-color: var(--error-colo
 .qr-code-options { display: flex; justify-content: space-around; text-align: center; margin-bottom: 25px; gap: 15px; flex-wrap: wrap; }
 .qr-container { background-color: white; padding: 5px; border-radius: var(--border-radius-sm); display: inline-block; }
 .qr-container img { display: block; width: 120px; height: 120px; }
-#modalOrderSuccessMessage ul { list-style-type: none; margin: 15px 0; }
-#modalOrderSuccessMessage li { background: var(--bg-tertiary); padding: 8px; border-radius: var(--border-radius-sm); margin-bottom: 8px; }
-#modalOrderSuccessMessage strong { color: var(--accent-gold); }
 .voided-check-css-container { border: 2px solid var(--border-color); padding: 10px; margin-top: 20px; border-radius: var(--border-radius-sm); }
 .voided-check-css { position: relative; background: var(--bg-tertiary); padding: 10px; font-family: 'Courier New', monospace; color: var(--text-secondary); font-size: 10px; }
 .void-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; color: rgba(226, 93, 106, 0.7); font-weight: bold; z-index: 10; letter-spacing: 5px; border: 3px solid rgba(226, 93, 106, 0.7); padding: 0 10px; }
-
 .confirmation-question { text-align: center; margin: 20px 0; font-weight: 600; color: var(--accent-gold); font-size: 1.2rem;}
 #reviewPreviewContainer { margin: 20px 0; position: relative;}
+.modal-content-pdf { width: 95%; max-width: 900px; height: 90%; display: flex; flex-direction: column;}
+#pdfPreviewFrame { flex-grow: 1; border: none; border-radius: var(--border-radius-sm); background-color: #fff; }
 
 /* -------------------- */
 /* --- RESPONSIVE DESIGN --- */
@@ -280,35 +225,20 @@ input.invalid, select.invalid, textarea.invalid { border-color: var(--error-colo
 @media (max-width: 992px) {
     .main-wrapper { flex-direction: column; padding-left: 15px; padding-right: 15px; gap: 20px; }
     .sidebar { width: 100%; position: static; height: auto; margin-bottom: 20px; }
-    .main-content { padding: 0; }
     .deduction-item { grid-template-columns: 1fr; }
 }
 @media (max-width: 768px) {
     .app-header { flex-direction: column; height: auto; padding: 15px; position: static; }
-    body { padding-top: 20px; }
-    .logo-container { margin-bottom: 15px; align-items: center;}
+    body { padding-top: 0; }
+    .main-wrapper { padding-top: 20px; }
+    .logo-container { margin-bottom: 15px; }
     .header-nav { width: 100%; justify-content: space-around; }
-    .header-contact-btn { margin-top: 10px; }
-    .grid-col-2, .grid-col-3 { grid-template-columns: 1fr; }
+    .header-contact-btn { margin-top: 10px; display: none; }
+    .grid-col-2, .grid-col-3, .employee-pay-period-preview { grid-template-columns: 1fr; }
     /* Responsive table for preview */
     .earnings-table-preview thead, .deductions-table-preview thead { display: none; }
     .earnings-table-preview tr, .deductions-table-preview tr { display: block; margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); overflow: hidden; }
     .earnings-table-preview td, .deductions-table-preview td { display: block; text-align: right !important; border: none; border-bottom: 1px solid var(--border-color-light); padding-left: 50%; position: relative; min-height: 28px;}
     .earnings-table-preview td:last-child, .deductions-table-preview td:last-child { border-bottom: 0; }
     .earnings-table-preview td::before, .deductions-table-preview td::before { content: attr(data-label); position: absolute; left: 10px; font-weight: bold; text-align: left !important; width: 45%; }
-}
-/* --- PDF Preview Modal --- */
-.modal-content-pdf {
-    width: 95%;
-    max-width: 900px; /* Wider for PDF viewing */
-    height: 90%;
-    display: flex;
-    flex-direction: column;
-}
-
-#pdfPreviewFrame {
-    flex-grow: 1; /* Allow iframe to fill the space */
-    border: none;
-    border-radius: var(--border-radius-sm);
-    background-color: #fff; /* White background for the PDF */
 }

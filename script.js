@@ -422,9 +422,12 @@ document.addEventListener('DOMContentLoaded', () => {
             data[id] = dom[id] ? dom[id].checked : false;
         });
 
-        const numStubs = parseInt(data.numPaystubs, 10);
+        // Some global controls live outside the form, so read them directly from the DOM
+        const numStubs = parseInt(dom.numPaystubs.value, 10);
         const employmentType = dom.employmentTypeRadios[0].checked ? 'Hourly' : 'Salaried';
-        const payFrequency = (employmentType === 'Salaried') ? data.salariedPayFrequency : data.hourlyPayFrequency;
+        const payFrequency = (employmentType === 'Salaried')
+            ? data.salariedPayFrequency
+            : dom.hourlyPayFrequency.value;
         const periodsPerYear = PAY_PERIODS_PER_YEAR[payFrequency] || 52;
         
         // Determine annual gross from either salary or hourly info
@@ -693,6 +696,7 @@ function autoPopulateFromDesiredIncome() {
         if (type === 'Salaried') {
             dom.salariedFields.style.display = 'block';
             dom.hourlyFields.style.display = 'none';
+            dom.hourlyPayFrequencyGroup.style.display = 'none';
             dom.annualSalary.required = true;
             dom.salariedPayFrequency.required = true;
             dom.hourlyRate.required = false;
@@ -700,6 +704,7 @@ function autoPopulateFromDesiredIncome() {
         } else {
             dom.salariedFields.style.display = 'none';
             dom.hourlyFields.style.display = 'block';
+            dom.hourlyPayFrequencyGroup.style.display = 'block';
             dom.annualSalary.required = false;
             dom.salariedPayFrequency.required = false;
             dom.hourlyRate.required = true;
@@ -922,6 +927,13 @@ function autoPopulateFromDesiredIncome() {
                 });
             }
         });
+
+        // Global controls outside the form
+        dom.numPaystubs.addEventListener('change', () => {
+            currentPreviewStubIndex = 0;
+            debouncedUpdateLivePreview();
+        });
+        dom.hourlyPayFrequency.addEventListener('change', debouncedUpdateLivePreview);
 
         dom.employmentTypeRadios.forEach(radio => radio.addEventListener('change', () => {
              toggleEmploymentFields();

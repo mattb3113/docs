@@ -46,7 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'modalOrderSuccessMessage', 'closeSuccessMessageBtn', 'successUserEmailInline', 'notificationModal', 
         'closeNotificationModalBtn', 'notificationModalTitle', 'notificationModalMessage', 'cashAppTxIdError',
         'stateWarning', 'reviewSection', 'reviewPreviewContainer', 'proceedToPaymentBtn', 'editInfoBtn',
-        'reviewAndGenerateBtn', 'mainFormContent', 'addOnsSection', 'requestHardCopy', 'requestExcel', 'paymentScreenshot', 'paymentScreenshotError'
+        'reviewAndGenerateBtn', 'mainFormContent', 'addOnsSection', 'requestHardCopy', 'requestExcel', 'paymentScreenshot', 'paymentScreenshotError',
+        'pdfPreviewModal', 'closePdfModalBtn', 'pdfPreviewFrame'
     ];
     elementIds.forEach(id => {
         const el = document.getElementById(id);
@@ -410,10 +411,62 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function closeModal(modal) {
-        if (!modal) return;
-        modal.style.display = 'none';
-        activeModal = null;
+function closeModal(modal) {
+    if (!modal) return;
+    modal.style.display = 'none';
+    activeModal = null;
+}
+
+    function generatePdfPreview() {
+        if (allStubsData.length === 0) {
+            showNotification('Please populate details first.');
+            return;
+        }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.setFontSize(18);
+        doc.text('Paystub Preview (Watermarked)', 14, 22);
+        doc.setFontSize(10);
+        doc.setTextColor(150);
+        doc.text('SIMULATION ONLY - BUELLDOCS', 105, 140, null, null, 'center');
+
+        allStubsData.forEach((stub, index) => {
+            if (index > 0) doc.addPage();
+            doc.setFontSize(12);
+            doc.text(`Stub ${index + 1} of ${allStubsData.length}`, 14, 32);
+
+            const bodyData = [
+                ['Gross Pay', precisionMath.format(stub.grossPay)],
+                ['Federal Tax', precisionMath.format(stub.federalTax)],
+                ['Social Security', precisionMath.format(stub.socialSecurity)],
+                ['Medicare', precisionMath.format(stub.medicare)],
+                ['NJ State Tax', precisionMath.format(stub.stateTax)],
+                ['NJ SDI/FLI/UI', precisionMath.format(precisionMath.add(stub.njSdi, stub.njFli, stub.njUiHcWf))],
+                ['', ''],
+                ['Net Pay', precisionMath.format(stub.netPay)]
+            ];
+
+            doc.autoTable({
+                startY: 40,
+                head: [['Description', 'Amount']],
+                body: bodyData,
+                theme: 'striped',
+                styles: { fontSize: 10 },
+                headStyles: { fillColor: [41, 128, 186] },
+                didDrawCell: (data) => {
+                    if (data.section === 'body' && data.row.index === bodyData.length - 1) {
+                        doc.setFont(undefined, 'bold');
+                    }
+                }
+            });
+        });
+
+        if (dom.pdfPreviewFrame && dom.pdfPreviewModal) {
+            dom.pdfPreviewFrame.src = doc.output('datauristring');
+            dom.pdfPreviewModal.style.display = 'flex';
+            activeModal = dom.pdfPreviewModal;
+        }
     }
 
     const initializeEventListeners = () => {
@@ -470,12 +523,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Preview Navigation
         dom.prevStubBtn.addEventListener('click', () => { if (currentPreviewStubIndex > 0) { currentPreviewStubIndex--; renderPreviewForIndex(currentPreviewStubIndex); }});
         dom.nextStubBtn.addEventListener('click', () => { if (currentPreviewStubIndex < allStubsData.length - 1) { currentPreviewStubIndex++; renderPreviewForIndex(currentPreviewStubIndex); }});
+        dom.previewPdfWatermarkedBtn.addEventListener('click', generatePdfPreview);
         
         // Modal Handlers
         dom.confirmPaymentBtn.addEventListener('click', handlePaymentConfirmationSubmit);
         dom.closePaymentModalBtn.addEventListener('click', () => closeModal(dom.paymentModal));
         dom.closeNotificationModalBtn.addEventListener('click', () => closeModal(dom.notificationModal));
         dom.closeSuccessMessageBtn.addEventListener('click', () => closeModal(dom.paymentModal));
+        if (dom.closePdfModalBtn) dom.closePdfModalBtn.addEventListener('click', () => closeModal(dom.pdfPreviewModal));
         window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && activeModal) closeModal(activeModal); });
 
         // Add-on pricing

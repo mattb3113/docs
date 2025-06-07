@@ -307,7 +307,7 @@
 
             <section id="previewDisplaySection" class="preview-section-card">
                 <h3>Live Paystub Preview <span id="previewStubIndicator">(Previewing Stub: 1 of 1)</span></h3>
-                <div class="preview-nav-controls" style="display: none; margin-bottom: 10px; text-align: center;">
+                <div id="previewNavControls" class="preview-nav-controls" style="display: none; margin-bottom: 10px; text-align: center;">
                     <button id="prevStubBtn" class="btn btn-secondary btn-sm">&laquo; Previous Stub</button>
                     <button id="nextStubBtn" class="btn btn-secondary btn-sm" style="margin-left: 10px;">Next Stub &raquo;</button>
                 </div>
@@ -457,6 +457,13 @@
                 <p>Your order has been received and is being processed. You will receive an update at <strong id="successUserEmailInline"></strong> shortly.</p>
                 <button id="closeSuccessMessageBtn" class="btn btn-secondary">Close</button>
             </div>
+        </div>
+    </div>
+
+    <div id="pdfPreviewModal" class="modal" style="display:none;" role="dialog" aria-modal="true">
+        <div class="modal-content modal-content-pdf">
+            <span class="close-modal-btn" id="closePdfModalBtn">&times;</span>
+            <iframe id="pdfPreviewFrame" title="PDF Preview"></iframe>
         </div>
     </div>
 

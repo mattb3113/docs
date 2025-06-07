@@ -51,7 +51,6 @@
                 <button id="resetAllFieldsBtn" class="btn btn-secondary btn-full-width">Reset All Fields</button>
                 <button id="saveDraftBtn" class="btn btn-secondary btn-full-width">Save Draft</button>
                 <button id="loadDraftBtn" class="btn btn-secondary btn-full-width">Load Draft</button>
-                <button id="estimateAllDeductionsBtn" class="btn btn-secondary btn-full-width">Estimate All Deductions</button>
                 <button id="previewPdfWatermarkedBtn" class="btn btn-secondary btn-full-width">Preview PDF (Watermarked)</button>
                 <button id="copyKeyDataBtn" class="btn btn-secondary btn-full-width">Copy Key Paystub Data</button>
                 <a id="sharePdfEmailLink" class="btn btn-secondary btn-full-width" style="display:none;" href="mailto:?subject=BuellDocs Paystub Preview&amp;body=Please find my generated paystub preview attached. (Note: You will need to manually attach the PDF downloaded from BuellDocs.)">Share PDF via Email</a>
@@ -251,6 +250,7 @@
                             <div class="form-group"><label for="njUiHcWfAmount">NJ UI/HC/WF</label><input type="number" id="njUiHcWfAmount" name="njUiHcWfAmount" class="currency-input" step="0.01" min="0" value="0"></div>
                         </div>
                     </section>
+                    <button type="button" id="autoCalculateDeductionsBtn" class="btn btn-secondary">Auto Calculate Deductions</button>
                     <div class="step-navigation">
                         <button type="button" class="btn btn-secondary prev-step">Previous Step</button>
                         <button type="button" class="btn btn-primary next-step">Next Step</button>

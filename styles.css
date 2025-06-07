@@ -238,4 +238,3 @@ input.invalid, select.invalid, textarea.invalid { border-color: var(--error-colo
     .earnings-table-preview td:last-child, .deductions-table-preview td:last-child { border-bottom: 0; }
     .earnings-table-preview td::before, .deductions-table-preview td::before { content: attr(data-label); position: absolute; left: 10px; font-weight: bold; text-align: left !important; width: 45%; }
 }
-

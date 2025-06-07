@@ -4,7 +4,7 @@
     Date: June 7, 2025
     Project: BuellDocs Client-Side Paystub Generator v3.1
     Description: Cleaned and enhanced styles for the paystub generator application,
-                 including custom checkboxes and refined layouts.
+                 including custom checkboxes and refined layouts for a single-page experience.
 */
 
 /* -------------------- */
@@ -118,25 +118,28 @@ h1, h2, h3, h4, label, input, select, textarea, button {
 .hero-section p { font-size: clamp(14px, 2vw, 16px); color: var(--text-secondary); }
 
 /* -------------------- */
-/* --- Multi-Step Form --- */
+/* --- Single Page Form --- */
 /* -------------------- */
-.form-step { display: none; }
-.form-step[style*="block"] { animation: fadeIn 0.5s ease-in-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.form-section-card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: 30px;
+    margin-bottom: 30px; /* Spacing between cards */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+.form-section-card:last-of-type {
+    margin-bottom: 0;
+}
 
-.progress-indicator { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; }
-.progress-step { width: 30px; height: 30px; border-radius: 50%; background-color: var(--bg-tertiary); border: 2px solid var(--border-color); color: var(--text-tertiary); display: flex; align-items: center; justify-content: center; font-weight: bold; transition: all 0.3s ease; }
-.progress-step.active { border-color: var(--accent-gold); color: var(--accent-gold); background-color: rgba(174, 142, 93, 0.1); transform: scale(1.1); }
-.progress-step.completed { border-color: var(--success-color); color: var(--success-color); background-color: rgba(79, 160, 137, 0.1); }
 .step-navigation { display: flex; justify-content: space-between; margin-top: 20px; }
 .step-navigation button:first-child:not(:last-child) { margin-right: auto; }
 .step-navigation button:last-child:not(:first-child) { margin-left: auto; }
 
-
 /* -------------------- */
 /* --- CARDS & FORMS --- */
 /* -------------------- */
-.form-section-card, .preview-section-card { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 30px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+.preview-section-card { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 30px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
 .form-section-card h3, .preview-section-card h3 { font-size: 20px; color: var(--accent-gold); margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); text-transform: uppercase; letter-spacing: var(--letter-spacing-header); }
 .form-section-card h4 { font-size: 16px; color: var(--text-primary); margin-top: 25px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
 hr { border: none; height: 1px; background-color: var(--border-color); margin: 25px 0; }
@@ -210,6 +213,13 @@ input.invalid, select.invalid, textarea.invalid { border-color: var(--error-colo
 .deduction-item label { flex: 1; margin-bottom: 0; }
 .deduction-item input, .deduction-item select { flex: 1; }
 
+.final-submit-container {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+}
+
 /* -------------------- */
 /* --- BUTTONS --- */
 /* -------------------- */
@@ -222,12 +232,12 @@ input.invalid, select.invalid, textarea.invalid { border-color: var(--error-colo
 .btn:disabled, .btn[disabled] { background-color: var(--bg-tertiary) !important; color: var(--text-tertiary) !important; border-color: var(--border-color) !important; cursor: not-allowed; transform: none !important; box-shadow: none !important;}
 .btn-full-width { width: 100%; }
 .btn-sm { padding: 6px 12px; font-size: 13px; letter-spacing: 0.5px; }
-#populateDetailsBtn { font-size: 16px; padding: 14px 28px; }
+.btn-large { font-size: 16px; padding: 14px 28px; }
 
 /* -------------------- */
 /* --- PREVIEW & MODALS --- */
 /* -------------------- */
-#previewSection { position: relative; }
+#previewDisplaySection { position: relative; }
 .preview-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: clamp(30px, 8vw, 60px); color: rgba(255, 255, 255, 0.05); font-weight: bold; pointer-events: none; z-index: 1; text-transform: uppercase; }
 #previewStubIndicator { font-size: 0.8em; color: var(--text-tertiary); margin-left: 10px; }
 .paystub-live-preview { border: 1px solid var(--border-color); padding: 20px; border-radius: var(--border-radius-sm); background-color: var(--bg-primary); color: var(--text-primary); font-size: 12px; position: relative; z-index: 2; }

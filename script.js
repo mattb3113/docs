@@ -375,6 +375,31 @@ document.addEventListener('DOMContentLoaded', () => {
         return tax;
     };
 
+    /** Determines how many pay periods have elapsed in the year based on a pay
+     *  date and pay frequency. */
+    const getPayPeriodsElapsed = (payDate, payFrequency) => {
+        if (!payDate) return 0;
+        const startOfYear = new Date(payDate.getFullYear(), 0, 1);
+        const dayMs = 24 * 60 * 60 * 1000;
+
+        switch (payFrequency) {
+            case 'Monthly':
+                return payDate.getMonth() + 1;
+            case 'Semi-Monthly':
+                return payDate.getMonth() * 2 + (payDate.getDate() >= 15 ? 2 : 1);
+            case 'Bi-Weekly': {
+                const days = Math.floor((payDate - startOfYear) / dayMs);
+                return Math.floor(days / 14) + 1;
+            }
+            case 'Weekly': {
+                const days = Math.floor((payDate - startOfYear) / dayMs);
+                return Math.floor(days / 7) + 1;
+            }
+            default:
+                return 1; // Annual or unknown
+        }
+    };
+
     /** Gathers all data from the form and calculates pay details for all requested stubs. */
     const calculateAllStubsData = () => {
         const data = {}; // Gather all form data into a single object
@@ -404,28 +429,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const annualFederalTax = calculateFederalTax(annualGross, data.federalFilingStatus);
         const annualStateTax = data.isForNJEmployment ? calculateNjStateTax(annualGross, data.federalFilingStatus) : 0;
 
-        // Set up initial YTD values
-        let ytd = {
-            grossPay: data.startYtdFromBatch ? 0 : parseCurrency(data.initialYtdGrossPay),
-            federalTax: data.startYtdFromBatch ? 0 : parseCurrency(data.initialYtdFederalTax),
-            stateTax: data.startYtdFromBatch ? 0 : parseCurrency(data.initialYtdStateTax),
-            socialSecurity: data.startYtdFromBatch ? 0 : parseCurrency(data.initialYtdSocialSecurity),
-            medicare: data.startYtdFromBatch ? 0 : parseCurrency(data.initialYtdMedicare),
-            njSdi: data.startYtdFromBatch ? 0 : parseCurrency(data.initialYtdNjSdi),
-            njFli: data.startYtdFromBatch ? 0 : parseCurrency(data.initialYtdNjFli),
-            njUiHcWf: data.startYtdFromBatch ? 0 : parseCurrency(data.initialYtdNjUiHcWf)
-        };
+        const payDateBase = data.payDate ? new Date(data.payDate + 'T00:00:00') : new Date();
+        const periodsElapsedBase = getPayPeriodsElapsed(payDateBase, payFrequency);
 
         const results = [];
         for (let i = 0; i < numStubs; i++) {
             const current = {};
             current.stubIndex = i;
+            const periodsSoFar = periodsElapsedBase + i;
 
             // --- Current Period Calculations ---
             current.grossPay = baseGrossPay + parseCurrency(data.bonus) + parseCurrency(data.miscEarningAmount);
             
             // FICA Taxes
-            const ssWageBase = ytd.grossPay;
+            const ssWageBase = current.grossPay * (periodsSoFar - 1);
             current.socialSecurity = data.autoCalculateSocialSecurity ? (ssWageBase < SOCIAL_SECURITY_WAGE_LIMIT_2024 ? Math.min(current.grossPay, SOCIAL_SECURITY_WAGE_LIMIT_2024 - ssWageBase) * SOCIAL_SECURITY_RATE : 0) : parseCurrency(data.socialSecurityAmount);
             current.medicare = data.autoCalculateMedicare ? current.grossPay * MEDICARE_RATE : parseCurrency(data.medicareAmount);
             
@@ -434,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
             current.stateTax = data.isForNJEmployment ? annualStateTax / periodsPerYear : parseCurrency(data.stateTaxAmount);
             
             // NJ Taxes
-            const uiWageBase = ytd.grossPay;
+            const uiWageBase = current.grossPay * (periodsSoFar - 1);
             current.njSdi = data.isForNJEmployment ? current.grossPay * NJ_SDI_RATE : 0;
             current.njFli = data.isForNJEmployment ? current.grossPay * NJ_FLI_RATE : 0;
             current.njUiHcWf = data.isForNJEmployment ? (uiWageBase < NJ_UIHCWF_WAGE_LIMIT_2024 ? Math.min(current.grossPay, NJ_UIHCWF_WAGE_LIMIT_2024 - uiWageBase) * NJ_UIHCWF_RATE : 0) : 0;
@@ -451,17 +468,16 @@ document.addEventListener('DOMContentLoaded', () => {
             current.totalDeductions = totalDeductions;
             current.netPay = current.grossPay - totalDeductions;
 
-            // --- YTD Accumulation ---
-            ytd.grossPay += current.grossPay;
-            ytd.federalTax += current.federalTax;
-            ytd.stateTax += current.stateTax;
-            ytd.socialSecurity += current.socialSecurity;
-            ytd.medicare += current.medicare;
-            ytd.njSdi += current.njSdi;
-            ytd.njFli += current.njFli;
-            ytd.njUiHcWf += current.njUiHcWf;
-
-            current.ytd = { ...ytd }; // Copy accumulated values for this stub
+            current.ytd = {
+                grossPay: current.grossPay * periodsSoFar,
+                federalTax: current.federalTax * periodsSoFar,
+                stateTax: current.stateTax * periodsSoFar,
+                socialSecurity: current.socialSecurity * periodsSoFar,
+                medicare: current.medicare * periodsSoFar,
+                njSdi: current.njSdi * periodsSoFar,
+                njFli: current.njFli * periodsSoFar,
+                njUiHcWf: current.njUiHcWf * periodsSoFar
+            };
 
             results.push(current);
         }
@@ -626,7 +642,9 @@ function autoPopulateFromDesiredIncome() {
         }
 
         const grossPay = annualGross / periodsPerYear + parseCurrency(data.bonus) + parseCurrency(data.miscEarningAmount);
-        const ytdGross = data.startYtdFromBatch ? 0 : parseCurrency(data.initialYtdGrossPay);
+        const payDate = data.payDate ? new Date(data.payDate + 'T00:00:00') : new Date();
+        const periodsElapsed = getPayPeriodsElapsed(payDate, payFrequency);
+        const ytdGross = grossPay * (periodsElapsed - 1);
 
         const federalTax = calculateFederalTax(annualGross, data.federalFilingStatus) / periodsPerYear;
         const stateTax = data.isForNJEmployment ? calculateNjStateTax(annualGross, data.federalFilingStatus) / periodsPerYear : 0;

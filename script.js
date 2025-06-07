@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const elementIds = [
         'paystubForm', 'formProgressIndicator', 'formSummaryError', 'numPaystubs', 'hourlyPayFrequencyGroup',
         'hourlyPayFrequency', 'resetAllFieldsBtn', 'saveDraftBtn', 'loadDraftBtn', 'autoCalculateDeductionsBtn',
-        'previewPdfWatermarkedBtn', 'copyKeyDataBtn', 'sharePdfEmailLink', 'sharePdfInstructions',
+        'previewPdfWatermarkedBtn',
         'desiredIncomeAmount', 'desiredIncomePeriod', 'assumedHourlyHoursGroup', 'assumedHourlyRegularHours',
         'isForNJEmployment', 'netIncomeAdjustmentNote', 'populateDetailsBtn', 'hourlyFields', 'salariedFields',
         'hourlyRate', 'regularHours', 'overtimeHours', 'annualSalary', 'salariedPayFrequency',
@@ -47,7 +47,9 @@ document.addEventListener('DOMContentLoaded', () => {
         'cashAppTxId', 'confirmPaymentBtn', 'modalOrderSuccessMessage', 'closeSuccessMessageBtn',
         'successUserEmail', 'successUserEmailInline', 'successTxId', 'successNumStubs', 'successUserNotes',
         'supportEmailAddress', 'turnaroundTime', 'notificationModal', 'closeNotificationModalBtn',
-        'notificationModalTitle', 'notificationModalMessage', 'cashAppTxIdError'
+        'notificationModalTitle', 'notificationModalMessage', 'cashAppTxIdError',
+        'confirmPreviewModal', 'closeConfirmPreviewModalBtn', 'confirmPreviewContainer',
+        'confirmPreviewProceedBtn', 'confirmPreviewEditBtn'
     ];
     elementIds.forEach(id => { dom[id] = document.getElementById(id); });
     
@@ -694,16 +696,17 @@ function autoPopulateFromDesiredIncome() {
         }
     }
     
+    function openPreviewConfirmation() {
+        calculateAllStubsData();
+        renderPreviewForIndex(currentPreviewStubIndex);
+        dom.confirmPreviewContainer.innerHTML = dom.paystubPreviewContent.innerHTML;
+        dom.confirmPreviewModal.style.display = 'flex';
+        activeModal = dom.confirmPreviewModal;
+    }
+
     function handleMainFormSubmit() {
         if (!validateCurrentStep()) return;
-        const numStubs = parseInt(dom.numPaystubs.value, 10);
-        const pricingInfo = PRICING[numStubs] || PRICING[1];
-
-        dom.totalPaymentAmount.textContent = formatCurrency(pricingInfo.price);
-        dom.paymentDiscountNote.textContent = pricingInfo.note;
-        
-        dom.paymentModal.style.display = 'flex';
-        activeModal = dom.paymentModal;
+        openPreviewConfirmation();
     }
 
     function handlePaymentConfirmationSubmit() {
@@ -831,6 +834,17 @@ function autoPopulateFromDesiredIncome() {
         dom.closeNotificationModalBtn.addEventListener('click', () => closeModal(dom.notificationModal));
         dom.closeSuccessMessageBtn.addEventListener('click', () => closeModal(dom.paymentModal));
         dom.confirmPaymentBtn.addEventListener('click', handlePaymentConfirmationSubmit);
+        dom.closeConfirmPreviewModalBtn.addEventListener('click', () => closeModal(dom.confirmPreviewModal));
+        dom.confirmPreviewEditBtn.addEventListener('click', () => closeModal(dom.confirmPreviewModal));
+        dom.confirmPreviewProceedBtn.addEventListener('click', () => {
+            closeModal(dom.confirmPreviewModal);
+            const numStubs = parseInt(dom.numPaystubs.value, 10);
+            const pricingInfo = PRICING[numStubs] || PRICING[1];
+            dom.totalPaymentAmount.textContent = formatCurrency(pricingInfo.price);
+            dom.paymentDiscountNote.textContent = pricingInfo.note;
+            dom.paymentModal.style.display = 'flex';
+            activeModal = dom.paymentModal;
+        });
 
         // Global keydown/click for closing modals
         window.addEventListener('click', (e) => { if (e.target === activeModal) closeModal(activeModal); });

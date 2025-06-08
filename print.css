@@ -1,6 +1,19 @@
 /* print.css - Print styles for BuellDocs Paystub Generator */
 @media print {
     /* Hide everything by default */
+/*
+    print.css
+    Author: Buell D'Souza
+    Description:
+    This stylesheet is specifically for optimizing the printing of the paystub.
+    It hides all non-essential UI elements and formats the paystub for a clean, paper-friendly layout.
+    The styles are enclosed in a @media print block to ensure they only apply during the printing process.
+*/
+
+@media print {
+
+    /* Hide all elements on the page by default. 
+       !important is used to override any inline styles or more specific selectors. */
     body * {
         visibility: hidden;
     }
@@ -10,7 +23,12 @@
     #paystub-preview * {
         visibility: visible;
     }
-
+    /* Make the paystub preview container and all its children visible. */
+    #paystub-preview, #paystub-preview * {
+        visibility: visible;
+    }
+    
+    /* Position the paystub preview at the top left of the page. */
     #paystub-preview {
         position: absolute;
         left: 0;
@@ -25,5 +43,25 @@
     /* Remove any overlay or watermark */
     #void-pantograph {
         display: none !important;
+    }
+        margin: 0;
+        padding: 20px;
+        border: 1px solid #ccc; /* A simple border for definition on paper */
+        box-shadow: none; /* Remove shadows to save ink */
+        page-break-inside: avoid; /* Prevents the paystub from splitting across pages */
+        filter: grayscale(100%); /* Force a black-and-white color scheme to save color ink */
+        background-color: white !important; /* Ensure background is white */
+        color: black !important; /* Ensure text is black */
+    }
+
+    /* Hide specific UI elements that might not be caught by the body * rule, just in case. */
+    header, footer, .container > .row:first-child, form, button, .btn {
+        display: none !important;
+    }
+
+    /* Ensure links don't show their URL in print unless desired */
+    a, a:visited {
+        text-decoration: none;
+        color: #000 !important;
     }
 }

@@ -282,4 +282,6 @@ class PaystubCalculator {
     }
 }
 
+export default PaystubCalculator;
+
 // module.exports = PaystubCalculator; // For Node or bundlers if needed.

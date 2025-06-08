@@ -1,287 +1,183 @@
 /**
- * paystub-calculator.js
- * @description Advanced calculation engine for generating detailed paystubs.
- * This class consumes form data and tax tables to perform all mathematical
- * operations with precision, with specific logic for New Jersey.
- * @dependency A precision math library like math.js must be available in the global scope.
- * All financial values are handled as BigNumber objects to prevent floating-point errors.
+ * @module paystub-calculator
+ * @description Handles all the logic for calculating earnings, deductions, and taxes.
  */
+import { taxTables } from './tax-tables.js';
+import { round } from './precisionMath.js';
 
-// Assuming 'math.js' is loaded globally.
-const { bignumber, add, subtract, multiply, divide, larger, smaller, equal } = math;
-
-class PaystubCalculator {
-    /**
-     * Initializes the calculator with the necessary tax rate tables.
-     * @param {object} taxTables - The tax data, typically from tax-tables.js or a JSON file.
-     */
-    constructor(taxTables) {
-        if (!taxTables) {
-            throw new Error("Tax tables are required to initialize the PaystubCalculator.");
-        }
-        this.taxTables = taxTables;
+/**
+ * Calculates all financial details for a paystub based on form input.
+ * @param {object} formData The data from the input form.
+ * @returns {object} An object containing all calculated paystub values.
+ */
+export function calculatePaystub(formData) {
+    const tables = taxTables.getTables();
+    if (!tables) {
+        throw new Error("Tax tables are not loaded.");
     }
 
-    /**
-     * Main calculation method.
-     * Orchestrates the entire paystub calculation process.
-     * @param {object} formData - An object containing all form data (earnings, deductions, employee info, etc.).
-     * @returns {object} A comprehensive results object with all calculated values.
-     */
-    calculate(formData) {
-        // --- 0. Initialize and Extract Data ---
-        const { earnings, deductions, ytd, payFrequency, filingStatus, allowances = 0, isNewarkResident = false } = formData;
-        const payPeriodsPerYear = { 'Weekly': 52, 'Bi-Weekly': 26, 'Semi-Monthly': 24, 'Monthly': 12 }[payFrequency];
-        if (!payPeriodsPerYear) {
-            throw new Error(`Invalid pay frequency: ${payFrequency}`);
-        }
+    // Parse numeric inputs from form data
+    const regularRate = parseFloat(formData.regularRate) || 0;
+    const regularHours = parseFloat(formData.regularHours) || 0;
+    const otRate = parseFloat(formData.otRate) || regularRate * 1.5;
+    const otHours = parseFloat(formData.otHours) || 0;
+    const bonus = parseFloat(formData.bonus) || 0;
+    const ytdGross = parseFloat(formData.ytdGross) || 0;
+    const payFrequency = formData.payFrequency;
 
-        const results = {
-            current: {},
-            ytd: { ...ytd }
-        };
+    // --- Earnings ---
+    const regularPay = round(regularRate * regularHours, 2);
+    const otPay = round(otRate * otHours, 2);
+    const currentGross = round(regularPay + otPay + bonus, 2);
 
-        // --- 1. Calculate Gross Pay ---
-        const grossPayResult = this.calculateGrossPay(earnings);
-        results.current.grossPay = grossPayResult.total;
-        results.current.earnings = grossPayResult.breakdown;
+    // --- YTD Calculations ---
+    const newYTDGross = round(ytdGross + currentGross, 2);
 
-        // --- 2. Calculate Pre-Tax Deductions & Taxable Income ---
-        const deductionsResult = this.calculateDeductions(results.current.grossPay, deductions);
-        results.current.deductions = deductionsResult;
-        const taxableIncome = deductionsResult.taxableGross;
-
-        // --- 3. Calculate Taxes ---
-        const federalTaxes = this.calculateFederalTaxes(taxableIncome, ytd.gross, filingStatus, allowances, payPeriodsPerYear);
-        const njStateTaxes = this.calculateNJStateTaxes(taxableIncome, ytd.gross, filingStatus, payPeriodsPerYear, isNewarkResident);
-        
-        results.current.taxes = { ...federalTaxes, ...njStateTaxes };
-        results.current.totalTaxes = Object.values(results.current.taxes).reduce((sum, tax) => add(sum, tax), bignumber(0));
-
-        // --- 4. Calculate Net Pay (Gross - All Taxes - All Deductions) ---
-        const totalDeductions = add(deductionsResult.preTax.total, deductionsResult.postTax.total);
-        results.current.netPay = this.calculateNetPay(results.current.grossPay, results.current.totalTaxes, totalDeductions);
-        
-        // --- 5. Update YTD Totals ---
-        results.ytd = this.updateYTDTotals(ytd, results.current);
-
-        return results;
-    }
-
-    /**
-     * Calculates total gross pay from various earning types.
-     * @param {Array<object>} earnings - Array of earning objects { type, rate, hours }.
-     * @returns {{total: math.BigNumber, breakdown: Array<object>}}
-     */
-    calculateGrossPay(earnings = []) {
-        let totalGross = bignumber(0);
-        const breakdown = earnings.map(earning => {
-            const rate = bignumber(earning.rate || 0);
-            const hours = bignumber(earning.hours || 0);
-            let amount = bignumber(0);
-
-            switch (earning.type.toLowerCase()) {
-                case 'regular':
-                    amount = multiply(rate, hours);
-                    break;
-                case 'overtime':
-                    amount = multiply(multiply(rate, 1.5), hours);
-                    break;
-                case 'double-time':
-                    amount = multiply(multiply(rate, 2), hours);
-                    break;
-                case 'salary':
-                default:
-                    amount = rate;
-                    break;
-            }
-            totalGross = add(totalGross, amount);
-            return { ...earning, amount };
-        });
-
-        return { total: totalGross, breakdown };
-    }
-
-    /**
-     * Calculates pre-tax and post-tax deductions and the resulting taxable gross income.
-     * @param {math.BigNumber} grossPay - The total gross pay for the period.
-     * @param {Array<object>} deductions - Array of deduction objects { description, amount, type: 'pre-tax'|'post-tax' }.
-     * @returns {object} An object with deduction breakdowns and taxable gross.
-     */
-    calculateDeductions(grossPay, deductions = []) {
-        const result = {
-            preTax: { total: bignumber(0), breakdown: [] },
-            postTax: { total: bignumber(0), breakdown: [] },
-            taxableGross: bignumber(grossPay)
-        };
-
-        deductions.forEach(ded => {
-            const amount = bignumber(ded.amount || 0);
-            if (ded.type === 'pre-tax') {
-                result.preTax.total = add(result.preTax.total, amount);
-                result.preTax.breakdown.push(ded);
-            } else {
-                result.postTax.total = add(result.postTax.total, amount);
-                result.postTax.breakdown.push(ded);
-            }
-        });
-
-        result.taxableGross = subtract(grossPay, result.preTax.total);
-        return result;
-    }
-
-    /**
-     * Calculates all federal taxes for the period.
-     * @param {math.BigNumber} taxableGross - Gross pay after pre-tax deductions.
-     * @param {math.BigNumber} ytdGross - Year-to-date gross pay.
-     * @param {string} filingStatus - e.g., 'Single', 'MarriedJ'.
-     * @param {number} allowances - Number of federal allowances.
-     * @param {number} payPeriodsPerYear - The number of pay periods in a year.
-     * @returns {{fit: math.BigNumber, socialSecurity: math.BigNumber, medicare: math.BigNumber}}
-     */
-    calculateFederalTaxes(taxableGross, ytdGross, filingStatus, allowances, payPeriodsPerYear) {
-        const { federal, fica } = this.taxTables;
-        
-        // 1. Federal Income Tax (FIT) - Percentage Method
-        const annualizedTaxable = multiply(taxableGross, payPeriodsPerYear);
-        const standardDeduction = bignumber(federal.standardDeductions[filingStatus] || 0);
-        const taxableIncomeAfterDeductions = larger(annualizedTaxable, standardDeduction) ? subtract(annualizedTaxable, standardDeduction) : bignumber(0);
-        
-        let annualTax = this._calculateBracketedTax(taxableIncomeAfterDeductions, federal.taxBrackets[filingStatus]);
-        const fit = larger(annualTax, 0) ? divide(annualTax, payPeriodsPerYear) : bignumber(0);
-        
-        // 2. Social Security
-        const ssLimit = bignumber(fica.socialSecurity.wageLimit);
-        const potentialYtdGross = add(ytdGross, taxableGross);
-        const taxableSs = larger(potentialYtdGross, ssLimit) 
-            ? subtract(ssLimit, ytdGross) 
-            : taxableGross;
-        const socialSecurity = larger(taxableSs, 0) ? multiply(taxableSs, fica.socialSecurity.rate) : bignumber(0);
-
-        // 3. Medicare
-        const medicareThreshold = bignumber(fica.medicare.additionalRateThreshold);
-        let medicare = multiply(taxableGross, fica.medicare.rate);
-        
-        // Additional Medicare Tax
-        if (larger(potentialYtdGross, medicareThreshold)) {
-            const amountOverThreshold = subtract(potentialYtdGross, medicareThreshold);
-            const prevAmountOverThreshold = larger(ytdGross, medicareThreshold) ? subtract(ytdGross, medicareThreshold) : bignumber(0);
-            const newTaxableAmount = subtract(amountOverThreshold, prevAmountOverThreshold);
-            
-            if (larger(newTaxableAmount, 0)) {
-                const additionalMedicare = multiply(newTaxableAmount, fica.medicare.additionalRate);
-                medicare = add(medicare, additionalMedicare);
-            }
-        }
-        
-        return { fit, socialSecurity, medicare };
-    }
-
-    /**
-     * Calculates all New Jersey state taxes for the period.
-     * @param {math.BigNumber} taxableGross - Gross pay after pre-tax deductions.
-     * @param {math.BigNumber} ytdGross - Year-to-date gross pay.
-     * @param {string} filingStatus - e.g., 'Single'.
-     * @param {number} payPeriodsPerYear - The number of pay periods in a year.
-     * @param {boolean} isNewarkResident - Flag for applying Newark city tax.
-     * @returns {object} An object containing all calculated NJ taxes.
-     */
-    calculateNJStateTaxes(taxableGross, ytdGross, filingStatus, payPeriodsPerYear, isNewarkResident) {
-        const { nj } = this.taxTables;
-        const annualizedTaxable = multiply(taxableGross, payPeriodsPerYear);
-        
-        // NJ State Income Tax
-        const annualNjTax = this._calculateBracketedTax(annualizedTaxable, nj.taxBrackets[filingStatus] || nj.taxBrackets['Single']);
-        const njStateTax = larger(annualNjTax, 0) ? divide(annualNjTax, payPeriodsPerYear) : bignumber(0);
-
-        const _calcCappedTax = (rate, limit) => {
-            const bigLimit = bignumber(limit);
-            const potentialYtd = add(ytdGross, taxableGross);
-            const taxableAmount = larger(potentialYtd, bigLimit) 
-                ? subtract(bigLimit, ytdGross) 
-                : taxableGross;
-            return larger(taxableAmount, 0) ? multiply(taxableAmount, rate) : bignumber(0);
-        };
-        
-        const njSdi = _calcCappedTax(nj.sdi.rate, nj.sdi.wageLimit);
-        const njFli = _calcCappedTax(nj.fli.rate, nj.fli.wageLimit);
-        const newarkTax = isNewarkResident ? multiply(taxableGross, 0.01) : bignumber(0);
-
-        return { njStateTax, njSdi, njFli, newarkTax };
-    }
-
-    /**
-     * Calculates the final net pay.
-     * @param {math.BigNumber} grossPay - The total gross pay.
-     * @param {math.BigNumber} totalTaxes - The sum of all calculated taxes.
-     * @param {math.BigNumber} totalDeductions - The sum of all pre and post-tax deductions.
-     * @returns {math.BigNumber} The final net pay.
-     */
-    calculateNetPay(grossPay, totalTaxes, totalDeductions) {
-        const totalReductions = add(totalTaxes, totalDeductions);
-        return subtract(grossPay, totalReductions);
-    }
+    // --- Federal Deductions ---
+    const annualGross = calculateAnnualizedGross(currentGross, payFrequency);
+    const federalTax = calculateFederalIncomeTax(annualGross, formData.filingStatus, tables.federal_income, payFrequency);
+    const ytdFederalTax = parseFloat(formData.ytdFederalTax) || 0;
+    const newYTDFederalTax = round(ytdFederalTax + federalTax, 2);
     
-    /**
-     * Updates YTD totals with the current period's values.
-     * @param {object} currentYTDs - The year-to-date values before this period.
-     * @param {object} currentValues - The calculated values for the current period.
-     * @returns {object} The new, updated YTD totals.
-     */
-    updateYTDTotals(currentYTDs, currentValues) {
-        const newYTDs = {};
-        const fieldsToUpdate = ['grossPay', 'netPay', 'totalTaxes'];
+    const { socialSecurityTax, medicareTax } = calculateFICATaxes(currentGross, newYTDGross, tables.fica);
+    const ytdSocialSecurity = parseFloat(formData.ytdSocialSecurity) || 0;
+    const newYTDSocialSecurity = round(ytdSocialSecurity + socialSecurityTax, 2);
+    const ytdMedicare = parseFloat(formData.ytdMedicare) || 0;
+    const newYTDMedicare = round(ytdMedicare + medicareTax, 2);
+    
+    // --- NJ State Deductions ---
+    const njStateTax = calculateNJStateIncomeTax(annualGross, tables.nj_state.income);
+    const ytdNJStateTax = parseFloat(formData.ytdNJStateTax) || 0;
+    const newYTDNJStateTax = round(ytdNJStateTax + njStateTax / getPayPeriods(payFrequency), 2);
 
-        Object.keys(currentValues.taxes).forEach(taxKey => fieldsToUpdate.push(taxKey));
-        
-        fieldsToUpdate.forEach(field => {
-            newYTDs[field] = add(currentYTDs[field] || 0, currentValues[field] || 0);
-        });
+    const { suiTax, sdiTax, fliTax } = calculateNJOtherTaxes(currentGross, newYTDGross, tables.nj_state);
+    const ytdSUI = parseFloat(formData.ytdSUI) || 0;
+    const newYTDSUI = round(ytdSUI + suiTax, 2);
+    const ytdSDI = parseFloat(formData.ytdSDI) || 0;
+    const newYTDSDI = round(ytdSDI + sdiTax, 2);
+    const ytdFLI = parseFloat(formData.ytdFLI) || 0;
+    const newYTDFLI = round(ytdFLI + fliTax, 2);
 
-        newYTDs.earnings = (currentYTDs.earnings || []).map(ytdEarning => {
-            const currentEarning = currentValues.earnings.find(c => c.type === ytdEarning.type);
-            return {
-                ...ytdEarning,
-                amount: add(ytdEarning.amount, currentEarning ? currentEarning.amount : 0)
-            };
-        });
 
-        newYTDs.deductions = {
-            preTax: { total: add(currentYTDs.deductions?.preTax.total || 0, currentValues.deductions.preTax.total) },
-            postTax: { total: add(currentYTDs.deductions?.postTax.total || 0, currentValues.deductions.postTax.total) }
-        };
+    // --- Totals ---
+    const currentDeductions = round(federalTax + socialSecurityTax + medicareTax + (njStateTax / getPayPeriods(payFrequency)) + suiTax + sdiTax + fliTax, 2);
+    const netPay = round(currentGross - currentDeductions, 2);
 
-        return newYTDs;
-    }
+    return {
+        // Earnings
+        regularPay,
+        otPay,
+        bonus,
+        currentGross,
+        newYTDGross,
+        // Federal Deductions
+        federalTax,
+        socialSecurityTax,
+        medicareTax,
+        newYTDFederalTax,
+        newYTDSocialSecurity,
+        newYTDMedicare,
+        // NJ State Deductions
+        njStateTax: round(njStateTax / getPayPeriods(payFrequency), 2),
+        suiTax,
+        sdiTax,
+        fliTax,
+        newYTDNJStateTax,
+        newYTDSUI,
+        newYTDSDI,
+        newYTDFLI,
+        // Totals
+        currentDeductions,
+        netPay
+    };
+}
 
-    /**
-     * A generic helper to calculate tax based on income brackets.
-     * @private
-     * @param {math.BigNumber} income - The annualized taxable income.
-     * @param {Array<object>} brackets - The array of tax brackets for a given filing status.
-     * @returns {math.BigNumber} The total calculated annual tax.
-     */
-    _calculateBracketedTax(income, brackets = []) {
-        let tax = bignumber(0);
-        let remainingIncome = bignumber(income);
-        
-        if (equal(remainingIncome, 0) || larger(0, remainingIncome)) {
-            return tax;
-        }
 
-        for (const bracket of brackets) {
-            const from = bignumber(bracket.from);
-            const to = bracket.to === 'Infinity' ? bignumber(Infinity) : bignumber(bracket.to);
-            
-            if (larger(income, from)) {
-                const taxableInBracket = smaller(subtract(to, from), subtract(income, from));
-                tax = add(tax, multiply(taxableInBracket, bracket.rate));
-            }
-        }
-        return tax;
+function calculateAnnualizedGross(currentGross, payFrequency) {
+    return currentGross * getPayPeriods(payFrequency);
+}
+
+function getPayPeriods(payFrequency) {
+    switch (payFrequency) {
+        case 'weekly': return 52;
+        case 'bi-weekly': return 26;
+        case 'semi-monthly': return 24;
+        case 'monthly': return 12;
+        default: return 1;
     }
 }
 
-export default PaystubCalculator;
+function calculateFederalIncomeTax(annualGross, filingStatus, federalTables, payFrequency) {
+    const deduction = federalTables.standard_deduction[filingStatus];
+    const taxableIncome = Math.max(0, annualGross - deduction);
+    const brackets = federalTables.brackets[filingStatus];
+    
+    let tax = 0;
+    for (let i = brackets.length - 1; i >= 0; i--) {
+        if (taxableIncome > brackets[i].over) {
+            tax += (taxableIncome - brackets[i].over) * brackets[i].rate;
+            if (i > 0) {
+                 tax -= (taxableIncome - brackets[i].over) * brackets[i-1].rate;
+            }
+        }
+    }
+    
+    return round(tax / getPayPeriods(payFrequency), 2);
+}
 
-// module.exports = PaystubCalculator; // For Node or bundlers if needed.
+function calculateFICATaxes(currentGross, newYTDGross, ficaTables) {
+    const ytdBeforeCurrent = newYTDGross - currentGross;
+    
+    // Social Security
+    let socialSecurityTaxable = 0;
+    if (ytdBeforeCurrent < ficaTables.social_security.limit) {
+        const remainingLimit = ficaTables.social_security.limit - ytdBeforeCurrent;
+        socialSecurityTaxable = Math.min(currentGross, remainingLimit);
+    }
+    const socialSecurityTax = round(socialSecurityTaxable * ficaTables.social_security.rate, 2);
+    
+    // Medicare
+    const medicareTax = round(currentGross * ficaTables.medicare.rate, 2);
+
+    return { socialSecurityTax, medicareTax };
+}
+
+function calculateNJStateIncomeTax(annualGross, njBrackets) {
+    let tax = 0;
+    let previousBracketLimit = 0;
+
+    for (const bracket of njBrackets.brackets) {
+        if (annualGross > bracket.over) {
+            const taxableInBracket = Math.min(annualGross, (njBrackets.brackets.find(b => b.over > bracket.over) || {over: Infinity}).over) - bracket.over;
+            tax += taxableInBracket * bracket.rate;
+        }
+    }
+    return tax;
+}
+
+function calculateNJOtherTaxes(currentGross, newYTDGross, njTables) {
+    const ytdBeforeCurrent = newYTDGross - currentGross;
+
+    // SUI
+    let suiTaxable = 0;
+    if (ytdBeforeCurrent < njTables.sui.limit) {
+        suiTaxable = Math.min(currentGross, njTables.sui.limit - ytdBeforeCurrent);
+    }
+    const suiTax = round(suiTaxable * njTables.sui.rate, 2);
+
+    // SDI
+    let sdiTaxable = 0;
+    if (ytdBeforeCurrent < njTables.sdi.limit) {
+        sdiTaxable = Math.min(currentGross, njTables.sdi.limit - ytdBeforeCurrent);
+    }
+    const sdiTax = round(sdiTaxable * njTables.sdi.rate, 2);
+
+    // FLI
+    let fliTaxable = 0;
+    if (ytdBeforeCurrent < njTables.fli.limit) {
+        fliTaxable = Math.min(currentGross, njTables.fli.limit - ytdBeforeCurrent);
+    }
+    const fliTax = round(fliTaxable * njTables.fli.rate, 2);
+
+    return { suiTax, sdiTax, fliTax };
+}

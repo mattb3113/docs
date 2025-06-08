@@ -4,17 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BuellDocs Paystub Generator</title>
-    <!-- Single stylesheet link as requested -->
+    
     <link rel="stylesheet" href="styles.css">
-    <!-- Single, deferred module script link -->
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+    
     <script type="module" src="js/ui-controller.js" defer></script>
 </head>
-<body>
-    <!-- Background Effects -->
-    <div class="noise-overlay"></div>
+<body data-theme="light"> <div class="noise-overlay"></div>
     <div class="backdrop-glow"></div>
 
-    <!-- Application Header -->
     <header class="app-header">
         <div class="logo-container">
             <span class="logo-text">BUELLDOCS</span>
@@ -27,13 +28,9 @@
         <a class="btn btn-secondary header-contact-btn" href="contact.html">Contact Us</a>
     </header>
 
-    <!-- Main Content Wrapper -->
     <div class="main-wrapper">
-        <!-- Main Application Area -->
         <main class="main-content">
-            <!-- The multi-step form is the core of the wizard -->
             <form id="paystubForm" novalidate>
-                <!-- Step 1: Income & Pay Structure -->
                 <div id="step1" class="form-step active">
                     <section class="form-section-card">
                         <h3><span class="step-number">Step 1</span>Income & Pay Structure</h3>
@@ -67,7 +64,6 @@
                     </section>
                 </div>
 
-                <!-- Step 2: Company & Employee Details -->
                 <div id="step2" class="form-step">
                     <section class="form-section-card">
                         <h3><span class="step-number">Step 2</span>Company & Employee Details</h3>
@@ -144,7 +140,6 @@
                     </section>
                 </div>
                 
-                <!-- Step 3: Deductions & Withholdings -->
                 <div id="step3" class="form-step">
                     <section class="form-section-card">
                         <h3><span class="step-number">Step 3</span>Deductions & Withholdings</h3>
@@ -177,7 +172,6 @@
                     </section>
                 </div>
                 
-                <!-- Step 4: Final Details & Review -->
                 <div id="step4" class="form-step">
                      <section class="form-section-card">
                         <h3><span class="step-number">Step 4</span>Final Details & Review</h3>
@@ -207,88 +201,83 @@
                      </section>
                 </div>
 
-                <!-- Global error message container -->
                 <div id="formSummaryError" class="form-summary-error"></div>
 
-                <!-- Navigation buttons for the wizard -->
                 <div class="step-navigation-buttons">
                     <button type="button" id="prevStepBtn" class="btn btn-secondary">Back</button>
                     <button type="button" id="nextStepBtn" class="btn btn-primary">Next</button>
                     <button type="button" id="proceedToPaymentBtn" class="btn btn-primary btn-large">Proceed to Payment</button>
                 </div>
             </form>
-
-            <!-- Sticky Summary Bar -->
-            <div class="summary-bar">
-                <div>Live Gross Pay: <span id="summaryGrossPay">$0.00</span></div>
-                <div>Live Total Deductions: <span id="summaryTotalDeductions">$0.00</span></div>
-                <div>Live Net Pay: <span id="summaryNetPay">$0.00</span></div>
-            </div>
-
-            <!-- Paystub Live Preview Section -->
-            <section id="previewDisplaySection" class="preview-section-card">
-                <h3>Live Paystub Preview <span id="previewStubIndicator">(Previewing Stub: 1 of 1)</span></h3>
-                <div id="previewNavControls" class="preview-nav-controls" style="display: none;">
-                    <button id="prevStubBtn" class="btn btn-secondary btn-sm">&laquo; Previous Stub</button>
-                    <button id="nextStubBtn" class="btn btn-secondary btn-sm">Next Stub &raquo;</button>
-                </div>
-                <div class="preview-watermark">BUELLDOCS</div>
-                <div id="paystubPreviewContent" class="paystub-live-preview" aria-live="polite" aria-atomic="true">
-                    <div class="paystub-header-preview">
-                        <div class="company-info-left">
-                            <div id="livePreviewCompanyName">Your Company Name</div>
-                            <div id="livePreviewCompanyAddress1">123 Main St</div>
-                            <div id="livePreviewCompanyAddress2">Anytown, ST 12345</div>
-                            <div id="livePreviewCompanyPhone"></div>
-                        </div>
-                        <div class="paystub-title-preview">
-                            <h2>EARNINGS STATEMENT</h2>
-                            <div id="livePreviewStubXofY">Stub 1 of 1</div>
-                        </div>
-                    </div>
-                    <div class="employee-pay-period-preview">
-                        <div class="employee-info-preview">
-                            <h4>Employee</h4>
-                            <div id="livePreviewEmployeeName">Employee Name</div>
-                            <div id="livePreviewEmployeeAddress1">456 Employee Ave</div>
-                            <div id="livePreviewEmployeeAddress2">Workville, ST 67890</div>
-                            <div id="livePreviewEmployeeSsn">SSN: XXX-XX-XXXX</div>
-                        </div>
-                        <div class="pay-period-info-preview">
-                            <h4>Pay Period</h4>
-                            <div>Start Date: <span id="livePreviewPayPeriodStart">YYYY-MM-DD</span></div>
-                            <div>End Date: <span id="livePreviewPayPeriodEnd">YYYY-MM-DD</span></div>
-                            <div>Pay Date: <span id="livePreviewPayDate">YYYY-MM-DD</span></div>
-                        </div>
-                    </div>
-                    <table class="earnings-table-preview">
-                        <thead><tr><th>Description</th><th>Rate</th><th>Hours</th><th>Current Period</th><th>Year-to-Date</th></tr></thead>
-                        <tbody id="livePreviewEarningsBody"></tbody>
-                    </table>
-                    <table class="deductions-table-preview">
-                        <thead><tr><th>Deduction</th><th>Current Period</th><th>Year-to-Date</th></tr></thead>
-                        <tbody id="livePreviewDeductionsBody"></tbody>
-                    </table>
-                     <div class="summary-preview">
-                        <div class="summary-grid">
-                            <span></span><span>Current</span><span>YTD</span>
-                            <strong>Gross Pay:</strong><span id="livePreviewGrossCurrent">$0.00</span><span id="livePreviewGrossYtd">$0.00</span>
-                            <strong>Deductions:</strong><span id="livePreviewDeductionsCurrent">$0.00</span><span id="livePreviewDeductionsYtd">$0.00</span>
-                            <strong>Net Pay:</strong><span id="livePreviewNetCurrent">$0.00</span><span id="livePreviewNetYtd">$0.00</span>
-                        </div>
-                    </div>
-                    <div class="preview-footer">
-                        <div id="livePreviewVoidedCheckContainer" class="voided-check-css-container" style="display:none;">
-                            <div class="voided-check-css"><div class="void-text">VOID</div><div class="check-line payee">Pay to the Order of: ____________________________</div><div class="check-line amount-box">$ [_______]</div><div class="check-line date">Date: __________</div><div class="check-line memo">__________</div><div class="check-line signature">____________________________</div><div class="check-line micr">|: 000000000 |: 11111111 .: 2222</div></div>
-                        </div>
-                    </div>
-                </div>
-                <p class="preview-disclaimer">For educational or entertainment purposes only. This is a simulated document.</p>
-            </section>
         </main>
+        
+        <aside id="previewDisplaySection" class="preview-section-card">
+            <h3>Live Paystub Preview <span id="previewStubIndicator">(Previewing Stub: 1 of 1)</span></h3>
+            <div id="previewNavControls" class="preview-nav-controls" style="display: none;">
+                <button id="prevStubBtn" class="btn btn-secondary btn-sm">&laquo; Previous Stub</button>
+                <button id="nextStubBtn" class="btn btn-secondary btn-sm">Next Stub &raquo;</button>
+            </div>
+            <div class="preview-watermark">BUELLDOCS</div>
+            <div id="paystubPreviewContent" class="paystub-live-preview" aria-live="polite" aria-atomic="true">
+                <div class="paystub-header-preview">
+                    <div class="company-info-left">
+                        <div id="livePreviewCompanyName">Your Company Name</div>
+                        <div id="livePreviewCompanyAddress1">123 Main St</div>
+                        <div id="livePreviewCompanyAddress2">Anytown, ST 12345</div>
+                        <div id="livePreviewCompanyPhone"></div>
+                    </div>
+                    <div class="paystub-title-preview">
+                        <h2>EARNINGS STATEMENT</h2>
+                        <div id="livePreviewStubXofY">Stub 1 of 1</div>
+                    </div>
+                </div>
+                <div class="employee-pay-period-preview">
+                    <div class="employee-info-preview">
+                        <h4>Employee</h4>
+                        <div id="livePreviewEmployeeName">Employee Name</div>
+                        <div id="livePreviewEmployeeAddress1">456 Employee Ave</div>
+                        <div id="livePreviewEmployeeAddress2">Workville, ST 67890</div>
+                        <div id="livePreviewEmployeeSsn" class="micr">SSN: XXX-XX-XXXX</div>
+                    </div>
+                    <div class="pay-period-info-preview">
+                        <h4>Pay Period</h4>
+                        <div>Start Date: <span id="livePreviewPayPeriodStart">YYYY-MM-DD</span></div>
+                        <div>End Date: <span id="livePreviewPayPeriodEnd">YYYY-MM-DD</span></div>
+                        <div>Pay Date: <span id="livePreviewPayDate">YYYY-MM-DD</span></div>
+                    </div>
+                </div>
+                <table class="earnings-table-preview">
+                    <thead><tr><th>Description</th><th>Rate</th><th>Hours</th><th>Current Period</th><th>Year-to-Date</th></tr></thead>
+                    <tbody id="livePreviewEarningsBody"></tbody>
+                </table>
+                <table class="deductions-table-preview">
+                    <thead><tr><th>Deduction</th><th>Current Period</th><th>Year-to-Date</th></tr></thead>
+                    <tbody id="livePreviewDeductionsBody"></tbody>
+                </table>
+                 <div class="summary-preview">
+                    <div class="summary-grid">
+                        <span></span><span>Current</span><span>YTD</span>
+                        <strong>Gross Pay:</strong><span id="livePreviewGrossCurrent">$0.00</span><span id="livePreviewGrossYtd">$0.00</span>
+                        <strong>Deductions:</strong><span id="livePreviewDeductionsCurrent">$0.00</span><span id="livePreviewDeductionsYtd">$0.00</span>
+                        <strong>Net Pay:</strong><span id="livePreviewNetCurrent">$0.00</span><span id="livePreviewNetYtd">$0.00</span>
+                    </div>
+                </div>
+                <div class="preview-footer">
+                    <div id="livePreviewVoidedCheckContainer" class="voided-check-css-container" style="display:none;">
+                        <div class="voided-check-css"><div class="void-text">VOID</div><div class="check-line payee">Pay to the Order of: ____________________________</div><div class="check-line amount-box">$ [_______]</div><div class="check-line date">Date: __________</div><div class="check-line memo">__________</div><div class="check-line signature">____________________________</div><div class="check-line micr">|: 000000000 |: 11111111 .: 2222</div></div>
+                    </div>
+                </div>
+            </div>
+            <p class="preview-disclaimer">For educational or entertainment purposes only. This is a simulated document.</p>
+        </aside>
     </div>
 
-    <!-- Payment Modal -->
+    <div class="summary-bar">
+        <div>Live Gross Pay: <span id="summaryGrossPay">$0.00</span></div>
+        <div>Live Total Deductions: <span id="summaryTotalDeductions">$0.00</span></div>
+        <div>Live Net Pay: <span id="summaryNetPay">$0.00</span></div>
+    </div>
+
     <div id="paymentModal" class="modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="paymentModalTitle">
         <div class="modal-content">
             <span class="close-modal-btn" id="closePaymentModalBtn">&times;</span>

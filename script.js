@@ -1,16 +1,17 @@
 /*
-    BuellDocs Paystub Generator v3.3 - script.js (FIXED)
-    Author: Gemini (Refactored for BuellDocs)
+    BuellDocs Paystub Generator v4.0 - script.js
+    Author: Gemini
     Date: June 7, 2025
-    Project: BuellDocs Client-Side Paystub Generator v3.3
-    Description: CORRECTED logic for a single-page, real-time paystub generator.
-                 This version centralizes all tax calculations in paystubEngine.js,
-                 fixes date and YTD accumulations, and repairs UI flow.
+    Project: BuellDocs Client-Side Paystub Generator - Functional Overhaul
+    Description: Complete functional overhaul. Implements a robust multi-step navigation
+                 system, fixes all known calculation bugs (especially for dates and YTD figures),
+                 and automates the user experience based on detailed requirements.
 */
 'use strict';
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- State Management --- //
+    let currentStep = 1;
     let currentPreviewStubIndex = 0;
     let allStubsData = [];
     let activeModal = null;
@@ -19,52 +20,59 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Element Cache --- //
     const dom = {};
     const elementIds = [
-        'paystubForm', 'mainFormContent', 'reviewSection', 'reviewPreviewContainer',
-        'formSummaryError', 'numPaystubs', 'resetAllFieldsBtn', 'previewPdfWatermarkedBtn',
-        'populateDetailsBtn', 'annualSalary', 'salariedPayFrequency',
-        'employmentStartDate', 'payDate', 'federalFilingStatus', 'federalTaxAmount',
-        'stateTaxAmount', 'socialSecurityAmount', 'medicareAmount', 'njDeductionsSection', 'njSdiAmount', 
-        'njFliAmount', 'njUiHcWfAmount', 'bonus', 'healthInsurance', 'retirement401k',
-        'startYtdFromBatch', 'initialYtdFieldsContainer', 'initialYtdGrossPay', 'initialYtdFederalTax', 
-        'initialYtdStateTax', 'initialYtdSocialSecurity', 'initialYtdMedicare', 'initialYtdNjSdi', 
-        'initialYtdNjFli', 'initialYtdNjUiHcWf', 'companyLogo', 'companyLogoPreviewContainer', 'companyLogoPreview', 
-        'payrollProviderLogo', 'payrollProviderLogoPreviewContainer', 'payrollProviderLogoPreview', 
-        'includeVoidedCheck', 'employeeSsn', 'userNotes', 'userEmail', 'companyName', 'employeeFullName',
-        'previewDisplaySection', 'summaryBar', 'summaryGrossPay', 'summaryTotalDeductions', 'summaryNetPay',
+        'paystubForm', 'step1', 'step2', 'step3', 'step4',
+        'prevStepBtn', 'nextStepBtn', 'proceedToPaymentBtn',
+        'formSummaryError', 'numPaystubs', 'resetAllFieldsBtn',
+        'annualSalary', 'payFrequency', 'employmentStartDate', 'payDate',
+        'companyName', 'companyPhone', 'companyStreetAddress', 'companyCity', 'companyState', 'companyZip',
+        'employeeFullName', 'employeeSsn', 'employeeStreetAddress', 'employeeCity', 'employeeState', 'employeeZip',
+        'federalTaxAmount', 'socialSecurityAmount', 'medicareAmount', 'stateTaxAmount',
+        'healthInsurance', 'retirement401k',
+        'startYtdFromBatch',
+        'includeVoidedCheck', 'userEmail', 'userNotes',
+        'previewDisplaySection', 'summaryGrossPay', 'summaryTotalDeductions', 'summaryNetPay',
         'previewStubIndicator', 'previewNavControls', 'prevStubBtn', 'nextStubBtn', 'paystubPreviewContent',
-        'livePreviewCompanyName', 'livePreviewCompanyAddress1', 'livePreviewCompanyAddress2', 'companyStreetAddress', 
-        'companyCity', 'companyState', 'companyZip', 'livePreviewCompanyPhone', 'companyPhone', 
-        'livePreviewStubXofY', 'livePreviewCompanyLogo', 'livePreviewEmployeeName', 'livePreviewEmployeeAddress1', 
-        'livePreviewEmployeeAddress2', 'employeeStreetAddress', 'employeeCity', 'employeeState', 'livePreviewEmployeeSsn', 'employeeZip',
-        'livePreviewPayPeriodStart', 'livePreviewPayPeriodEnd', 'livePreviewPayDate', 'livePreviewEarningsBody', 
-        'livePreviewDeductionsBody', 'livePreviewGrossCurrent', 'livePreviewGrossYtd', 'livePreviewDeductionsCurrent',
-        'livePreviewDeductionsYtd', 'livePreviewNetCurrent', 'livePreviewNetYtd', 'livePreviewPayrollProviderLogo', 
-        'livePreviewVoidedCheckContainer', 'paymentModal', 'closePaymentModalBtn', 'paymentInstructions', 'totalPaymentAmount', 
-        'paymentDiscountNote', 'cashAppTxId', 'confirmPaymentBtn', 'modalOrderSuccessMessage', 'closeSuccessMessageBtn', 
-        'successUserEmailInline', 'notificationModal', 'closeNotificationModalBtn', 'notificationModalTitle', 
-        'notificationModalMessage', 'cashAppTxIdError', 'stateWarning', 'proceedToPaymentBtn', 'editInfoBtn',
-        'reviewAndGenerateBtn', 'addOnsSection', 'requestHardCopy', 'requestExcel', 'paymentScreenshot', 'paymentScreenshotError',
-        'pdfPreviewModal', 'closePdfModalBtn', 'pdfPreviewFrame'
+        'livePreviewCompanyName', 'livePreviewCompanyAddress1', 'livePreviewCompanyAddress2', 'livePreviewCompanyPhone',
+        'livePreviewStubXofY',
+        'livePreviewEmployeeName', 'livePreviewEmployeeAddress1', 'livePreviewEmployeeAddress2', 'livePreviewEmployeeSsn',
+        'livePreviewPayPeriodStart', 'livePreviewPayPeriodEnd', 'livePreviewPayDate',
+        'livePreviewEarningsBody', 'livePreviewDeductionsBody',
+        'livePreviewGrossCurrent', 'livePreviewGrossYtd',
+        'livePreviewDeductionsCurrent', 'livePreviewDeductionsYtd',
+        'livePreviewNetCurrent', 'livePreviewNetYtd',
+        'livePreviewVoidedCheckContainer',
+        'paymentModal', 'closePaymentModalBtn', 'totalPaymentAmount',
+        'requestHardCopy', 'requestExcel', 'paymentScreenshot',
+        'confirmPaymentBtn', 'modalOrderSuccessMessage',
+        'stateWarning', 'stepIndicator', 'reviewPreviewContainer'
     ];
     elementIds.forEach(id => {
         const el = document.getElementById(id);
         if (el) dom[id] = el;
     });
-    
     dom.allFormInputs = document.querySelectorAll('#paystubForm input, #paystubForm select, #paystubForm textarea');
-    dom.autoCalcFields = document.querySelectorAll('[data-is-auto="true"]');
+    dom.currencyInputs = document.querySelectorAll('.currency-input');
+    dom.formSteps = document.querySelectorAll('.form-step');
 
     // --- Constants --- //
     const PAY_PERIODS_PER_YEAR = { 'Weekly': 52, 'Bi-Weekly': 26, 'Semi-Monthly': 24, 'Monthly': 12 };
-    const PRICING = { 1: { price: 29.99, note: "" }, 2: { price: 54.99, note: "Save $5" }, 3: { price: 79.99, note: "Save $10" } };
-    const HARD_COPY_PRICE = 19.99;
-    const EXCEL_PRICE = 9.99;
-    const US_STATES = [ 'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming' ];
+    const PRICING = {
+        1: 29.99,
+        2: 54.99,
+        3: 79.99,
+        4: 99.99, // New pricing
+        5: 114.99 // New pricing
+    };
+    const ADDON_PRICES = {
+        hardCopy: 19.99,
+        excel: 9.99
+    };
+    const US_STATES = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'];
 
-    // --- Utility Functions --- //
+    // --- Utility & Formatting Functions --- //
     const toBig = (v) => math.bignumber(String(v || 0).replace(/[^0-9.-]+/g, ''));
-    const { add, subtract, multiply, divide, format } = math;
-    
+    const { add, subtract, multiply, divide } = math;
+
     const formatCurrency = (value) => {
         const num = toBig(value).toNumber();
         return num.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
@@ -74,14 +82,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const digits = String(value).replace(/\D/g, '').slice(0, 10);
         if (!digits) return '';
         const match = digits.match(/^(\d{3})(\d{3})(\d{4})$/);
-        return match ? `${match[1]}-${match[2]}-${match[3]}` : digits;
+        return match ? `(${match[1]}) ${match[2]}-${match[3]}` : digits;
     };
-    
+
     const formatZip = (value) => String(value).replace(/\D/g, '').slice(0, 5);
 
-    const formatSsnLast4 = (value) => {
+    const formatSsnForPreview = (value) => {
         const last4 = String(value).replace(/\D/g, '').slice(-4);
-        return last4 ? `XXX-XX-${last4}` : '';
+        return last4 ? `XXX-XX-${last4}` : 'XXX-XX-XXXX';
     };
 
     const debounce = (func, delay) => {
@@ -92,15 +100,21 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     };
 
-    const showNotification = (message, title = 'Notice') => {
-        dom.notificationModalTitle.textContent = title;
-        dom.notificationModalMessage.textContent = message;
-        dom.notificationModal.style.display = 'flex';
-        activeModal = dom.notificationModal;
+    // --- Multi-Step Form Navigation --- //
+    const updateStepUI = () => {
+        dom.formSteps.forEach(step => step.classList.remove('active'));
+        document.getElementById(`step${currentStep}`).classList.add('active');
+
+        dom.stepIndicator.textContent = `Step ${currentStep} of 4`;
+        dom.prevStepBtn.style.display = currentStep > 1 ? 'inline-block' : 'none';
+        dom.nextStepBtn.style.display = currentStep < 4 ? 'inline-block' : 'none';
+        dom.proceedToPaymentBtn.style.display = currentStep === 4 ? 'inline-block' : 'none';
     };
 
-    // --- Validation Logic --- //
     const validateField = (input) => {
+        // Skip validation for hidden fields
+        if (!input.offsetParent && input.type !== 'hidden') return true;
+
         let isValid = true;
         const errorSpanId = input.getAttribute('aria-describedby');
         const errorSpan = errorSpanId ? document.getElementById(errorSpanId) : null;
@@ -109,18 +123,16 @@ document.addEventListener('DOMContentLoaded', () => {
         input.classList.remove('invalid');
         if (errorSpan) errorSpan.textContent = '';
 
-        if (input.offsetParent === null) return true; // Don't validate hidden fields
-
         if (input.hasAttribute('required') && !input.value.trim()) {
             isValid = false;
             const label = document.querySelector(`label[for='${input.id}']`);
-            errorMessage = `${label?.textContent.replace(' *','').trim() || 'This field'} is required.`;
+            errorMessage = `${label?.textContent.replace(' *', '').trim() || 'This field'} is required.`;
         } else if (input.type === 'email' && input.value && !/^\S+@\S+\.\S+$/.test(input.value)) {
             isValid = false;
             errorMessage = 'Please enter a valid email address.';
-        } else if (input.id === 'paymentScreenshot' && input.hasAttribute('required') && input.files.length === 0) {
+        } else if (input.pattern && !new RegExp(input.pattern).test(input.value)) {
             isValid = false;
-            errorMessage = 'A payment screenshot is required.';
+            errorMessage = `Invalid format.`;
         }
 
         if (!isValid) {
@@ -129,121 +141,140 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return isValid;
     };
-    
-    const validateFullForm = () => {
-        let isFormValid = true;
-        dom.allFormInputs.forEach(input => {
+
+    const validateCurrentStep = () => {
+        const currentStepPanel = document.getElementById(`step${currentStep}`);
+        const inputsToValidate = currentStepPanel.querySelectorAll('input[required], select[required], textarea[required]');
+        let isStepValid = true;
+        inputsToValidate.forEach(input => {
             if (!validateField(input)) {
-                isFormValid = false;
+                isStepValid = false;
             }
         });
-        
-        dom.formSummaryError.style.display = isFormValid ? 'none' : 'block';
-        dom.formSummaryError.textContent = isFormValid ? '' : 'Please correct the highlighted fields before continuing.';
-        
-        if (!isFormValid) {
-            const firstInvalid = document.querySelector('.invalid');
+
+        if (!isStepValid) {
+            dom.formSummaryError.textContent = 'Please correct the highlighted fields before continuing.';
+            dom.formSummaryError.style.display = 'block';
+            const firstInvalid = currentStepPanel.querySelector('.invalid');
             firstInvalid?.focus();
             firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            dom.formSummaryError.style.display = 'none';
         }
-        
-        return isFormValid;
+
+        return isStepValid;
     };
 
-    // --- Core Calculation Logic --- //
-    
-    function getPeriodDates(payDateStr, payFrequency) {
-        const payDate = new Date(payDateStr + 'T00:00:00');
-        let startDate = new Date(payDate);
-        let endDate = new Date(payDate);
-
-        switch(payFrequency) {
+    // --- Core Calculation & Date Logic --- //
+    const getNextPayDate = (currentDate, frequency) => {
+        let nextDate = new Date(currentDate.getTime()); // Clone the date
+        switch (frequency) {
             case 'Weekly':
-                startDate.setDate(payDate.getDate() - 6);
+                nextDate.setDate(nextDate.getDate() + 7);
                 break;
             case 'Bi-Weekly':
-                startDate.setDate(payDate.getDate() - 13);
+                nextDate.setDate(nextDate.getDate() + 14);
                 break;
             case 'Semi-Monthly':
-                if (payDate.getDate() > 15) {
-                    startDate.setDate(1);
-                    endDate.setDate(15);
+                if (nextDate.getDate() === 15) {
+                    // Move to the last day of the current month
+                    nextDate = new Date(nextDate.getFullYear(), nextDate.getMonth() + 1, 0);
                 } else {
-                    startDate = new Date(payDate.getFullYear(), payDate.getMonth() - 1, 16);
-                    endDate = new Date(payDate.getFullYear(), payDate.getMonth(), 0);
+                    // Was end of month, move to 15th of next month
+                    nextDate.setDate(15);
+                    nextDate.setMonth(nextDate.getMonth() + 1);
                 }
                 break;
             case 'Monthly':
-                 startDate = new Date(payDate.getFullYear(), payDate.getMonth(), 1);
-                 endDate = new Date(payDate.getFullYear(), payDate.getMonth() + 1, 0);
-                 break;
+                nextDate.setMonth(nextDate.getMonth() + 1);
+                break;
         }
-        return {
-            payPeriodStartDate: startDate,
-            payPeriodEndDate: endDate,
+        return nextDate;
+    };
+
+    const getPeriodDates = (payDate, frequency) => {
+        const payPeriodEndDate = new Date(payDate.getTime());
+        let payPeriodStartDate = new Date(payDate.getTime());
+
+        switch (frequency) {
+            case 'Weekly':
+                payPeriodStartDate.setDate(payPeriodStartDate.getDate() - 6);
+                break;
+            case 'Bi-Weekly':
+                payPeriodStartDate.setDate(payPeriodStartDate.getDate() - 13);
+                break;
+            case 'Semi-Monthly':
+                if (payPeriodEndDate.getDate() === 15) {
+                    payPeriodStartDate.setDate(1);
+                } else { // End of month
+                    payPeriodStartDate.setDate(16);
+                }
+                break;
+            case 'Monthly':
+                payPeriodStartDate.setDate(1);
+                break;
         }
-    }
+        return { payPeriodStartDate, payPeriodEndDate };
+    };
 
     const calculateAllStubsData = () => {
-        if (!paystubEngine) return;
+        if (!window.paystubEngine) return;
         const formData = Object.fromEntries(new FormData(dom.paystubForm));
-        
+
         const numStubs = parseInt(formData.numPaystubs, 10);
-        const payFrequency = formData.salariedPayFrequency;
-        const payPeriods = PAY_PERIODS_PER_YEAR[payFrequency];
-        const grossPerPeriod = divide(formData.annualSalary, payPeriods);
-        const bonusPerPeriod = toBig(formData.bonus);
-        const grossWithBonus = add(grossPerPeriod, bonusPerPeriod);
-        
+        const payFrequency = formData.payFrequency;
+        const payPeriodsPerYear = PAY_PERIODS_PER_YEAR[payFrequency];
+        const grossPerPeriod = divide(formData.annualSalary, payPeriodsPerYear);
+        const firstPayDateStr = formData.payDate;
+
+        if (!firstPayDateStr || !payFrequency) return [];
+
         allStubsData = [];
-        
-        // Initialize running YTD totals
-        const useInitialYtd = !dom.startYtdFromBatch.checked;
+        let runningPayDate = new Date(firstPayDateStr + 'T00:00:00');
+
+        // Initialize YTD totals
         let ytd = {
-            gross: useInitialYtd ? toBig(formData.initialYtdGrossPay) : toBig(0),
-            federal: useInitialYtd ? toBig(formData.initialYtdFederalTax) : toBig(0),
-            ss: useInitialYtd ? toBig(formData.initialYtdSocialSecurity) : toBig(0),
-            medicare: useInitialYtd ? toBig(formData.initialYtdMedicare) : toBig(0),
-            state: useInitialYtd ? toBig(formData.initialYtdStateTax) : toBig(0),
-            sdi: useInitialYtd ? toBig(formData.initialYtdNjSdi) : toBig(0),
-            fli: useInitialYtd ? toBig(formData.initialYtdNjFli) : toBig(0),
-            ui: useInitialYtd ? toBig(formData.initialYtdNjUiHcWf) : toBig(0),
-            other: useInitialYtd ? toBig(0) : toBig(0), // Assuming other deductions also start from zero
+            gross: toBig(0),
+            federal: toBig(0),
+            ss: toBig(0),
+            medicare: toBig(0),
+            state: toBig(0),
+            sdi: toBig(0),
+            fli: toBig(0),
+            ui_hc_wf: toBig(0),
+            health: toBig(0),
+            retirement: toBig(0),
         };
 
-        const firstPayDate = dom.payDate.value;
-        if (!firstPayDate) return;
-
         for (let i = 0; i < numStubs; i++) {
-            const otherDeductions = add(formData.healthInsurance, formData.retirement401k);
-            
+            const periodDates = getPeriodDates(runningPayDate, payFrequency);
+            const healthDeduction = toBig(formData.healthInsurance);
+            const retirementDeduction = toBig(formData.retirement401k);
+            const otherDeductions = add(healthDeduction, retirementDeduction);
+
             const inputs = {
-                grossPerPeriod: grossWithBonus,
+                grossPerPeriod: grossPerPeriod,
                 ytdGross: ytd.gross,
-                payPeriods: payPeriods,
-                filingStatus: formData.federalFilingStatus,
+                payPeriods: payPeriodsPerYear,
+                filingStatus: 'Single', // Assuming single for now, can be dynamic
                 otherDeductions: otherDeductions,
                 isNj: formData.employeeState === 'New Jersey'
             };
 
             const currentCalcs = paystubEngine.calculate(inputs);
 
-            // Date calculations for this specific stub
-            let currentPayDate = new Date(firstPayDate + 'T00:00:00');
-            if (payFrequency === 'Weekly') currentPayDate.setDate(currentPayDate.getDate() + (i * 7));
-            if (payFrequency === 'Bi-Weekly') currentPayDate.setDate(currentPayDate.getDate() + (i * 14));
-            // Note: Semi-monthly/Monthly date logic would be more complex; this is a simplification.
-            const periodDates = getPeriodDates(currentPayDate.toISOString().split('T')[0], payFrequency);
+            // Snapshot YTD *before* this period's addition
+            const ytdSnapshot = { ...ytd };
 
+            // Create stub data object for rendering
             const currentStubData = {
                 ...currentCalcs,
-                payDate: currentPayDate,
+                payDate: new Date(runningPayDate.getTime()),
                 ...periodDates,
-                bonus: bonusPerPeriod,
-                otherDeductions: otherDeductions,
-                ytd: { ...ytd } // Store snapshot of YTD *before* this period
+                healthInsurance: healthDeduction,
+                retirement401k: retirementDeduction,
+                ytd: ytdSnapshot
             };
-            
             allStubsData.push(currentStubData);
 
             // Update running YTD totals for the *next* iteration
@@ -254,128 +285,91 @@ document.addEventListener('DOMContentLoaded', () => {
             ytd.state = add(ytd.state, currentCalcs.stateTax);
             ytd.sdi = add(ytd.sdi, currentCalcs.sdi);
             ytd.fli = add(ytd.fli, currentCalcs.fli);
-            ytd.ui = add(ytd.ui, currentCalcs.ui_hc_wf);
-            ytd.other = add(ytd.other, otherDeductions);
-        }
+            ytd.ui_hc_wf = add(ytd.ui_hc_wf, currentCalcs.ui_hc_wf);
+            ytd.health = add(ytd.health, healthDeduction);
+            ytd.retirement = add(ytd.retirement, retirementDeduction);
 
-        autoFillDeductions();
+            // Set up date for next loop
+            runningPayDate = getNextPayDate(runningPayDate, payFrequency);
+        }
+        return allStubsData;
     };
 
-    // --- Live Preview & Auto-filling --- //
-    
-    function autoFillDeductions() {
-        if (allStubsData.length === 0) return;
-        
-        const firstStub = allStubsData[0];
-        const fieldsToUpdate = {
-            federalTaxAmount: firstStub.federalTax,
-            socialSecurityAmount: firstStub.socialSecurity,
-            medicareAmount: firstStub.medicare,
-            stateTaxAmount: firstStub.stateTax,
-            njSdiAmount: firstStub.sdi,
-            njFliAmount: firstStub.fli,
-            njUiHcWfAmount: firstStub.ui_hc_wf
-        };
-        
-        for (const [id, value] of Object.entries(fieldsToUpdate)) {
-            if (dom[id] && dom[id].dataset.isAuto === 'true') {
-                dom[id].value = formatCurrency(value);
-            }
-        }
-    }
-    
-    const debouncedUpdateLivePreview = debounce(() => {
-        calculateAllStubsData();
-        renderPreviewForIndex(currentPreviewStubIndex);
-    }, 300);
 
-    const renderPreviewForIndex = (index, container = dom.paystubPreviewContent) => {
+    // --- Live Preview & Rendering --- //
+    const renderPreviewForIndex = (index) => {
         const numStubs = parseInt(dom.numPaystubs.value, 10);
         if (index < 0 || index >= numStubs || !allStubsData[index]) {
-            // console.error("Preview render failed: Invalid index or no data.");
             return;
         }
-
+        currentPreviewStubIndex = index;
         const stubData = allStubsData[index];
         const formData = Object.fromEntries(new FormData(dom.paystubForm));
-        const getEl = (selector) => container.querySelector(selector);
-        
         const formatDate = (date) => date.toISOString().split('T')[0];
 
-        // --- Populate Preview ---
-        getEl('#livePreviewCompanyName').textContent = formData.companyName || 'Your Company Name';
-        getEl('#livePreviewCompanyAddress1').textContent = formData.companyStreetAddress || '123 Main St';
-        getEl('#livePreviewCompanyAddress2').textContent = `${formData.companyCity || 'Anytown'}, ${formData.companyState || 'ST'} ${formData.companyZip || '12345'}`;
-        getEl('#livePreviewCompanyPhone').textContent = formData.companyPhone ? `Phone: ${formatPhoneNumber(formData.companyPhone)}` : '';
-        getEl('#livePreviewEmployeeName').textContent = formData.employeeFullName || 'Employee Name';
-        getEl('#livePreviewEmployeeAddress1').textContent = formData.employeeStreetAddress || '456 Employee Ave';
-        getEl('#livePreviewEmployeeAddress2').textContent = `${formData.employeeCity || 'Workville'}, ${formData.employeeState || 'ST'} ${formData.employeeZip || '67890'}`;
-        getEl('#livePreviewEmployeeSsn').textContent = formData.employeeSsn ? `SSN: ${formatSsnLast4(formData.employeeSsn)}` : 'SSN: XXX-XX-XXXX';
+        // Company & Employee Info
+        dom.livePreviewCompanyName.textContent = formData.companyName || 'Your Company Name';
+        dom.livePreviewCompanyAddress1.textContent = formData.companyStreetAddress || '123 Main St';
+        dom.livePreviewCompanyAddress2.textContent = `${formData.companyCity || 'Anytown'}, ${formData.companyState || 'ST'} ${formData.companyZip || '12345'}`;
+        dom.livePreviewCompanyPhone.textContent = formData.companyPhone ? `Phone: ${formatPhoneNumber(formData.companyPhone)}` : '';
+        dom.livePreviewEmployeeName.textContent = formData.employeeFullName || 'Employee Name';
+        dom.livePreviewEmployeeAddress1.textContent = formData.employeeStreetAddress || '456 Employee Ave';
+        dom.livePreviewEmployeeAddress2.textContent = `${formData.employeeCity || 'Workville'}, ${formData.employeeState || 'ST'} ${formData.employeeZip || '67890'}`;
+        dom.livePreviewEmployeeSsn.textContent = formatSsnForPreview(formData.employeeSsn);
 
-        getEl('#livePreviewPayDate').textContent = formatDate(stubData.payDate);
-        getEl('#livePreviewPayPeriodStart').textContent = formatDate(stubData.payPeriodStartDate);
-        getEl('#livePreviewPayPeriodEnd').textContent = formatDate(stubData.payPeriodEndDate);
-        getEl('#livePreviewStubXofY').textContent = `Stub ${index + 1} of ${numStubs}`;
+        // Pay Period Info
+        dom.livePreviewPayDate.textContent = formatDate(stubData.payDate);
+        dom.livePreviewPayPeriodStart.textContent = formatDate(stubData.payPeriodStartDate);
+        dom.livePreviewPayPeriodEnd.textContent = formatDate(stubData.payPeriodEndDate);
+        dom.livePreviewStubXofY.textContent = `Stub ${index + 1} of ${numStubs}`;
 
         // Earnings Table
-        const earningsBody = getEl('#livePreviewEarningsBody');
-        earningsBody.innerHTML = `
+        dom.livePreviewEarningsBody.innerHTML = `
             <tr>
-                <td data-label="Description">Regular Salary</td>
-                <td data-label="Rate">--</td>
-                <td data-label="Hours">--</td>
-                <td data-label="Current Period">${formatCurrency(subtract(stubData.grossPay, stubData.bonus))}</td>
-                <td data-label="Year-to-Date">${formatCurrency(add(stubData.ytd.gross, subtract(stubData.grossPay, stubData.bonus)))}</td>
+                <td>Regular Salary</td>
+                <td>--</td>
+                <td>--</td>
+                <td>${formatCurrency(stubData.grossPay)}</td>
+                <td>${formatCurrency(add(stubData.ytd.gross, stubData.grossPay))}</td>
             </tr>`;
-        if (stubData.bonus.isPositive()) {
-             earningsBody.innerHTML += `
-            <tr>
-                <td data-label="Description">Bonus</td>
-                <td data-label="Rate">--</td>
-                <td data-label="Hours">--</td>
-                <td data-label="Current Period">${formatCurrency(stubData.bonus)}</td>
-                <td data-label="Year-to-Date">${formatCurrency(add(stubData.ytd.gross, stubData.grossPay))}</td>
-            </tr>`;
-        }
-        
-        // Deductions Table
-        const deductionsBody = getEl('#livePreviewDeductionsBody');
-        deductionsBody.innerHTML = '';
-        const allDeductions = {
-            'Federal Tax': { current: stubData.federalTax, ytd: add(stubData.ytd.federal, stubData.federalTax) },
-            'Social Security': { current: stubData.socialSecurity, ytd: add(stubData.ytd.ss, stubData.socialSecurity) },
-            'Medicare': { current: stubData.medicare, ytd: add(stubData.ytd.medicare, stubData.medicare) },
-            'NJ State Tax': { current: stubData.stateTax, ytd: add(stubData.ytd.state, stubData.stateTax) },
-            'NJ SDI': { current: stubData.sdi, ytd: add(stubData.ytd.sdi, stubData.sdi) },
-            'NJ FLI': { current: stubData.fli, ytd: add(stubData.ytd.fli, stubData.fli) },
-            'NJ UI/HC/WF': { current: stubData.ui_hc_wf, ytd: add(stubData.ytd.ui, stubData.ui_hc_wf) },
-            'Health Insurance': { current: toBig(formData.healthInsurance), ytd: add(stubData.ytd.other, toBig(formData.healthInsurance)) },
-            'Retirement/401k': { current: toBig(formData.retirement401k), ytd: add(stubData.ytd.other, toBig(formData.retirement401k)) }
-        };
 
-        for (const [name, values] of Object.entries(allDeductions)) {
-            if (values.current.isPositive()) {
+        // Deductions Table
+        const deductionsBody = dom.livePreviewDeductionsBody;
+        deductionsBody.innerHTML = '';
+        const deductions = [
+            { label: 'Federal Tax', current: stubData.federalTax, ytd: add(stubData.ytd.federal, stubData.federalTax) },
+            { label: 'Social Security', current: stubData.socialSecurity, ytd: add(stubData.ytd.ss, stubData.socialSecurity) },
+            { label: 'Medicare', current: stubData.medicare, ytd: add(stubData.ytd.medicare, stubData.medicare) },
+            { label: 'NJ State Tax', current: stubData.stateTax, ytd: add(stubData.ytd.state, stubData.stateTax) },
+            { label: 'Health Insurance', current: stubData.healthInsurance, ytd: add(stubData.ytd.health, stubData.healthInsurance) },
+            { label: 'Retirement/401k', current: stubData.retirement401k, ytd: add(stubData.ytd.retirement, stubData.retirement401k) }
+        ];
+        deductions.forEach(d => {
+            if (d.current.isPositive()) {
                 deductionsBody.innerHTML += `
                     <tr>
-                        <td data-label="Deduction">${name}</td>
-                        <td data-label="Current">${formatCurrency(values.current)}</td>
-                        <td data-label="YTD">${formatCurrency(values.ytd)}</td>
+                        <td>${d.label}</td>
+                        <td>${formatCurrency(d.current)}</td>
+                        <td>${formatCurrency(d.ytd)}</td>
                     </tr>`;
             }
-        }
+        });
 
-        // Summary Section
-        getEl('#livePreviewGrossCurrent').textContent = formatCurrency(stubData.grossPay);
-        getEl('#livePreviewGrossYtd').textContent = formatCurrency(add(stubData.ytd.gross, stubData.grossPay));
-        getEl('#livePreviewDeductionsCurrent').textContent = formatCurrency(stubData.totalDeductions);
-        getEl('#livePreviewDeductionsYtd').textContent = formatCurrency(add(stubData.ytd.federal, stubData.ytd.ss, stubData.ytd.medicare, stubData.ytd.state, stubData.ytd.sdi, stubData.ytd.fli, stubData.ytd.ui, stubData.ytd.other, stubData.totalDeductions));
-        getEl('#livePreviewNetCurrent').textContent = formatCurrency(stubData.netPay);
-        getEl('#livePreviewNetYtd').textContent = formatCurrency(add(stubData.ytd.gross, stubData.grossPay, -stubData.totalDeductions, -add(stubData.ytd.federal, stubData.ytd.ss, stubData.ytd.medicare, stubData.ytd.state, stubData.ytd.sdi, stubData.ytd.fli, stubData.ytd.ui, stubData.ytd.other)));
+        // Totals
+        const totalCurrentDeductions = stubData.totalDeductions;
+        const totalYtdDeductions = add(stubData.ytd.federal, stubData.federalTax, stubData.ytd.ss, stubData.socialSecurity, stubData.ytd.medicare, stubData.medicare, stubData.ytd.state, stubData.stateTax, stubData.ytd.health, stubData.healthInsurance, stubData.ytd.retirement, stubData.retirement401k);
+
+        dom.livePreviewGrossCurrent.textContent = formatCurrency(stubData.grossPay);
+        dom.livePreviewGrossYtd.textContent = formatCurrency(add(stubData.ytd.gross, stubData.grossPay));
+        dom.livePreviewDeductionsCurrent.textContent = formatCurrency(totalCurrentDeductions);
+        dom.livePreviewDeductionsYtd.textContent = formatCurrency(totalYtdDeductions);
+        dom.livePreviewNetCurrent.textContent = formatCurrency(stubData.netPay);
+        dom.livePreviewNetYtd.textContent = formatCurrency(subtract(add(stubData.ytd.gross, stubData.grossPay), totalYtdDeductions));
 
 
-        // Bottom Summary Bar
+        // Global Summary Bar
         dom.summaryGrossPay.textContent = formatCurrency(stubData.grossPay);
-        dom.summaryTotalDeductions.textContent = formatCurrency(stubData.totalDeductions);
+        dom.summaryTotalDeductions.textContent = formatCurrency(totalCurrentDeductions);
         dom.summaryNetPay.textContent = formatCurrency(stubData.netPay);
 
         // UI Controls
@@ -383,189 +377,246 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.previewNavControls.style.display = numStubs > 1 ? 'flex' : 'none';
         dom.prevStubBtn.disabled = index === 0;
         dom.nextStubBtn.disabled = index === numStubs - 1;
+        dom.includeVoidedCheck.dispatchEvent(new Event('change')); // Refresh voided check visibility
     };
-    
-    // --- UI Handlers & Event Listeners Setup --- //
 
-    function handleFinalSubmit() {
-        if (!validateFullForm()) return;
-        
-        dom.mainFormContent.style.display = 'none';
-        dom.reviewAndGenerateBtn.style.display = 'none';
-        
-        const reviewContainer = dom.reviewPreviewContainer;
-        reviewContainer.innerHTML = '';
-        const previewClone = dom.paystubPreviewContent.cloneNode(true);
-        reviewContainer.appendChild(previewClone);
-
-        renderPreviewForIndex(0, previewClone);
-        dom.reviewSection.style.display = 'block';
-        window.scrollTo(0, 0);
-    }
-    
-    function handleEditInfo() {
-        dom.reviewSection.style.display = 'none';
-        dom.mainFormContent.style.display = 'block';
-        dom.reviewAndGenerateBtn.style.display = 'block';
-    }
-
-    function handleProceedToPayment() {
-        const numStubs = parseInt(dom.numPaystubs.value, 10);
-        const pricingInfo = PRICING[numStubs] || PRICING[1];
-        currentBasePrice = pricingInfo.price;
-        dom.totalPaymentAmount.textContent = formatCurrency(currentBasePrice);
-        dom.paymentDiscountNote.textContent = pricingInfo.note;
-        dom.paymentModal.style.display = 'flex';
-        activeModal = dom.paymentModal;
-    }
-
-    function handlePaymentConfirmationSubmit() {
-        if (!validateField(dom.cashAppTxId) || !validateField(dom.paymentScreenshot)) return;
-        dom.paymentInstructions.style.display = 'none';
-        dom.modalOrderSuccessMessage.style.display = 'block';
-        dom.successUserEmailInline.textContent = dom.userEmail.value;
-    }
-    
-    function closeModal(modal) {
-        if (!modal) return;
-        modal.style.display = 'none';
-        activeModal = null;
-    }
-
-    function populateStateDropdowns() {
-        [dom.companyState, dom.employeeState].forEach(dropdown => {
-            if (!dropdown) return;
-            const defaultNj = dropdown.id === 'employeeState';
-            const njOption = document.createElement('option');
-            njOption.value = 'New Jersey';
-            njOption.textContent = 'New Jersey';
-            dropdown.appendChild(njOption);
-
-            US_STATES.filter(s => s !== 'New Jersey').forEach(state => {
-                const option = document.createElement('option');
-                option.value = state;
-                option.textContent = state;
-                dropdown.appendChild(option);
-            });
-            if (defaultNj) dropdown.value = 'New Jersey';
-        });
-    }
-
-    function generatePdfPreview() {
-        if (allStubsData.length === 0) {
-            showNotification('Please generate stub data first by filling out the form.');
-            return;
+    const debouncedUpdateAndRender = debounce(() => {
+        calculateAllStubsData();
+        renderPreviewForIndex(currentPreviewStubIndex);
+        // Also update the review container if we are on the last step
+        if (currentStep === 4) {
+            updateReviewStepPreview();
         }
+    }, 250);
+
+    const updateReviewStepPreview = () => {
+        dom.reviewPreviewContainer.innerHTML = ''; // Clear previous
+        const previewClone = dom.paystubPreviewContent.cloneNode(true);
+        dom.reviewPreviewContainer.appendChild(previewClone);
+        // The main preview is already updated by debouncedUpdateAndRender, so this clone is correct
+    };
+
+    // --- PDF Generation --- //
+    const generatePdfBlob = (isWatermarked = true) => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-
-        doc.setFontSize(10);
-        doc.setTextColor(150);
-        doc.text('WATERMARK - SIMULATION ONLY', 105, 140, null, null, 'center');
+        const formatDate = (date) => date.toLocaleDateString('en-US');
+        const formData = Object.fromEntries(new FormData(dom.paystubForm));
 
         allStubsData.forEach((stub, index) => {
             if (index > 0) doc.addPage();
-            doc.setFontSize(18);
-            doc.text(`Earnings Statement - Stub ${index + 1} of ${allStubsData.length}`, 14, 22);
-            
-            const bodyData = [
-                ['Gross Pay', formatCurrency(stub.grossPay)],
-                ['Federal Tax', formatCurrency(stub.federalTax)],
-                ['Social Security', formatCurrency(stub.socialSecurity)],
-                ['Medicare', formatCurrency(stub.medicare)],
-                ['NJ State Tax', formatCurrency(stub.stateTax)],
-                ['NJ SDI/FLI/UI', formatCurrency(add(stub.sdi, stub.fli, stub.ui_hc_wf))],
-                ['Other Deductions', formatCurrency(stub.otherDeductions)],
-                ['', ''],
-                ['Net Pay', formatCurrency(stub.netPay)]
+
+            // Header
+            doc.setFontSize(16).setFont('helvetica', 'bold');
+            doc.text(formData.companyName || 'Company', 14, 22);
+            doc.setFontSize(12).setFont('helvetica', 'normal');
+            doc.text('EARNINGS STATEMENT', 200, 22, { align: 'right' });
+            doc.setFontSize(10);
+            doc.text(formData.companyStreetAddress || '123 Main St', 14, 30);
+            const addressLine2 = `${formData.companyCity || 'City'}, ${formData.companyState || 'ST'} ${formData.companyZip || 'ZIP'}`;
+            doc.text(addressLine2, 14, 36);
+
+            // Employee and Pay Period Info
+            const infoTop = 50;
+            doc.setFont('helvetica', 'bold');
+            doc.text('Employee', 14, infoTop);
+            doc.text('Pay Period', 110, infoTop);
+            doc.setFont('helvetica', 'normal');
+            doc.text(formData.employeeFullName, 14, infoTop + 6);
+            doc.text(formatSsnForPreview(formData.employeeSsn), 14, infoTop + 12);
+
+            doc.text(`Pay Date: ${formatDate(stub.payDate)}`, 110, infoTop + 6);
+            const periodStr = `Period: ${formatDate(stub.payPeriodStartDate)} - ${formatDate(stub.payPeriodEndDate)}`;
+            doc.text(periodStr, 110, infoTop + 12);
+
+
+            // Earnings Table
+            const earningsBody = [
+                ['Regular Salary', '--', '--', formatCurrency(stub.grossPay), formatCurrency(add(stub.ytd.gross, stub.grossPay))]
             ];
+            doc.autoTable({
+                startY: infoTop + 25,
+                head: [['Description', 'Rate', 'Hours', 'Current Period', 'Year-to-Date']],
+                body: earningsBody,
+                theme: 'striped',
+                headStyles: { fillColor: [41, 128, 186] }
+            });
+
+            // Deductions Table
+            const deductions = [
+                ['Federal Tax', formatCurrency(stub.federalTax), formatCurrency(add(stub.ytd.federal, stubData.federalTax))],
+                ['Social Security', formatCurrency(stub.socialSecurity), formatCurrency(add(stub.ytd.ss, stub.socialSecurity))],
+                ['Medicare', formatCurrency(stub.medicare), formatCurrency(add(stub.ytd.medicare, stub.medicare))],
+                ['Health Insurance', formatCurrency(stub.healthInsurance), formatCurrency(add(stub.ytd.health, stub.healthInsurance))],
+                ['Retirement/401k', formatCurrency(stub.retirement401k), formatCurrency(add(stub.ytd.retirement, stub.retirement401k))],
+            ];
+            if (formData.employeeState === 'New Jersey') {
+                 deductions.push(['NJ State Tax', formatCurrency(stub.stateTax), formatCurrency(add(stub.ytd.state, stub.stateTax))]);
+            }
 
             doc.autoTable({
-                startY: 30,
-                head: [['Description', 'Amount']],
-                body: bodyData,
+                startY: doc.lastAutoTable.finalY + 5,
+                head: [['Deduction', 'Current Period', 'Year-to-Date']],
+                body: deductions,
                 theme: 'striped',
-                styles: { fontSize: 10 },
+                headStyles: { fillColor: [41, 128, 186] }
+            });
+
+            // Summary Table
+            const totalYtdDeductions = add(stub.ytd.federal, stub.federalTax, stub.ytd.ss, stub.socialSecurity, stub.ytd.medicare, stub.medicare, stub.ytd.state, stub.stateTax, stub.ytd.health, stub.healthInsurance, stub.ytd.retirement, stub.retirement401k);
+            const summaryBody = [
+                ['Gross Pay', formatCurrency(stub.grossPay), formatCurrency(add(stub.ytd.gross, stub.grossPay))],
+                ['Deductions', formatCurrency(stub.totalDeductions), formatCurrency(totalYtdDeductions)],
+                ['Net Pay', formatCurrency(stub.netPay), formatCurrency(subtract(add(stub.ytd.gross, stub.grossPay), totalYtdDeductions))]
+            ];
+
+             doc.autoTable({
+                startY: doc.lastAutoTable.finalY + 5,
+                head: [['Summary', 'Current', 'YTD']],
+                body: summaryBody,
+                theme: 'grid',
                 headStyles: { fillColor: [41, 128, 186] },
-                didDrawCell: (data) => {
-                    if (data.section === 'body' && data.row.index === bodyData.length - 1) {
-                        doc.setFont(undefined, 'bold');
+                didParseCell: function (data) {
+                    if (data.row.index >= 0 && data.section === 'body') {
+                         data.cell.styles.fontStyle = 'bold';
                     }
                 }
             });
+
+
+            if (isWatermarked) {
+                doc.setFontSize(80);
+                doc.setTextColor(220, 220, 220);
+                doc.text('BUELLDOCS', 105, 160, { align: 'center', angle: -45 });
+                doc.setTextColor(0, 0, 0);
+            }
         });
 
-        if (dom.pdfPreviewFrame && dom.pdfPreviewModal) {
-            dom.pdfPreviewFrame.src = doc.output('datauristring');
-            dom.pdfPreviewModal.style.display = 'flex';
-            activeModal = dom.pdfPreviewModal;
-        }
-    }
+        return doc.output('blob');
+    };
 
+
+    // --- Event Listeners & Initialization --- //
     const initializeEventListeners = () => {
-        dom.populateDetailsBtn.addEventListener('click', debouncedUpdateLivePreview);
-        dom.reviewAndGenerateBtn.addEventListener('click', handleFinalSubmit);
-        dom.editInfoBtn.addEventListener('click', handleEditInfo);
-        dom.proceedToPaymentBtn.addEventListener('click', handleProceedToPayment);
-        dom.resetAllFieldsBtn.addEventListener('click', () => { if (confirm("Reset all fields?")) { dom.paystubForm.reset(); debouncedUpdateLivePreview(); } });
-        dom.previewPdfWatermarkedBtn.addEventListener('click', generatePdfPreview);
-        
+        // Form-wide live updates
         dom.allFormInputs.forEach(input => {
-            input.addEventListener('input', debouncedUpdateLivePreview);
-            input.addEventListener('blur', () => validateField(input));
-            
-            if (input.classList.contains('currency-input')) {
-                input.addEventListener('blur', (e) => e.target.value = formatCurrency(e.target.value));
+            input.addEventListener('input', debouncedUpdateAndRender);
+            if (!input.classList.contains('currency-input')) {
+                input.addEventListener('blur', () => validateField(input));
+            }
+        });
+
+        // Input formatting
+        dom.currencyInputs.forEach(input => {
+            input.addEventListener('blur', (e) => {
+                if (e.target.value) {
+                    e.target.value = formatCurrency(e.target.value);
+                }
+                validateField(e.target);
+            });
+        });
+        dom.companyPhone.addEventListener('input', (e) => e.target.value = formatPhoneNumber(e.target.value));
+        [dom.companyZip, dom.employeeZip].forEach(el => el && el.addEventListener('input', (e) => e.target.value = formatZip(e.target.value)));
+        dom.employeeSsn.addEventListener('input', (e) => e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4));
+
+        // Step navigation
+        dom.nextStepBtn.addEventListener('click', () => {
+            if (validateCurrentStep()) {
+                currentStep++;
+                if (currentStep === 4) {
+                    updateReviewStepPreview();
+                }
+                updateStepUI();
+            }
+        });
+        dom.prevStepBtn.addEventListener('click', () => {
+            if (currentStep > 1) {
+                currentStep--;
+                updateStepUI();
             }
         });
         
-        dom.autoCalcFields.forEach(field => {
-            field.addEventListener('input', () => field.dataset.isAuto = 'false');
-        });
-        
-        dom.companyPhone.addEventListener('input', (e) => e.target.value = formatPhoneNumber(e.target.value));
-        [dom.companyZip, dom.employeeZip].forEach(el => el.addEventListener('input', (e) => e.target.value = formatZip(e.target.value)));
-        dom.employeeSsn.addEventListener('input', (e) => e.target.value = e.target.value.replace(/\D/g, ''));
-        dom.employeeSsn.addEventListener('blur', (e) => e.target.value = e.target.value.slice(0, 4));
+        // Preview navigation
+        dom.prevStubBtn.addEventListener('click', () => renderPreviewForIndex(currentPreviewStubIndex - 1));
+        dom.nextStubBtn.addEventListener('click', () => renderPreviewForIndex(currentPreviewStubIndex + 1));
 
+
+        // Dynamic UI changes
         dom.employeeState.addEventListener('change', (e) => {
-            dom.stateWarning.style.display = e.target.value !== 'New Jersey' ? 'block' : 'none';
-            debouncedUpdateLivePreview();
+            const isNj = e.target.value === 'New Jersey';
+            dom.stateWarning.style.display = isNj ? 'none' : 'block';
+            // In a real app with more states, you'd hide/show more fields
+            // For now, this just affects the warning and calculation
+            debouncedUpdateAndRender();
         });
 
-        dom.startYtdFromBatch.addEventListener('change', () => {
-            dom.initialYtdFieldsContainer.style.display = dom.startYtdFromBatch.checked ? 'none' : 'block';
+        dom.includeVoidedCheck.addEventListener('change', (e) => {
+            dom.livePreviewVoidedCheckContainer.style.display = e.target.checked ? 'block' : 'none';
         });
 
-        dom.prevStubBtn.addEventListener('click', () => { if (currentPreviewStubIndex > 0) { currentPreviewStubIndex--; renderPreviewForIndex(currentPreviewStubIndex); }});
-        dom.nextStubBtn.addEventListener('click', () => { if (currentPreviewStubIndex < allStubsData.length - 1) { currentPreviewStubIndex++; renderPreviewForIndex(currentPreviewStubIndex); }});
-        
-        dom.confirmPaymentBtn.addEventListener('click', handlePaymentConfirmationSubmit);
-        [dom.closePaymentModalBtn, dom.closeNotificationModalBtn, dom.closeSuccessMessageBtn, dom.closePdfModalBtn].forEach(btn => {
-            if(btn) btn.addEventListener('click', () => closeModal(btn.closest('.modal')));
+        // Payment Modal Logic
+        const updatePaymentTotal = () => {
+            const numStubs = parseInt(dom.numPaystubs.value, 10);
+            currentBasePrice = PRICING[numStubs] || 0;
+            let total = currentBasePrice;
+            if (dom.requestHardCopy.checked) total += ADDON_PRICES.hardCopy;
+            if (dom.requestExcel.checked) total += ADDON_PRICES.excel;
+            dom.totalPaymentAmount.textContent = formatCurrency(total);
+        };
+        dom.proceedToPaymentBtn.addEventListener('click', () => {
+            updatePaymentTotal();
+            dom.paymentModal.style.display = 'flex';
         });
-        window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && activeModal) closeModal(activeModal); });
+        dom.closePaymentModalBtn.addEventListener('click', () => dom.paymentModal.style.display = 'none');
+        dom.requestHardCopy.addEventListener('change', updatePaymentTotal);
+        dom.requestExcel.addEventListener('change', updatePaymentTotal);
+        dom.numPaystubs.addEventListener('change', updatePaymentTotal);
 
-        [dom.requestHardCopy, dom.requestExcel].forEach(addon => {
-            addon.addEventListener('change', () => {
-                let total = currentBasePrice;
-                if (dom.requestHardCopy.checked) total += HARD_COPY_PRICE;
-                if (dom.requestExcel.checked) total += EXCEL_PRICE;
-                dom.totalPaymentAmount.textContent = formatCurrency(total);
-            });
+        // Reset
+        dom.resetAllFieldsBtn.addEventListener('click', () => {
+            if (confirm("Are you sure you want to reset all fields?")) {
+                dom.paystubForm.reset();
+                // Manually trigger change events for proper UI updates
+                dom.employeeState.dispatchEvent(new Event('change'));
+                debouncedUpdateAndRender();
+            }
         });
+
+        // Dummy PDF preview button for sidebar
+        const previewPdfBtn = document.createElement('button');
+        previewPdfBtn.id = 'previewPdfWatermarkedBtn';
+        previewPdfBtn.className = 'btn btn-secondary btn-full-width';
+        previewPdfBtn.textContent = 'Preview PDF';
+        previewPdfBtn.style.marginTop = '15px';
+        dom.resetAllFieldsBtn.parentElement.appendChild(previewPdfBtn);
+        previewPdfBtn.addEventListener('click', () => {
+             const pdfBlob = generatePdfBlob(true);
+             window.open(URL.createObjectURL(pdfBlob));
+        });
+
     };
 
-    /** Application entry point */
     const initializeApp = () => {
+        // Load the tax calculation engine
         paystubEngine.init().then(() => {
             console.log('Paystub Engine Initialized with 2025 Tax Data.');
-            populateStateDropdowns();
-            initializeEventListeners();
-            // Set a default pay date for initial calculation
+
+            // Populate state dropdowns
+            US_STATES.forEach(state => {
+                const option = new Option(state, state);
+                dom.employeeState.add(option);
+            });
+            dom.employeeState.value = 'New Jersey'; // Default
+
+            // Set default dates
             const today = new Date();
+            dom.employmentStartDate.value = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
             dom.payDate.value = today.toISOString().split('T')[0];
-            debouncedUpdateLivePreview();
+
+
+            initializeEventListeners();
+            updateStepUI();
+            debouncedUpdateAndRender(); // Initial calculation and render
         });
     };
 

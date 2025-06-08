@@ -3,171 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NJ Paystub Generator V5.0</title>
-    <!-- Tailwind CSS for styling -->
+    <title>NJ Paystub Generator</title>
+    <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Custom Styles -->
+    <!-- Custom application and print styles -->
     <link rel="stylesheet" href="styles.css">
-    <!-- Print-specific Styles -->
     <link rel="stylesheet" href="print.css" media="print">
+    <!-- Google Fonts for a professional look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* A little extra style for better UI feel */
-        .form-section {
-            @apply bg-white p-6 rounded-lg shadow-md;
+        /* Using Inter as the default font */
+        body {
+            font-family: 'Inter', sans-serif;
         }
-        .form-label {
-            @apply block text-sm font-medium text-gray-700 mb-1;
+        /* Hide number input spinners for a cleaner look */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
-        .form-input {
-            @apply mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm;
-        }
-        .hidden {
-            display: none;
+        input[type=number] {
+            -moz-appearance: textfield;
         }
     </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-50 text-gray-800">
 
-    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
-        <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-800">NJ Paystub Generator</h1>
-            <p class="text-gray-600 mt-2">Enter the details below to generate a professional paystub.</p>
-        </header>
+    <main id="paystub-generator" class="container mx-auto px-4 py-8 md:py-12">
+        <div class="max-w-4xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-lg">
 
-        <form id="paystub-form" class="space-y-8">
-            <!-- Company Information -->
-            <div class="form-section">
-                <h2 class="text-xl font-semibold text-gray-900 border-b pb-2 mb-4">Company Information</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="company-name" class="form-label">Company Name</label>
-                        <input type="text" id="company-name" class="form-input" required>
-                    </div>
-                    <div>
-                        <label for="company-address" class="form-label">Company Address</label>
-                        <input type="text" id="company-address" class="form-input" required>
+            <h1 class="text-3xl font-bold text-center text-gray-900 mb-2">New Jersey Paystub Generator</h1>
+            <p class="text-center text-gray-500 mb-8">Follow the steps below to create a professional paystub.</p>
+
+            <!-- Wizard Step Indicator -->
+            <div id="step-indicator" class="flex justify-between items-center mb-8 border-b border-gray-200 pb-4">
+                 <!-- Indicator will be managed by ui-controller.js -->
+            </div>
+
+            <form id="paystub-form" novalidate>
+                <!-- 
+                  Step 1: Company Information
+                  Collects all necessary details about the employer.
+                -->
+                <div id="step-1" class="wizard-step" data-step="1">
+                    <h2 class="text-2xl font-semibold mb-6 text-gray-800">Company Information</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label for="companyName" class="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+                            <input type="text" id="companyName" name="companyName" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Acme Corp" required>
+                        </div>
+                        <div>
+                            <label for="companyAddress1" class="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+                            <input type="text" id="companyAddress1" name="companyAddress1" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="123 Main St" required>
+                        </div>
+                        <div>
+                            <label for="companyPhone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                            <input type="tel" id="companyPhone" name="companyPhone" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="(555) 123-4567">
+                        </div>
+                        <div>
+                            <label for="companyCity" class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                            <input type="text" id="companyCity" name="companyCity" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Anytown" required>
+                        </div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <label for="companyState" class="block text-sm font-medium text-gray-700 mb-1">State</label>
+                                <input type="text" id="companyState" name="companyState" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value="NJ" required>
+                            </div>
+                             <div>
+                                <label for="companyZip" class="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
+                                <input type="text" id="companyZip" name="companyZip" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="07017" required>
+                            </div>
+                        </div>
+                         <div class="md:col-span-2">
+                            <label for="companyFEIN" class="block text-sm font-medium text-gray-700 mb-1">Federal Employer ID Number (FEIN)</label>
+                            <input type="text" id="companyFEIN" name="companyFEIN" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="XX-XXXXXXX" required>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Employee Information -->
-            <div class="form-section">
-                <h2 class="text-xl font-semibold text-gray-900 border-b pb-2 mb-4">Employee Information</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="employee-name" class="form-label">Employee Name</label>
-                        <input type="text" id="employee-name" class="form-input" required>
-                    </div>
-                    <div>
-                        <label for="employee-address" class="form-label">Employee Address</label>
-                        <input type="text" id="employee-address" class="form-input" required>
-                    </div>
-                     <div>
-                        <label for="employee-id" class="form-label">Employee ID (Optional)</label>
-                        <input type="text" id="employee-id" class="form-input">
+                <!-- 
+                  Step 2: Employee Information
+                  Collects all necessary details about the employee.
+                -->
+                <div id="step-2" class="wizard-step hidden" data-step="2">
+                    <h2 class="text-2xl font-semibold mb-6 text-gray-800">Employee Information</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label for="employeeName" class="block text-sm font-medium text-gray-700 mb-1">Employee Name</label>
+                            <input type="text" id="employeeName" name="employeeName" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Jane Doe" required>
+                        </div>
+                        <div>
+                            <label for="employeeAddress1" class="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+                            <input type="text" id="employeeAddress1" name="employeeAddress1" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="456 Oak Ave" required>
+                        </div>
+                        <div>
+                            <label for="employeeId" class="block text-sm font-medium text-gray-700 mb-1">Employee ID</label>
+                            <input type="text" id="employeeId" name="employeeId" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="EMP-1001">
+                        </div>
+                        <div>
+                           <label for="employeeCity" class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                           <input type="text" id="employeeCity" name="employeeCity" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Hometown" required>
+                       </div>
+                       <div class="grid grid-cols-2 gap-6">
+                           <div>
+                               <label for="employeeState" class="block text-sm font-medium text-gray-700 mb-1">State</label>
+                               <input type="text" id="employeeState" name="employeeState" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value="NJ" required>
+                           </div>
+                           <div>
+                               <label for="employeeZip" class="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
+                               <input type="text" id="employeeZip" name="employeeZip" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="07018" required>
+                           </div>
+                       </div>
+                        <div class="md:col-span-2">
+                           <label for="employeeSSN" class="block text-sm font-medium text-gray-700 mb-1">Social Security Number (SSN)</label>
+                           <input type="text" id="employeeSSN" name="employeeSSN" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="XXX-XX-XXXX" required>
+                       </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Pay Details -->
-            <div class="form-section">
-                <h2 class="text-xl font-semibold text-gray-900 border-b pb-2 mb-4">Pay & Withholding Details</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                        <label for="pay-period-start" class="form-label">Pay Period Start</label>
-                        <input type="date" id="pay-period-start" class="form-input" required>
-                    </div>
-                    <div>
-                        <label for="pay-period-end" class="form-label">Pay Period End</label>
-                        <input type="date" id="pay-period-end" class="form-input" required>
-                    </div>
-                    <div>
-                        <label for="pay-date" class="form-label">Pay Date</label>
-                        <input type="date" id="pay-date" class="form-input" required>
-                    </div>
-                    <div>
-                        <label for="pay-rate" class="form-label">Pay Rate ($/hr)</label>
-                        <input type="number" id="pay-rate" class="form-input" step="0.01" min="0" required>
-                    </div>
-                    <div>
-                        <label for="regular-hours" class="form-label">Regular Hours</label>
-                        <input type="number" id="regular-hours" class="form-input" step="0.01" min="0" required>
-                    </div>
-                    <div>
-                        <label for="overtime-hours" class="form-label">Overtime Hours</label>
-                        <input type="number" id="overtime-hours" class="form-input" step="0.01" min="0" value="0">
-                    </div>
-                     <div>
-                        <label for="federal-filing-status" class="form-label">Federal Filing Status</label>
-                        <select id="federal-filing-status" class="form-input">
-                            <option value="single">Single</option>
-                            <option value="married">Married</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="federal-allowances" class="form-label">Federal Allowances</label>
-                        <input type="number" id="federal-allowances" class="form-input" min="0" value="0">
-                    </div>
-                     <div>
-                        <label for="nj-allowances" class="form-label">NJ Allowances</label>
-                        <input type="number" id="nj-allowances" class="form-input" min="0" value="0">
+                <!-- 
+                  Step 3: Pay Details
+                  Collects payment rates, hours, dates, and deduction information.
+                -->
+                <div id="step-3" class="wizard-step hidden" data-step="3">
+                    <h2 class="text-2xl font-semibold mb-6 text-gray-800">Pay Details</h2>
+                    
+                    <!-- Pay Period & Dates -->
+                    <fieldset class="mb-6 border-t pt-4">
+                        <legend class="text-lg font-medium text-gray-900 mb-4">Pay Period & Dates</legend>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label for="payPeriodStart" class="block text-sm font-medium text-gray-700 mb-1">Pay Period Start</label>
+                                <input type="date" id="payPeriodStart" name="payPeriodStart" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            </div>
+                            <div>
+                                <label for="payPeriodEnd" class="block text-sm font-medium text-gray-700 mb-1">Pay Period End</label>
+                                <input type="date" id="payPeriodEnd" name="payPeriodEnd" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            </div>
+                            <div>
+                                <label for="payDate" class="block text-sm font-medium text-gray-700 mb-1">Pay Date</label>
+                                <input type="date" id="payDate" name="payDate" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Earnings -->
+                    <fieldset class="mb-6 border-t pt-4">
+                        <legend class="text-lg font-medium text-gray-900 mb-4">Earnings</legend>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div>
+                                <label for="regularRate" class="block text-sm font-medium text-gray-700 mb-1">Regular Rate ($/hr)</label>
+                                <input type="number" id="regularRate" name="regularRate" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="20.00" step="0.01" required>
+                            </div>
+                             <div>
+                                <label for="regularHours" class="block text-sm font-medium text-gray-700 mb-1">Regular Hours</label>
+                                <input type="number" id="regularHours" name="regularHours" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="80" step="0.01" required>
+                            </div>
+                            <div>
+                                <label for="overtimeRate" class="block text-sm font-medium text-gray-700 mb-1">Overtime Rate ($/hr)</label>
+                                <input type="number" id="overtimeRate" name="overtimeRate" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="30.00" step="0.01">
+                            </div>
+                             <div>
+                                <label for="overtimeHours" class="block text-sm font-medium text-gray-700 mb-1">Overtime Hours</label>
+                                <input type="number" id="overtimeHours" name="overtimeHours" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="10" step="0.01">
+                            </div>
+                            <div class="md:col-span-2 lg:col-span-4">
+                                <label for="bonus" class="block text-sm font-medium text-gray-700 mb-1">Bonus / Other Pay</label>
+                                <input type="number" id="bonus" name="bonus" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="250.00" step="0.01">
+                            </div>
+                        </div>
+                    </fieldset>
+                    
+                     <!-- YTD Figures (Optional) -->
+                    <fieldset class="border-t pt-4">
+                        <legend class="text-lg font-medium text-gray-900 mb-4">Year-to-Date Totals (Optional)</legend>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div>
+                                <label for="ytdGross" class="block text-sm font-medium text-gray-700 mb-1">YTD Gross</label>
+                                <input type="number" id="ytdGross" name="ytdGross" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="0.00" step="0.01">
+                            </div>
+                            <div>
+                                <label for="ytdFederalTax" class="block text-sm font-medium text-gray-700 mb-1">YTD Federal Tax</label>
+                                <input type="number" id="ytdFederalTax" name="ytdFederalTax" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="0.00" step="0.01">
+                            </div>
+                            <div>
+                                <label for="ytdStateTax" class="block text-sm font-medium text-gray-700 mb-1">YTD State Tax</label>
+                                <input type="number" id="ytdStateTax" name="ytdStateTax" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="0.00" step="0.01">
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <!-- 
+                  Step 4: Review & Finalize
+                  Displays the paystub preview and the finalization button.
+                -->
+                <div id="step-4" class="wizard-step hidden" data-step="4">
+                    <h2 class="text-2xl font-semibold mb-6 text-gray-800">Review & Finalize</h2>
+                    <p class="text-gray-600 mb-6">Please review the paystub preview below. If everything is correct, you can create the final PDF.</p>
+                    
+                    <!-- Container for the dynamically generated paystub preview -->
+                    <div id="paystub-preview-container" class="border-2 border-dashed border-gray-300 rounded-lg p-6 min-h-[400px]">
+                        <!-- The paystub preview from paystubEngine.js will be injected here -->
                     </div>
                 </div>
-            </div>
-            
-            <!-- Deductions and YTD -->
-            <div class="form-section">
-                 <h2 class="text-xl font-semibold text-gray-900 border-b pb-2 mb-4">Deductions & Year-to-Date</h2>
-                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="deduction-name-1" class="form-label">Other Deduction Name (e.g., 401k)</label>
-                        <input type="text" id="deduction-name-1" class="form-input" placeholder="e.g., 401k">
-                    </div>
-                    <div>
-                        <label for="deduction-amount-1" class="form-label">Other Deduction Amount</label>
-                        <input type="number" id="deduction-amount-1" class="form-input" step="0.01" min="0" value="0">
-                    </div>
-                    <div>
-                        <label for="ytd-gross" class="form-label">YTD Gross Earnings</label>
-                        <input type="number" id="ytd-gross" class="form-input" step="0.01" min="0" required>
-                    </div>
-                    <div>
-                        <label for="ytd-federal-tax" class="form-label">YTD Federal Tax</label>
-                        <input type="number" id="ytd-federal-tax" class="form-input" step="0.01" min="0" required>
-                    </div>
-                 </div>
-            </div>
 
-            <div class="flex justify-center pt-4">
-                <button type="submit" id="generate-button" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
-                    Generate Paystub
-                </button>
-            </div>
-        </form>
-
-        <!-- Paystub Preview Area -->
-        <div id="paystub-preview-container" class="mt-12">
-            <!-- The generated paystub will be inserted here by JavaScript -->
+                <!-- Navigation Buttons -->
+                <div class="mt-10 pt-6 border-t border-gray-200 flex justify-between items-center">
+                    <button type="button" id="prev-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg transition-colors duration-200 hidden">
+                        Back
+                    </button>
+                    <!-- This empty div helps keep the "Next" button on the right -->
+                    <div class="flex-grow"></div>
+                    <button type="button" id="next-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200">
+                        Next
+                    </button>
+                    <button type="button" id="finalize-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200 hidden">
+                        Finalize & Create PDF
+                    </button>
+                </div>
+            </form>
         </div>
+    </main>
 
-        <!-- Download Button -->
-        <div class="text-center mt-8">
-            <button id="download-pdf-button" class="hidden bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
-                Download as PDF
-            </button>
-        </div>
-
-    </div>
-
-    <!-- JavaScript libraries and modules -->
-    <!-- html2pdf.js for PDF generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
-    <!-- Application Modules - using type="module" to allow import/export -->
-    <script type="module" src="js/precisionMath.js" defer></script>
-    <script type="module" src="js/data-service.js" defer></script>
-    <script type="module" src="js/paystub-calculator.js" defer></script>
-    <script type="module" src="main.js" defer></script>
+    <!-- 
+      JavaScript Modules
+      Defer ensures scripts execute after the HTML is parsed.
+      The order is important: dependencies first, main controller last.
+    -->
+    <script src="js/precisionMath.js" defer></script>
+    <script src="js/paystubEngine.js" defer></script>
+    <script src="js/pdf-generator.js" defer></script>
+    <script src="js/ui-controller.js" defer></script>
 
 </body>
 </html>

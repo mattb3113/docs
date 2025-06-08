@@ -1,0 +1,29 @@
+/* print.css - Print styles for BuellDocs Paystub Generator */
+@media print {
+    /* Hide everything by default */
+    body * {
+        visibility: hidden;
+    }
+
+    /* Only display the paystub preview */
+    #paystub-preview,
+    #paystub-preview * {
+        visibility: visible;
+    }
+
+    #paystub-preview {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+    }
+
+    /* Remove any overlay or watermark */
+    #void-pantograph {
+        display: none !important;
+    }
+}

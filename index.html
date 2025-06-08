@@ -3,206 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Jersey Paystub Generator</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Custom Stylesheet -->
+    <title>Free Paystub Generator</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="print.css" media="print">
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* Custom base styles */
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body>
+    <header>
+        <nav>
+            <div class="logo">Buell Docs</div>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about_buelldocs.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
 
-    <div class="container mx-auto p-4 lg:p-8">
-        <header class="text-center mb-10">
-            <h1 class="text-4xl font-bold text-gray-900">New Jersey Paystub Generator</h1>
-            <p class="text-lg text-gray-600 mt-2">Create and download professional paystubs instantly.</p>
-        </header>
+    <main>
+        <section class="form-section">
+            <h1>Create Your Paystub</h1>
+            <form id="paystub-form">
+                <!-- Company Information -->
+                <fieldset>
+                    <legend>Company Information</legend>
+                    <label for="company-name">Company Name:</label>
+                    <input type="text" id="company-name" name="company-name" required>
+                    <label for="company-address">Company Address:</label>
+                    <input type="text" id="company-address" name="company-address" required>
+                </fieldset>
 
-        <main class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <!-- Input Form Section -->
-            <div class="bg-white p-8 rounded-xl shadow-md">
-                <form id="paystub-form" class="space-y-8">
-                    
-                    <!-- Company Information -->
-                    <fieldset>
-                        <legend class="text-2xl font-semibold text-gray-700 border-b pb-2 mb-4">Company Info</legend>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="md:col-span-2">
-                                <label for="companyName" class="block text-sm font-medium text-gray-600">Company Name</label>
-                                <input type="text" id="companyName" name="companyName" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Your Company LLC">
-                            </div>
-                            <div>
-                                <label for="companyAddress1" class="block text-sm font-medium text-gray-600">Address Line 1</label>
-                                <input type="text" id="companyAddress1" name="companyAddress1" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="123 Main St">
-                            </div>
-                            <div>
-                                <label for="companyAddress2" class="block text-sm font-medium text-gray-600">Address Line 2</label>
-                                <input type="text" id="companyAddress2" name="companyAddress2" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Suite 100">
-                            </div>
-                            <div>
-                                <label for="companyCity" class="block text-sm font-medium text-gray-600">City</label>
-                                <input type="text" id="companyCity" name="companyCity" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Newark">
-                            </div>
-                             <div>
-                                <label for="companyZip" class="block text-sm font-medium text-gray-600">Zip Code</label>
-                                <input type="text" id="companyZip" name="companyZip" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="07101">
-                            </div>
+                <!-- Employee Information -->
+                <fieldset>
+                    <legend>Employee Information</legend>
+                    <label for="employee-name">Employee Name:</label>
+                    <input type="text" id="employee-name" name="employee-name" required>
+                    <label for="employee-address">Employee Address:</label>
+                    <input type="text" id="employee-address" name="employee-address" required>
+                    <label for="employee-id">Employee ID:</label>
+                    <input type="text" id="employee-id" name="employee-id">
+                </fieldset>
+
+                <!-- Pay Information -->
+                <fieldset>
+                    <legend>Pay Information</legend>
+                    <label for="pay-period-start">Pay Period Start:</label>
+                    <input type="date" id="pay-period-start" name="pay-period-start" required>
+                    <label for="pay-period-end">Pay Period End:</label>
+                    <input type="date" id="pay-period-end" name="pay-period-end" required>
+                    <label for="pay-date">Pay Date:</label>
+                    <input type="date" id="pay-date" name="pay-date" required>
+                    <label for="pay-rate">Pay Rate ($/hr):</label>
+                    <input type="number" id="pay-rate" name="pay-rate" step="0.01" required>
+                    <label for="hours-worked">Hours Worked:</label>
+                    <input type="number" id="hours-worked" name="hours-worked" step="0.01" required>
+                </fieldset>
+
+                 <!-- Filing Status -->
+                <fieldset>
+                    <legend>Tax Filing Status</legend>
+                    <label for="filing-status">Filing Status:</label>
+                    <select id="filing-status" name="filing-status">
+                        <option value="single">Single</option>
+                        <option value="married_filing_jointly">Married Filing Jointly</option>
+                        <option value="married_filing_separately">Married Filing Separately</option>
+                        <option value="head_of_household">Head of Household</option>
+                    </select>
+                </fieldset>
+
+
+                <button type="submit">Generate Paystub</button>
+                <button type="button" id="download-pdf">Download as PDF</button>
+
+            </form>
+        </section>
+
+        <section class="preview-section">
+            <h2>Paystub Preview</h2>
+            <div id="preview-container">
+                <!-- Paystub preview will be dynamically generated here -->
+                <div class="paystub">
+                    <div class="paystub-header">
+                        <div class="company-details">
+                            <h2 id="preview-company-name">Company Name</h2>
+                            <p id="preview-company-address">123 Company St, Business City, 12345</p>
                         </div>
-                    </fieldset>
-
-                    <!-- Employee Information -->
-                    <fieldset>
-                        <legend class="text-2xl font-semibold text-gray-700 border-b pb-2 mb-4">Employee Info</legend>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="md:col-span-2">
-                                <label for="employeeName" class="block text-sm font-medium text-gray-600">Employee Name</label>
-                                <input type="text" id="employeeName" name="employeeName" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="John Doe">
-                            </div>
-                            <div>
-                                <label for="employeeAddress1" class="block text-sm font-medium text-gray-600">Address Line 1</label>
-                                <input type="text" id="employeeAddress1" name="employeeAddress1" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="456 Market St">
-                            </div>
-                            <div>
-                                <label for="employeeAddress2" class="block text-sm font-medium text-gray-600">Address Line 2</label>
-                                <input type="text" id="employeeAddress2" name="employeeAddress2" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Apt 2B">
-                            </div>
-                            <div>
-                                <label for="employeeCity" class="block text-sm font-medium text-gray-600">City</label>
-                                <input type="text" id="employeeCity" name="employeeCity" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Jersey City">
-                            </div>
-                             <div>
-                                <label for="employeeZip" class="block text-sm font-medium text-gray-600">Zip Code</label>
-                                <input type="text" id="employeeZip" name="employeeZip" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="07302">
-                            </div>
-                        </div>
-                    </fieldset>
-
-                     <!-- Pay Details -->
-                    <fieldset>
-                        <legend class="text-2xl font-semibold text-gray-700 border-b pb-2 mb-4">Pay Details</legend>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <div>
-                                <label for="payPeriodStart" class="block text-sm font-medium text-gray-600">Pay Period Start</label>
-                                <input type="date" id="payPeriodStart" name="payPeriodStart" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label for="payPeriodEnd" class="block text-sm font-medium text-gray-600">Pay Period End</label>
-                                <input type="date" id="payPeriodEnd" name="payPeriodEnd" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label for="payDate" class="block text-sm font-medium text-gray-600">Pay Date</label>
-                                <input type="date" id="payDate" name="payDate" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            </div>
-                             <div>
-                                <label for="payRate" class="block text-sm font-medium text-gray-600">Pay Rate ($/hr)</label>
-                                <input type="number" id="payRate" name="payRate" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="25.00" step="0.01">
-                            </div>
-                            <div>
-                                <label for="regularHours" class="block text-sm font-medium text-gray-600">Regular Hours</label>
-                                <input type="number" id="regularHours" name="regularHours" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="80" step="0.01">
-                            </div>
-                            <div>
-                                <label for="overtimeHours" class="block text-sm font-medium text-gray-600">Overtime Hours</label>
-                                <input type="number" id="overtimeHours" name="overtimeHours" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="10" step="0.01">
-                            </div>
-                        </div>
-                    </fieldset>
-
-                    <!-- Filing Status & Deductions -->
-                     <fieldset>
-                        <legend class="text-2xl font-semibold text-gray-700 border-b pb-2 mb-4">Withholding & Deductions</legend>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
-                            <!-- Federal -->
-                            <div class="md:col-span-2 font-medium text-gray-700">Federal Filing</div>
-                            <div>
-                                <label for="federalFilingStatus" class="block text-sm font-medium text-gray-600">Filing Status</label>
-                                <select id="federalFilingStatus" name="federalFilingStatus" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                    <option>Single or Married filing separately</option>
-                                    <option>Married filing jointly</option>
-                                    <option>Head of Household</option>
-                                </select>
-                            </div>
-                             <div>
-                                <label for="federalAllowances" class="block text-sm font-medium text-gray-600">Allowances (W-4)</label>
-                                <input type="number" id="federalAllowances" name="federalAllowances" value="0" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="0">
-                            </div>
-                            <!-- New Jersey -->
-                            <div class="md:col-span-2 pt-4 font-medium text-gray-700">New Jersey State Filing</div>
-                             <div>
-                                <label for="njFilingStatus" class="block text-sm font-medium text-gray-600">Filing Status</label>
-                                 <select id="njFilingStatus" name="njFilingStatus" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                    <option value="A">Rate A - Single</option>
-                                    <option value="B">Rate B - Married/CU Partner Joint</option>
-                                    <option value="C">Rate C - Married/CU Partner Separate</option>
-                                    <option value="D">Rate D - Head of Household</option>
-                                    <option value="E">Rate E - Surviving Spouse/CU Partner</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="njAllowances" class="block text-sm font-medium text-gray-600">Allowances (NJ-W4)</label>
-                                <input type="number" id="njAllowances" name="njAllowances" value="0" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="0">
-                            </div>
-
-                             <!-- Other Deductions -->
-                            <div class="md:col-span-2 pt-4 font-medium text-gray-700">Other Deductions</div>
-                            <div>
-                                <label for="deduction401k" class="block text-sm font-medium text-gray-600">401(k) ($)</label>
-                                <input type="number" id="deduction401k" name="deduction401k" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="0.00" step="0.01">
-                            </div>
-                            <div>
-                                <label for="healthInsurance" class="block text-sm font-medium text-gray-600">Health Insurance ($)</label>
-                                <input type="number" id="healthInsurance" name="healthInsurance" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="0.00" step="0.01">
-                            </div>
-                        </div>
-                    </fieldset>
-
-                    <div class="flex justify-end pt-4">
-                        <button type="submit" class="w-full lg:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform transform hover:scale-105">
-                            Generate Paystub
-                        </button>
+                        <h1>Paystub</h1>
                     </div>
-                </form>
-            </div>
-
-            <!-- Paystub Preview Section -->
-            <div class="bg-white p-8 rounded-xl shadow-md relative">
-                 <div class="flex justify-between items-center mb-6 border-b pb-4">
-                     <h2 class="text-2xl font-semibold text-gray-700">Preview</h2>
-                     <button id="download-pdf-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:bg-gray-400" disabled>
-                        Download PDF
-                    </button>
-                 </div>
-                <div id="paystub-preview-container">
-                    <!-- The generated paystub HTML will be injected here by JavaScript -->
-                    <div class="text-center text-gray-500">
-                        <p>Your paystub preview will appear here once you fill out the form and click "Generate Paystub".</p>
+                    <div class="employee-details">
+                        <p><strong>Employee Name:</strong> <span id="preview-employee-name">John Doe</span></p>
+                        <p><strong>Employee ID:</strong> <span id="preview-employee-id">12345</span></p>
+                        <p><strong>Address:</strong> <span id="preview-employee-address">456 Home Ave, Residence Town, 67890</span></p>
                     </div>
+                    <div class="pay-period-details">
+                        <p><strong>Pay Period:</strong> <span id="preview-pay-period">01/01/2025 - 01/15/2025</span></p>
+                        <p><strong>Pay Date:</strong> <span id="preview-pay-date">01/20/2025</span></p>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Rate</th>
+                                <th>Hours</th>
+                                <th>Current</th>
+                                <th>YTD</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Regular Pay</td>
+                                <td id="preview-pay-rate">$25.00</td>
+                                <td id="preview-hours-worked">80</td>
+                                <td id="preview-gross-pay">$2,000.00</td>
+                                <td id="preview-ytd-gross-pay">$2,000.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Taxes</th>
+                                <th>Current</th>
+                                <th>YTD</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Federal Income Tax</td>
+                                <td id="preview-federal-tax">$150.00</td>
+                                <td id="preview-ytd-federal-tax">$150.00</td>
+                            </tr>
+                            <tr>
+                                <td>Social Security Tax</td>
+                                <td id="preview-ss-tax">$124.00</td>
+                                <td id="preview-ytd-ss-tax">$124.00</td>
+                            </tr>
+                            <tr>
+                                <td>Medicare Tax</td>
+                                <td id="preview-medicare-tax">$29.00</td>
+                                <td id="preview-ytd-medicare-tax">$29.00</td>
+                            </tr>
+                             <tr>
+                                <td>State Tax</td>
+                                <td id="preview-state-tax">$50.00</td>
+                                <td id="preview-ytd-state-tax">$50.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                     <table>
+                        <thead>
+                            <tr>
+                                <th>Summary</th>
+                                <th>Current</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Gross Pay</td>
+                                <td id="summary-gross-pay">$2,000.00</td>
+                            </tr>
+                            <tr>
+                                <td>Taxes</td>
+                                <td id="summary-total-taxes">$353.00</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Net Pay</strong></td>
+                                <td id="summary-net-pay"><strong>$1,647.00</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </main>
-    </div>
+        </section>
+    </main>
 
-    <!-- html2pdf.js CDN -->
+    <footer>
+        <p>&copy; 2025 Buell Docs. All rights reserved.</p>
+        <p><a href="privacy_policy.html">Privacy Policy</a></p>
+    </footer>
+
+    <!-- Third-party libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <!-- Application Scripts -->
-    <script src="js/data-service.js" defer></script>
-    <script src="js/precisionMath.js" defer></script>
-    <script src="js/paystub-calculator.js" defer></script>
-    <script src="js/form-manager.js" defer></script>
-    <script src="js/preview-updater.js" defer></script>
-    <script src="js/pdf-generator.js" defer></script>
-    <script src="js/ui-controller.js" defer></script>
-    <script src="main.js" defer></script>
+    <!-- Application Modules -->
+    <script src="js/precisionMath.js"></script>
+    <script src="js/tax-tables.js"></script>
+    <script src="js/data-service.js"></script>
+    <script src="js/paystub-calculator.js"></script>
+    <script src="js/paystubEngine.js"></script>
+    <script src="js/form-manager.js"></script>
+    <script src="js/preview-updater.js"></script>
+    <script src="js/ui-controller.js"></script>
+    <script src="js/pdf-generator.js"></script>
+    
+    <!-- Main Application Controller -->
+    <script src="js/main.js"></script>
 </body>
 </html>

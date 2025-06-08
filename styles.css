@@ -1,539 +1,214 @@
 /*
- * ==========================================================================
- * BUELLDOCS PAYSTUB GENERATOR - STYLESHEET V2.1 (Refactored)
- * Author: Gemini
- * Date: 2025-06-08
- * Description: A complete visual overhaul for a professional, modern, and
- * responsive user experience. Establishes a consistent design
- * system with a dark/light theme foundation.
- *
- * Changelog v2.1:
- * - Added a light theme via @media (prefers-color-scheme: light).
- * - Centralized responsive breakpoints into CSS variables.
- * ==========================================================================
- */
+  styles.css
+  Main stylesheet for the Paystub Generator application.
+  This file contains the styles for the main form and user interface.
+  It uses a modern design approach, ensuring the application is clean,
+  responsive, and professional.
+*/
 
-/* ==========================================================================
-   1. VARIABLES & THEME SETUP
-   ========================================================================== */
-:root {
-    /* Font Families */
-    --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    --font-monospace: 'Roboto Mono', monospace;
-    --font-logo: 'Inter', sans-serif;
-
-    /* Core Colors (Dark Theme Default) */
-    --bg-primary: #0d1117; /* GitHub Dark BG */
-    --bg-secondary: #161b22; /* GitHub Dark Secondary BG */
-    --bg-tertiary: #21262d; /* Card Background */
-    --border-color: #30363d;
-    --border-color-light: #8b949e;
-    --text-primary: #c9d1d9;
-    --text-secondary: #8b949e;
-    --text-tertiary: #586069;
-    --text-link: #58a6ff;
-    --text-white: #ffffff;
-    --accent-gold: #e3b341;
-    --accent-blue: #388bfd;
-    --success-color: #2ea043;
-    --danger-color: #f85149;
-    --shadow-color: rgba(0, 0, 0, 0.4);
-
-    /* UI Element Dimensions & Breakpoints */
-    --header-height: 65px;
-    --border-radius-sm: 4px;
-    --border-radius-md: 8px;
-    --border-radius-lg: 12px;
-    --letter-spacing-header: 1.5px;
-    --breakpoint-lg: 1200px;
-    --breakpoint-md: 992px;
-    --breakpoint-sm: 768px;
-}
-
-/* ==========================================================================
-   1.5 LIGHT THEME (via prefers-color-scheme)
-   ========================================================================== */
-@media (prefers-color-scheme: light) {
-    :root {
-        --bg-primary: #ffffff;
-        --bg-secondary: #f6f8fa;
-        --bg-tertiary: #ffffff;
-        --border-color: #d0d7de;
-        --border-color-light: #8b949e;
-        --text-primary: #1f2328;
-        --text-secondary: #57606a;
-        --text-tertiary: #6e7781;
-        --text-link: #0969da;
-        --accent-gold: #b08821; /* Darkened for better contrast on light BG */
-        --accent-blue: #0969da;
-        --success-color: #1a7431;
-        --danger-color: #cf222e;
-        --shadow-color: rgba(140, 149, 159, 0.3); /* Softer shadow for light theme */
-    }
-
-    .backdrop-glow {
-        background: radial-gradient(circle, rgba(9, 105, 218, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
-    }
-
-    /* Keep the terminal card dark for aesthetic contrast */
-    .terminal-card {
-        background-color: #1f2328;
-        color: #c9d1d9;
-    }
-}
-
-
-/* ==========================================================================
-   2. GLOBAL RESETS & BASE STYLES
-   ========================================================================== */
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
+/* -- Font and Body Styles -- */
 body {
-    font-family: var(--font-primary);
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-    font-size: 16px;
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: 'Inter', sans-serif;
+  background-color: #f8fafc; /* gray-50 */
+  color: #1f2937; /* gray-800 */
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
-.noise-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4XiDAAAAUVBMVEWFhYWDg4N3d3dtbW17e3t1dXWBgYGHh4d5eXlzc3OLi4ubm5uVlZWPj4+NjY19fX2JiYl/f39sbGxVVVVTU1NnZ2c8PDw3NzcrKysrKytFRUVCIiJCVDAfAAAAXXRSTlMAwCSdpZROluI3MM622LTMxMy8r7m9t7m5urKzsq+wsLCxsK+praqrq6mqoqGin5+dnZ2enJycmZmZlpaWl5aWlpaVlZSUlJWVlJWVlJWUlJSUlJWVlJWUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlP33aKAAAAOBSURBVEiT7ZY5doMwDAQFGsxbb7C2/v9PNEk5VuQ5b5IE8kksWgQINgS334xVbifVcz3bMrlRtr51Ot1sNjv9gc8v59N53u83Yv8Cng13YFrCBBw4A8GexDk2HOKBf8i3GMYxg0iJMTGMJRk1ZhiGk+ZJGIkRSZqFk5lpKZmZmaVYTkapmZmZmaVZTGANkhmaVmaQhZGpmYmhWVBmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmb+A/wH3iJg4AYGPQAAAABJRU5ErkJggg==');
-    opacity: 0.04;
-    pointer-events: none;
-    z-index: 1000;
+/* -- Main Container -- */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  width: 100%;
 }
 
-.backdrop-glow {
-    position: fixed;
-    width: 600px;
-    height: 600px;
-    top: -200px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: radial-gradient(circle, rgba(56, 139, 253, 0.15) 0%, rgba(13, 17, 23, 0) 70%);
-    pointer-events: none;
-    z-index: -1;
-    transition: background 0.3s ease;
+/* -- Header -- */
+header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb; /* gray-200 */
+  padding: 1rem 0;
+  margin-bottom: 2rem;
 }
 
-/* ==========================================================================
-   3. HEADER & NAVIGATION
-   ========================================================================== */
-.app-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: var(--header-height);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 30px;
-    background-color: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-color);
-    z-index: 100;
-    transition: background-color 0.3s ease, border-bottom-color 0.3s ease;
+header h1 {
+  font-size: 1.875rem; /* 30px */
+  font-weight: 700;
+  text-align: center;
+  color: #111827; /* gray-900 */
 }
 
-.logo-container {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
+/* -- Main Application Layout -- */
+main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
 }
 
-.logo-text {
-    font-family: var(--font-logo);
-    font-size: 24px;
-    font-weight: 700;
-    letter-spacing: var(--letter-spacing-header);
-    color: var(--accent-gold);
+#app-form {
+  flex: 1 1 500px; /* Flex-grow, flex-shrink, basis */
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
 }
 
-.header-tagline {
-    font-size: 14px;
-    color: var(--text-secondary);
+#preview-container {
+  flex: 1 1 600px; /* Flex-grow, flex-shrink, basis */
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  position: sticky;
+  top: 2rem;
 }
 
-.header-nav {
-    display: flex;
-    gap: 30px;
+/* -- Section and Form Element Styling -- */
+.form-section {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #e5e7eb; /* gray-200 */
+  padding-bottom: 2rem;
 }
 
-.nav-link {
-    font-size: 16px;
-    color: var(--text-secondary);
-    text-decoration: none;
-    position: relative;
-    transition: color 0.2s ease-in-out;
+.form-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
-.nav-link:hover, .nav-link.active {
-    color: var(--text-primary);
+.form-section h2 {
+  font-size: 1.25rem; /* 20px */
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #111827; /* gray-900 */
 }
 
-.nav-link.active::after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background-color: var(--accent-gold);
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
 }
 
-/* ==========================================================================
-   4. MAIN LAYOUT & WRAPPERS
-   ========================================================================== */
-.main-wrapper {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 450px;
-    gap: 30px;
-    width: 100%;
-    max-width: 1400px;
-    padding: calc(var(--header-height) + 30px) 30px 30px;
-    margin: 0 auto;
+.form-field {
+  display: flex;
+  flex-direction: column;
 }
 
-.main-content {
-    min-width: 0;
+.form-field label {
+  font-size: 0.875rem; /* 14px */
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #374151; /* gray-700 */
 }
 
-.preview-section-card {
-    position: sticky;
-    top: calc(var(--header-height) + 30px);
-    height: calc(100vh - var(--header-height) - 60px);
-    overflow-y: auto;
-    background-color: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-lg);
-    padding: 20px;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
+.form-field input,
+.form-field select {
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db; /* gray-300 */
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  color: #1f2937; /* gray-800 */
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-/* ==========================================================================
-   5. FORM & UI ELEMENTS
-   ========================================================================== */
-.form-section-card {
-    background-color: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-lg);
-    padding: 30px;
-    margin-bottom: 30px;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
+.form-field input:focus,
+.form-field select:focus {
+  outline: none;
+  border-color: #3b82f6; /* blue-500 */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
 }
 
-.form-section-card h3 {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 22px;
-    margin-bottom: 25px;
-    color: var(--accent-gold);
-}
-
-.step-number {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    background-color: var(--accent-gold);
-    color: var(--bg-primary);
-    border-radius: 50%;
-    font-size: 16px;
-    font-weight: bold;
-}
-
-.form-step {
-    display: none;
-}
-
-.form-step.active {
-    display: block;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: var(--text-secondary);
-}
-
-input[type="text"],
-input[type="number"],
-input[type="date"],
-input[type="tel"],
-input[type="email"],
-select,
-textarea {
-    width: 100%;
-    background-color: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    padding: 12px;
-    border-radius: var(--border-radius-md);
-    font-size: 16px;
-    font-family: var(--font-primary);
-    transition: all 0.2s ease-in-out;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-    outline: none;
-    border-color: var(--accent-blue);
-    box-shadow: 0 0 0 3px rgba(56, 139, 253, 0.3);
-}
-
-input.invalid {
-    border-color: var(--danger-color);
-}
-
-.grid-col-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-.grid-col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-
-hr {
-    border: 0;
-    height: 1px;
-    background-color: var(--border-color);
-    margin: 30px 0;
-}
-
-.btn {
-    display: inline-block;
-    padding: 12px 24px;
-    font-size: 16px;
+/* -- Dynamic Section Styling -- */
+.dynamic-section h3 {
+    font-size: 1.125rem; /* 18px */
     font-weight: 600;
-    text-align: center;
-    text-decoration: none;
-    border: none;
-    border-radius: var(--border-radius-md);
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    margin-bottom: 1rem;
+}
+
+.item {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.item input {
+    flex-grow: 1;
+}
+
+/* -- Button Styling -- */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-align: center;
 }
 
 .btn-primary {
-    background-color: var(--accent-blue);
-    color: var(--text-white);
+  background-color: #3b82f6; /* blue-500 */
+  color: #ffffff;
 }
+
 .btn-primary:hover {
-    background-color: #58a6ff;
+  background-color: #2563eb; /* blue-600 */
 }
 
 .btn-secondary {
-    background-color: var(--bg-tertiary);
-    color: var(--text-link);
-    border: 1px solid var(--border-color);
+  background-color: #6b7280; /* gray-500 */
+  color: #ffffff;
 }
+
 .btn-secondary:hover {
-    border-color: var(--text-link);
+  background-color: #4b5563; /* gray-600 */
 }
 
-.step-navigation-buttons {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 30px;
+.btn-danger {
+  background-color: #ef4444; /* red-500 */
+  color: white;
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1;
 }
 
-.step-navigation-buttons #proceedToPaymentBtn {
-    display: none; /* Hidden by default */
+.btn-danger:hover {
+  background-color: #dc2626; /* red-600 */
 }
 
-.error-message {
-    color: var(--danger-color);
-    font-size: 14px;
-    margin-top: 5px;
-    display: block;
-    min-height: 1em;
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-start;
+  gap: 1rem;
+  margin-top: 2rem;
 }
 
-.info-text {
-    font-size: 14px;
-    color: var(--text-secondary);
+/* -- Paystub Preview -- */
+#paystub-preview {
+  border: 1px solid #e5e7eb; /* gray-200 */
+  border-radius: 0.5rem;
+  min-height: 500px;
+  overflow: auto;
+  padding: 2rem;
 }
 
-/* ==========================================================================
-   6. PAYSTUB PREVIEW
-   ========================================================================== */
-.preview-section-card h3 {
-    font-size: 18px;
-    margin-bottom: 15px;
-    color: var(--text-primary);
-}
 
-.preview-watermark {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-30deg);
-    font-size: 60px;
-    font-weight: 900;
-    color: var(--text-primary);
-    opacity: 0.05;
-    pointer-events: none;
-}
+/* -- Responsive Design -- */
+@media (max-width: 768px) {
+  main {
+    flex-direction: column;
+  }
 
-.paystub-live-preview {
-    background-color: #fff;
-    color: #000;
-    font-family: var(--font-monospace);
-    padding: 20px;
-    border-radius: var(--border-radius-sm);
-    font-size: 12px;
-}
-
-.paystub-header-preview {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    border-bottom: 2px solid #000;
-    padding-bottom: 10px;
-    margin-bottom: 10px;
-}
-.company-info-left { font-weight: bold; }
-.paystub-title-preview h2 { font-size: 14px; margin-bottom: 4px; font-weight: bold;}
-
-.employee-pay-period-preview {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
-}
-
-.employee-pay-period-preview h4 { font-weight: bold; margin-bottom: 5px; font-size: 12px; }
-
-.earnings-table-preview, .deductions-table-preview {
+  #app-form, #preview-container {
     width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 15px;
-}
+  }
 
-.earnings-table-preview th, .deductions-table-preview th {
-    text-align: left;
-    border-bottom: 1px solid #000;
-    padding: 5px 2px;
-    font-weight: bold;
-}
-.earnings-table-preview td, .deductions-table-preview td {
-    padding: 4px 2px;
-}
-.earnings-table-preview th:not(:first-child),
-.earnings-table-preview td:not(:first-child) { text-align: right; }
-
-.deductions-table-preview th:not(:first-child),
-.deductions-table-preview td:not(:first-child) { text-align: right; }
-
-.summary-preview {
-    margin-top: 20px;
-    padding-top: 10px;
-    border-top: 1px solid #999;
-}
-.summary-grid {
-    display: grid;
-    grid-template-columns: 1fr auto auto;
-    gap: 5px 15px;
-    width: 70%;
-    margin-left: auto;
-}
-.summary-grid span { text-align: right; }
-.summary-grid strong { grid-column: 1 / 2; text-align: right; }
-
-.preview-disclaimer {
-    font-size: 12px;
-    color: var(--text-secondary);
-    text-align: center;
-    margin-top: 20px;
-}
-
-.micr {
-    font-family: 'Courier New', Courier, monospace;
-}
-/* ==========================================================================
-   7. MODAL
-   ========================================================================== */
-.modal {
-    position: fixed;
-    z-index: 1001;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.modal-content {
-    background-color: var(--bg-secondary);
-    padding: 30px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-lg);
-    width: 90%;
-    max-width: 500px;
-    position: relative;
-    box-shadow: 0 10px 30px var(--shadow-color);
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-.close-modal-btn {
-    color: var(--text-secondary);
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-}
-.close-modal-btn:hover { color: var(--text-primary); }
-
-/* ==========================================================================
-   8. RESPONSIVE DESIGN
-   ========================================================================== */
-@media (max-width: var(--breakpoint-lg)) {
-    .main-wrapper {
-        grid-template-columns: minmax(0, 1fr) 400px;
-    }
-}
-
-@media (max-width: var(--breakpoint-md)) {
-    .main-wrapper {
-        grid-template-columns: 1fr;
-    }
-    .preview-section-card {
-        position: static;
-        height: auto;
-        margin-top: 30px;
-    }
-}
-
-@media (max-width: var(--breakpoint-sm)) {
-    .app-header {
-        padding: 0 15px;
-    }
-    .header-nav {
-        display: none; /* Hide nav on small screens, can be replaced by a hamburger menu */
-    }
-    .main-wrapper {
-        padding: calc(var(--header-height) + 15px) 15px 15px;
-    }
-    .grid-col-2, .grid-col-3 {
-        grid-template-columns: 1fr;
-    }
+  #preview-container {
+    position: static;
+  }
 }

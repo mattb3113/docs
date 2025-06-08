@@ -1,182 +1,285 @@
 /**
  * @file ui-controller.js
- * @description Main entry point for the paystub generator wizard.
- * This module initializes the application, manages UI state (like step navigation),
- * and coordinates between different modules (form management, preview updates, etc.).
+ * @description Master orchestrator for the paystub generator's multi-step UI.
+ * This script manages form navigation, live data processing, preview rendering,
+ * and final PDF generation. It replaces previous disparate UI scripts.
+ *
+ * @version 2.0.0
+ * @author Gemini
+ * @date 2025-06-08
  */
 
-// Import necessary modules with corrected relative paths
-import * as FormManager from './form-manager.js';
-import * as PreviewUpdater from './preview-updater.js';
-import * as PaystubCalculator from './paystub-calculator.js';
-import * as PdfGenerator from './pdf-generator.js';
+// Assuming these modules are imported via <script type="module"> in index.html
+// Make sure the paths are correct in your HTML file.
+import { calculatePaystub } from './paystub-calculator.js';
+import { generatePdf } from './pdf-generator.js';
 
-// --- DOM Element Selectors ---
-// A centralized place for DOM element selectors for easier management.
-const DOMElements = {
-    form: document.getElementById('paystub-form'),
-    steps: document.querySelectorAll('.form-step'),
-    nextBtn: document.getElementById('next-btn'),
-    prevBtn: document.getElementById('prev-btn'),
-    submitBtn: document.getElementById('submit-btn'),
-    stepCounter: document.getElementById('step-counter'),
-    formContainer: document.getElementById('form-container'),
-    previewContainer: document.getElementById('preview-container'),
-    downloadPdfBtn: document.getElementById('download-pdf-btn')
-};
+document.addEventListener('DOMContentLoaded', () => {
 
-// --- State Management ---
-// Manages the current state of the wizard.
-let currentStep = 0;
+    // --- 1. STATE MANAGEMENT ---
+    let currentStep = 0;
+    let taxData = null; // Will hold the fetched tax tables.
 
-/**
- * Updates the visibility of form steps based on the current step index.
- */
-function updateStepVisibility() {
-    DOMElements.steps.forEach((step, index) => {
-        step.classList.toggle('active', index === currentStep);
-    });
+    // --- 2. DOM ELEMENT REFERENCES ---
+    const DOMElements = {
+        form: document.getElementById('paystub-form'),
+        steps: document.querySelectorAll('.form-step'),
+        nextBtn: document.getElementById('next-btn'),
+        prevBtn: document.getElementById('prev-btn'),
+        finalizeBtn: document.getElementById('finalize-btn'), // The final submission button
+        previewContainer: document.getElementById('paystub-preview-container'),
+        stepIndicator: document.getElementById('step-indicator'),
+        formContainer: document.querySelector('.form-container'), // Assumes form is in a container
+        resultContainer: document.querySelector('.result-container'), // Assumes a container for the final result
+    };
 
-    if (DOMElements.stepCounter) {
-        DOMElements.stepCounter.textContent = `Step ${currentStep + 1} of ${DOMElements.steps.length}`;
-    }
-}
+    // --- 3. INITIALIZATION ---
 
-/**
- * Updates the visibility and state of navigation buttons (Next, Back, Submit).
- */
-function updateButtonVisibility() {
-    if (!DOMElements.prevBtn || !DOMElements.nextBtn || !DOMElements.submitBtn) return;
+    /**
+     * Fetches tax data and sets up the initial UI state and event listeners.
+     */
+    async function initialize() {
+        // Show a loading state
+        DOMElements.form.classList.add('loading');
 
-    // Show/hide the 'Back' button
-    DOMElements.prevBtn.style.display = currentStep > 0 ? 'inline-block' : 'none';
-
-    // Show/hide the 'Next' button
-    DOMElements.nextBtn.style.display = currentStep < DOMElements.steps.length - 1 ? 'inline-block' : 'none';
-
-    // Show/hide the 'Submit' button on the final step
-    DOMElements.submitBtn.style.display = currentStep === DOMElements.steps.length - 1 ? 'inline-block' : 'none';
-}
-
-
-/**
- * Handles the 'Next' button click. Validates the current step and proceeds.
- */
-function handleNext() {
-    // Validate the current step before proceeding
-    if (FormManager.validateStep(currentStep)) {
-        if (currentStep < DOMElements.steps.length - 1) {
-            currentStep++;
-            updateStepVisibility();
-            updateButtonVisibility();
-        }
-    } else {
-        console.warn(`Validation failed for step ${currentStep + 1}.`);
-        // Optionally, show a message to the user that validation failed.
-    }
-}
-
-/**
- * Handles the 'Back' button click.
- */
-function handleBack() {
-    if (currentStep > 0) {
-        currentStep--;
-        updateStepVisibility();
-        updateButtonVisibility();
-    }
-}
-
-/**
- * Handles the form submission.
- */
-async function handleSubmit(event) {
-    event.preventDefault(); // Prevent default form submission
-
-    if (FormManager.validateStep(currentStep)) {
-        console.log('Form submitted successfully!');
         try {
-            // 1. Get all form data
-            const formData = FormManager.getFormData();
-
-            // 2. Calculate paystub details
-            const paystubData = await PaystubCalculator.calculate(formData);
-
-            // 3. Update the final preview with calculated data
-            PreviewUpdater.updateFinalPreview(paystubData);
-
-            // 4. Switch view from form to the final preview/download screen
-            if (DOMElements.formContainer && DOMElements.previewContainer) {
-                DOMElements.formContainer.style.display = 'none';
-                DOMElements.previewContainer.style.display = 'block';
+            const response = await fetch('data/taxTables.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+            taxData = await response.json();
+            console.log("Tax tables loaded successfully.");
+
+            // Setup event listeners now that data is loaded
+            setupEventListeners();
+            updateStepUI();
+            updatePreview(); // Initial preview render
 
         } catch (error) {
-            console.error('An error occurred during form submission and processing:', error);
-            // Optionally, display an error message to the user
-            alert('There was an error processing your paystub. Please check the console for details.');
+            console.error("Failed to load tax tables:", error);
+            DOMElements.previewContainer.innerHTML = `<div class="text-red-500 text-center p-4"><b>Error:</b> Could not load critical tax data. The application cannot continue. Please refresh the page.</div>`;
+            // Disable all controls if loading fails
+            DOMElements.nextBtn.disabled = true;
+            DOMElements.prevBtn.disabled = true;
+            return; // Stop execution
+        } finally {
+            // Remove loading state
+            DOMElements.form.classList.remove('loading');
         }
-    } else {
-        console.warn('Submit validation failed.');
-        alert('Please fill out all required fields before submitting.');
     }
-}
 
-/**
- * Main initialization function for the application.
- * Sets up event listeners and initial UI state.
- * Exported to be used as the single entry point.
- */
-export function init() {
-    try {
-        // Ensure all required DOM elements are present before proceeding.
-        if (!DOMElements.form || DOMElements.steps.length === 0 || !DOMElements.nextBtn) {
-            console.error('Essential DOM elements are missing. UI Controller cannot initialize.');
+    // --- 4. EVENT HANDLING ---
+
+    /**
+     * Centralizes all event listener assignments.
+     */
+    function setupEventListeners() {
+        DOMElements.nextBtn.addEventListener('click', handleNextStep);
+        DOMElements.prevBtn.addEventListener('click', handlePrevStep);
+        DOMElements.finalizeBtn.addEventListener('click', handleFinalization);
+
+        // Listen for any input change on the form for live preview updates
+        DOMElements.form.addEventListener('input', updatePreview);
+    }
+
+    /**
+     * Moves to the next step in the form.
+     */
+    function handleNextStep() {
+        if (currentStep < DOMElements.steps.length - 1) {
+            currentStep++;
+            updateStepUI();
+        }
+    }
+
+    /**
+     * Moves to the previous step in the form.
+     */
+    function handlePrevStep() {
+        if (currentStep > 0) {
+            currentStep--;
+            updateStepUI();
+        }
+    }
+
+    /**
+     * Handles the final step: generating the PDF.
+     */
+    function handleFinalization() {
+        console.log("Finalizing and creating PDF...");
+        // The preview is already up-to-date, so we just call the PDF generator.
+        const employeeName = document.getElementById('employee-name')?.value || 'employee';
+        const payDate = document.getElementById('pay-date')?.value || new Date().toISOString().split('T')[0];
+        const fileName = `Paystub-${employeeName.replace(/ /g, '_')}-${payDate}.pdf`;
+        
+        generatePdf(DOMElements.previewContainer, fileName);
+    }
+
+    // --- 5. UI & PREVIEW LOGIC ---
+
+    /**
+     * Updates the visibility of form steps and navigation buttons.
+     */
+    function updateStepUI() {
+        // Update step visibility
+        DOMElements.steps.forEach((step, index) => {
+            step.classList.toggle('active-step', index === currentStep);
+        });
+
+        // Update button visibility
+        DOMElements.prevBtn.classList.toggle('hidden', currentStep === 0);
+        DOMElements.nextBtn.classList.toggle('hidden', currentStep === DOMElements.steps.length - 1);
+        DOMElements.finalizeBtn.classList.toggle('hidden', currentStep !== DOMElements.steps.length - 1);
+
+        // Update step indicator text
+        if (DOMElements.stepIndicator) {
+            DOMElements.stepIndicator.textContent = `Step ${currentStep + 1} of ${DOMElements.steps.length}`;
+        }
+    }
+
+    /**
+     * Gathers form data, calculates paystub, and renders the live preview.
+     */
+    async function updatePreview() {
+        if (!taxData) return; // Don't run if tax data isn't loaded
+
+        // a. Gather all data from the form
+        const formData = getFormData();
+
+        // b. Calculate the paystub using the engine
+        const calculatedData = await calculatePaystub(formData, taxData);
+
+        // c. Render the HTML preview
+        renderPreview(formData, calculatedData);
+    }
+
+    /**
+     * Collects and sanitizes all data from the form inputs.
+     * @returns {object} A structured object with all form values.
+     */
+    function getFormData() {
+        const data = {
+            // Company Info
+            companyName: document.getElementById('company-name')?.value || 'Your Company',
+            companyAddress: document.getElementById('company-address')?.value || '123 Main St, Anytown, USA',
+            // Employee Info
+            employeeName: document.getElementById('employee-name')?.value || 'John Doe',
+            employeeAddress: document.getElementById('employee-address')?.value || '456 Oak Ave, Anytown, USA',
+            employeeId: document.getElementById('employee-id')?.value || 'N/A',
+            // Pay Details
+            payPeriodStart: document.getElementById('pay-period-start')?.value,
+            payPeriodEnd: document.getElementById('pay-period-end')?.value,
+            payDate: document.getElementById('pay-date')?.value,
+            payRate: parseFloat(document.getElementById('pay-rate')?.value) || 0,
+            regularHours: parseFloat(document.getElementById('regular-hours')?.value) || 0,
+            overtimeHours: parseFloat(document.getElementById('overtime-hours')?.value) || 0,
+            // Withholding
+            filingStatus: document.getElementById('federal-filing-status')?.value || 'single',
+            federalAllowances: parseInt(document.getElementById('federal-allowances')?.value, 10) || 0,
+            njAllowances: parseInt(document.getElementById('nj-allowances')?.value, 10) || 0,
+            // Deductions & YTD
+            otherDeductionName: document.getElementById('deduction-name-1')?.value,
+            otherDeductionAmount: parseFloat(document.getElementById('deduction-amount-1')?.value) || 0,
+            ytd: { // Encapsulate YTD figures
+                gross: parseFloat(document.getElementById('ytd-gross')?.value) || 0,
+                federalTax: parseFloat(document.getElementById('ytd-federal-tax')?.value) || 0,
+            }
+        };
+        // The calculator expects a more detailed YTD object, so we pass what we have.
+        // The calculator should handle missing YTD fields gracefully.
+        return data;
+    }
+
+    /**
+     * Renders the complete paystub HTML into the preview container.
+     * @param {object} formData - The raw data from the form.
+     * @param {object} calculatedData - The data processed by the calculation engine.
+     */
+    function renderPreview(formData, calculatedData) {
+        if (!calculatedData) {
+            DOMElements.previewContainer.innerHTML = `<div class="text-gray-500 text-center p-4">Enter details to see a live preview.</div>`;
             return;
         }
 
-        // --- Event Listener Setup ---
-        DOMElements.nextBtn.addEventListener('click', handleNext);
-        DOMElements.prevBtn.addEventListener('click', handleBack);
-        DOMElements.form.addEventListener('submit', handleSubmit);
+        const formatCurrency = (num = 0) => num.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 
-        // Add a single event listener to the form to handle live preview updates.
-        DOMElements.form.addEventListener('input', (event) => {
-            const formData = FormManager.getFormData();
-            PreviewUpdater.updateLivePreview(formData, event.target);
-        });
+        const { earnings, taxes, totals, newYTD } = calculatedData;
+        
+        const html = `
+            <div class="paystub-render bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <!-- Header -->
+                <div class="text-center border-b pb-4 mb-4">
+                    <h2 class="text-2xl font-bold">${formData.companyName}</h2>
+                    <p class="text-sm text-gray-600">${formData.companyAddress}</p>
+                </div>
 
-        // Initialize PDF generation button
-        if (DOMElements.downloadPdfBtn) {
-            DOMElements.downloadPdfBtn.addEventListener('click', () => {
-                 const paystubPreview = document.getElementById('paystub-preview');
-                 if(paystubPreview){
-                    PdfGenerator.generate(paystubPreview);
-                 } else {
-                    console.error("Could not find 'paystub-preview' element to generate PDF.");
-                 }
-            });
-        }
+                <!-- Employee & Pay Info -->
+                <div class="grid grid-cols-2 gap-4 text-sm mb-6">
+                    <div>
+                        <p><strong>Employee:</strong> ${formData.employeeName}</p>
+                        <p>${formData.employeeAddress}</p>
+                        <p><strong>Employee ID:</strong> ${formData.employeeId}</p>
+                    </div>
+                    <div class="text-right">
+                        <p><strong>Pay Date:</strong> ${formData.payDate}</p>
+                        <p><strong>Period:</strong> ${formData.payPeriodStart} to ${formData.payPeriodEnd}</p>
+                    </div>
+                </div>
 
-        // --- Initial UI State ---
-        updateStepVisibility();
-        updateButtonVisibility();
-        FormManager.initStateTaxability(); // Initialize state taxability checkboxes
+                <!-- Earnings, Taxes, Deductions Tables -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Left Column: Earnings & Deductions -->
+                    <div>
+                        <h3 class="font-bold text-lg mb-2">Earnings</h3>
+                        <table class="w-full text-sm table-auto">
+                            <tbody>
+                                <tr><td>Regular Pay</td><td class="text-right">${formatCurrency(earnings.regularPay)}</td></tr>
+                                <tr><td>Overtime Pay</td><td class="text-right">${formatCurrency(earnings.otPay)}</td></tr>
+                                <tr class="font-bold border-t"><td class="pt-1">Gross Pay</td><td class="text-right pt-1">${formatCurrency(totals.grossPay)}</td></tr>
+                            </tbody>
+                        </table>
 
-        console.log('UI Controller initialized successfully.');
+                        <h3 class="font-bold text-lg mt-4 mb-2">Deductions</h3>
+                        <table class="w-full text-sm table-auto">
+                           <tbody>
+                                ${formData.otherDeductionName ? `<tr><td>${formData.otherDeductionName}</td><td class="text-right">${formatCurrency(formData.otherDeductionAmount)}</td></tr>` : ''}
+                                <tr class="font-bold border-t"><td class="pt-1">Total Deductions</td><td class="text-right pt-1">${formatCurrency(totals.totalDeductions)}</td></tr>
+                           </tbody>
+                        </table>
+                    </div>
 
-    } catch (error) {
-        // Robust error handling for the entire initialization sequence.
-        console.error('A critical error occurred during UI Controller initialization:', error);
-        // Optionally, display a user-friendly error message on the page.
-        const body = document.querySelector('body');
-        if (body) {
-            body.innerHTML = '<div style="text-align: center; padding: 50px; font-family: sans-serif; color: #f00;"><h1>Application Error</h1><p>Sorry, the application could not be started. Please contact support.</p></div>';
-        }
+                    <!-- Right Column: Taxes & YTD -->
+                    <div>
+                         <h3 class="font-bold text-lg mb-2">Taxes</h3>
+                         <table class="w-full text-sm table-auto">
+                            <thead><tr class="text-gray-500"><th class="text-left">Description</th><th class="text-right">Current</th><th class="text-right">YTD</th></tr></thead>
+                            <tbody>
+                                <tr><td>Federal Income Tax</td><td class="text-right">${formatCurrency(taxes.federal.income)}</td><td class="text-right">${formatCurrency(newYTD.federalTax)}</td></tr>
+                                <tr><td>Social Security</td><td class="text-right">${formatCurrency(taxes.federal.socialSecurity)}</td><td class="text-right">${formatCurrency(newYTD.socialSecurity)}</td></tr>
+                                <tr><td>Medicare</td><td class="text-right">${formatCurrency(taxes.federal.medicare)}</td><td class="text-right">${formatCurrency(newYTD.medicare)}</td></tr>
+                                <tr><td>NJ State Tax</td><td class="text-right">${formatCurrency(taxes.nj.income)}</td><td class="text-right">${formatCurrency(newYTD.njStateTax)}</td></tr>
+                                <tr><td>NJ SDI</td><td class="text-right">${formatCurrency(taxes.nj.sdi)}</td><td class="text-right">${formatCurrency(newYTD.sdi)}</td></tr>
+                                <tr><td>NJ FLI</td><td class="text-right">${formatCurrency(taxes.nj.fli)}</td><td class="text-right">${formatCurrency(newYTD.fli)}</td></tr>
+                                <tr><td>NJ SUI/WF</td><td class="text-right">${formatCurrency(taxes.nj.sui)}</td><td class="text-right">${formatCurrency(newYTD.sui)}</td></tr>
+                            </tbody>
+                         </table>
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="mt-6 pt-4 border-t-2 border-gray-800 text-right">
+                    <p class="text-sm">Gross Pay: ${formatCurrency(totals.grossPay)}</p>
+                    <p class="text-sm">Total Deductions: ${formatCurrency(totals.totalDeductions)}</p>
+                    <p class="text-xl font-bold mt-2">Net Pay: ${formatCurrency(totals.netPay)}</p>
+                </div>
+            </div>
+        `;
+
+        DOMElements.previewContainer.innerHTML = html;
     }
-}
 
-// --- Application Entry Point ---
-// Wait for the DOM to be fully loaded before initializing the application.
-// This ensures that all scripts are loaded and the DOM is ready to be manipulated.
-document.addEventListener('DOMContentLoaded', init);
+
+    // --- 6. START THE APPLICATION ---
+    initialize();
+
+});

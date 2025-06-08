@@ -1,208 +1,62 @@
 {
-  "fica": {
-
-
-    "socialSecurity": { "wageLimit": 168600, "rate": 0.062 },
-
-
-    "medicare": { "rate": 0.0145, "additionalRate": 0.009, "additionalRateThreshold": 200000 }
-
-
-  },
-
-
-  "year": 2025,
-
-  "federal": {
-
-
-    "standardDeductions": { "Single": 14600 },
-
-
-    "standardDeductions": {
-
-
-      "Single": 14600,
-
-
-      "MarriedJ": 29200,
-
-
-      "HeadOfHousehold": 21900
-
-
-    },
-
-    "taxBrackets": {
-
-      "Single": [
-
-
-        { "from": 0, "to": 11600, "rate": 0.10 },
-
-
-        { "from": 11600, "to": 47150, "rate": 0.12 },
-
-
-        { "from": 47150, "to": 100525, "rate": 0.22 },
-
-
-        { "from": 100525, "to": 191950, "rate": 0.24 },
-
-
-        { "from": 191950, "to": 243725, "rate": 0.32 },
-
-
-        { "from": 243725, "to": 609350, "rate": 0.35 },
-
-
-        { "from": 609350, "to": "Infinity", "rate": 0.37 }
-
-
-        {"rate": 0.10, "from": 0, "to": 11600},
-
-
-        {"rate": 0.12, "from": 11600, "to": 47150},
-
-
-        {"rate": 0.22, "from": 47150, "to": 100525},
-
-
-        {"rate": 0.24, "from": 100525, "to": 191950},
-
-
-        {"rate": 0.32, "from": 191950, "to": 243725},
-
-
-        {"rate": 0.35, "from": 243725, "to": 609350},
-
-
-        {"rate": 0.37, "from": 609350, "to": "Infinity"}
-
-
+  "federal_income": {
+    "brackets": {
+      "single": [
+        {"rate": 0.10, "over": 0},
+        {"rate": 0.12, "over": 11600},
+        {"rate": 0.22, "over": 47150},
+        {"rate": 0.24, "over": 100525},
+        {"rate": 0.32, "over": 191950},
+        {"rate": 0.35, "over": 243725},
+        {"rate": 0.37, "over": 609350}
       ],
-
-
-       "MarriedJ": [
-
-
-        {"rate": 0.10, "from": 0, "to": 23200},
-
-
-        {"rate": 0.12, "from": 23200, "to": 94300},
-
-
-        {"rate": 0.22, "from": 94300, "to": 201050},
-
-
-        {"rate": 0.24, "from": 201050, "to": 383900},
-
-
-        {"rate": 0.32, "from": 383900, "to": 487450},
-
-
-        {"rate": 0.35, "from": 487450, "to": 731200},
-
-
-        {"rate": 0.37, "from": 731200, "to": "Infinity"}
-
+      "married": [
+        {"rate": 0.10, "over": 0},
+        {"rate": 0.12, "over": 23200},
+        {"rate": 0.22, "over": 94300},
+        {"rate": 0.24, "over": 201050},
+        {"rate": 0.32, "over": 383900},
+        {"rate": 0.35, "over": 487450},
+        {"rate": 0.37, "over": 731200}
       ]
-
+    },
+    "standard_deduction": {
+      "single": 14600,
+      "married": 29200
     }
-
   },
-
-
   "fica": {
-
-
-    "socialSecurity": {
-
-
+    "social_security": {
       "rate": 0.062,
-
-
-      "wageLimit": 177300
-
-
+      "limit": 168600
     },
-
-
     "medicare": {
-
-
       "rate": 0.0145
-
-
     }
-
-
   },
-
-  "nj": {
-
-    "taxBrackets": {
-
-      "Single": [
-
-
-        { "from": 0, "to": 20000, "rate": 0.014 },
-
-
-        { "from": 20000, "to": 35000, "rate": 0.0175 },
-
-
-        { "from": 35000, "to": 40000, "rate": 0.035 },
-
-
-        { "from": 40000, "to": 75000, "rate": 0.05525 },
-
-
-        { "from": 75000, "to": 500000, "rate": 0.0637 },
-
-
-        { "from": 500000, "to": "Infinity", "rate": 0.0897 }
-
-
-        {"rate": 0.014, "from": 0, "to": 20000},
-
-
-        {"rate": 0.0175, "from": 20000, "to": 35000},
-
-
-        {"rate": 0.035, "from": 35000, "to": 40000},
-
-
-        {"rate": 0.05525, "from": 40000, "to": 75000},
-
-
-        {"rate": 0.0637, "from": 75000, "to": 500000},
-
-
-        {"rate": 0.0897, "from": 500000, "to": "Infinity"}
-
+  "nj_state": {
+    "income": {
+      "brackets": [
+        {"rate": 0.014, "over": 0},
+        {"rate": 0.0175, "over": 20000},
+        {"rate": 0.035, "over": 35000},
+        {"rate": 0.05525, "over": 40000},
+        {"rate": 0.0637, "over": 75000},
+        {"rate": 0.0897, "over": 500000},
+        {"rate": 0.1075, "over": 1000000}
       ]
-
     },
-
-
-    "sdi": { "rate": 0.0, "wageLimit": 0 },
-
-
-    "fli": { "rate": 0.0006, "wageLimit": 156800 },
-
-
-    "ui_hc_wf": { "rate": 0.00425, "wageLimit": 42300 }
-
-
-    "sdi": { "rate": 0.00, "wageLimit": 169000 },
-
-
-    "fli": { "rate": 0.0006, "wageLimit": 169000 },
-
-
-    "ui_hc_wf": { "rate": 0.00425, "wageLimit": 43800 }
-
+    "sui": {
+      "rate": 0.00425,
+      "limit": 42300
+    },
+    "sdi": {
+      "rate": 0.0,
+      "limit": 156800
+    },
+    "fli": {
+      "rate": 0.0009,
+      "limit": 156800
+    }
   }
-
 }

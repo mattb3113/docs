@@ -1,3 +1,6 @@
+/* print.css - Print styles for BuellDocs Paystub Generator */
+@media print {
+    /* Hide everything by default */
 /*
     print.css
     Author: Buell D'Souza
@@ -15,6 +18,11 @@
         visibility: hidden;
     }
 
+    /* Only display the paystub preview */
+    #paystub-preview,
+    #paystub-preview * {
+        visibility: visible;
+    }
     /* Make the paystub preview container and all its children visible. */
     #paystub-preview, #paystub-preview * {
         visibility: visible;
@@ -26,6 +34,16 @@
         left: 0;
         top: 0;
         width: 100%;
+        background: white;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+    }
+
+    /* Remove any overlay or watermark */
+    #void-pantograph {
+        display: none !important;
+    }
         margin: 0;
         padding: 20px;
         border: 1px solid #ccc; /* A simple border for definition on paper */

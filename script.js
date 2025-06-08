@@ -10,6 +10,8 @@
 'use strict';
 
 import PDFGenerator from './js/pdf-generator.js';
+import FormManager from './js/form-manager.js';
+import UIController from './js/ui-controller.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- State Management --- //
@@ -20,6 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentBasePrice = 0;
 
     const pdfGenerator = new PDFGenerator();
+    const formManager = new FormManager('paystubForm');
+    const uiController = new UIController({ formManager, pdfGenerator });
 
     // --- DOM Element Cache --- //
     const dom = {};

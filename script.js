@@ -9,6 +9,8 @@
 */
 'use strict';
 
+import PDFGenerator from './js/pdf-generator.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- State Management --- //
     let currentStep = 1;
@@ -16,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let allStubsData = [];
     let activeModal = null;
     let currentBasePrice = 0;
+
+    const pdfGenerator = new PDFGenerator();
 
     // --- DOM Element Cache --- //
     const dom = {};
@@ -593,6 +597,16 @@ document.addEventListener('DOMContentLoaded', () => {
              const pdfBlob = generatePdfBlob(true);
              window.open(URL.createObjectURL(pdfBlob));
         });
+
+        if (dom.confirmPaymentBtn) {
+            dom.confirmPaymentBtn.addEventListener('click', () => {
+                pdfGenerator.generate(
+                    dom.paystubPreviewContent,
+                    dom.employeeFullName.value,
+                    dom.payDate.value
+                );
+            });
+        }
 
     };
 

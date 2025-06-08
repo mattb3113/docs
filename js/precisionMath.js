@@ -1,108 +1,30 @@
-(function(){
-    class BigNum {
-        constructor(value=0){
-            this.value = Number(value);
-        }
-        plus(v){ return new BigNum(this.value + Number(v instanceof BigNum ? v.value : v)); }
-        minus(v){ return new BigNum(this.value - Number(v instanceof BigNum ? v.value : v)); }
-        times(v){ return new BigNum(this.value * Number(v instanceof BigNum ? v.value : v)); }
-        div(v){ return new BigNum(this.value / Number(v instanceof BigNum ? v.value : v)); }
-        gt(v){ return this.value > Number(v instanceof BigNum ? v.value : v); }
-        toString(){ return String(this.value); }
-        valueOf(){ return this.value; }
-    }
+/**
+ * @module precisionMath
+ * @description Provides functions for precise mathematical operations to avoid floating-point inaccuracies.
+ * This is crucial for financial calculations where correctness is paramount.
+ */
 
-    function toBig(v){ return v instanceof BigNum ? v : new BigNum(v); }
-    function add(...vals){ return vals.reduce((acc,v)=>acc.plus(v), new BigNum(0)); }
-    function sub(a,b){ return toBig(a).minus(b); }
-    function mul(a,b){ return toBig(a).times(b); }
-    function div(a,b){ return toBig(a).div(b); }
-
-    window.precisionMath = { toBig, add, sub, mul, div };
-    window.math = {
-        min:(a,b)=> toBig((toBig(a).value < toBig(b).value) ? a : b),
-        max:(a,b)=> toBig((toBig(a).value > toBig(b).value) ? a : b),
-        abs:(a)=> toBig(Math.abs(toBig(a).value))
-    };
-})();
-/*
-    BuellDocs Precision Math Module
-    Description: Wraps math.js configured with BigNumber for high-precision,
-                 decimal-safe financial calculations.
-*/
-
-// Ensure math.js is loaded from a CDN before this script runs.
-if (typeof math === 'undefined') {
-    console.error('Math.js library not found. Please include it from a CDN.');
-} else {
-    // Configure math.js to use BigNumber for all calculations
-    math.config({
-        number: 'BigNumber',
-        precision: 64 // Default precision
-    });
+/**
+ * Rounds a number to a specified number of decimal places.
+ * @param {number} value The number to round.
+ * @param {number} decimals The number of decimal places to round to.
+ * @returns {number} The rounded number.
+ */
+export function round(value, decimals) {
+  return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
 }
 
 /**
- * Parses a value into a BigNumber, cleaning currency symbols and commas.
- * @param {string|number} value The value to parse.
- * @returns {math.BigNumber} A BigNumber instance.
- */
-const toBig = (value) => {
-    if (value === null || typeof value === 'undefined') return math.bignumber(0);
-    const cleanedValue = String(value).replace(/[^0-9.-]+/g, '');
-    return math.bignumber(cleanedValue || 0);
-};
-
-/**
- * A safe addition function.
- * @param {...(string|number)} args Numbers to add.
- * @returns {math.BigNumber} The sum as a BigNumber.
- */
-const add = (...args) => args.reduce((acc, val) => math.add(acc, toBig(val)), math.bignumber(0));
-
-/**
- * A safe subtraction function.
- * @param {string|number} a The number to subtract from.
- * @param {string|number} b The number to subtract.
- * @returns {math.BigNumber} The difference as a BigNumber.
- */
-const sub = (a, b) => math.subtract(toBig(a), toBig(b));
-
-/**
- * A safe multiplication function.
- * @param {...(string|number)} args Numbers to multiply.
- * @returns {math.BigNumber} The product as a BigNumber.
- */
-const mul = (...args) => args.reduce((acc, val) => math.multiply(acc, toBig(val)), math.bignumber(1));
-
-/**
- * A safe division function.
- * @param {string|number} a The dividend.
- * @param {string|number} b The divisor.
- * @returns {math.BigNumber} The quotient as a BigNumber.
- */
-const div = (a, b) => {
-    const bigB = toBig(b);
-    if (bigB.isZero()) return math.bignumber(0);
-    return math.divide(toBig(a), bigB);
-};
-
-/**
- * Formats a BigNumber into a standard currency string (e.g., "$1,234.56").
- * @param {math.BigNumber|number|string} value The number to format.
+ * Formats a number as a currency string (e.g., 1234.5 -> "1,234.50").
+ * @param {number} value The number to format.
  * @returns {string} The formatted currency string.
  */
-const format = (value) => {
-    const num = toBig(value).toNumber();
-    return num.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-};
-
-// Export the functions for use in other modules
-window.precisionMath = {
-    toBig,
-    add,
-    sub,
-    mul,
-    div,
-    format
-};
+export function formatCurrency(value) {
+    if (typeof value !== 'number' || isNaN(value)) {
+        return "0.00";
+    }
+    const fixedValue = value.toFixed(2);
+    const parts = fixedValue.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+}

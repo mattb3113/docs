@@ -1,7 +1,503 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8"><!DOCTYPE html>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BuellDocs v4 - Professional Paystub Generator</title>
+
+    <!-- Tailwind CSS for modern, responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Custom Stylesheets -->
+    <link rel="stylesheet" href="paystub-styles.css">
+    <link rel="stylesheet" href="print.css" media="print">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=OCRAExtended&display=swap" rel="stylesheet">
+
+    <style>
+        /* Custom styles to augment Tailwind */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .micr-font {
+            font-family: 'OCRAExtended', monospace;
+        }
+        /* Hide scrollbar for cleaner look */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Step navigation active state */
+        .step-active {
+            border-color: #3b82f6; /* blue-500 */
+            background-color: #eff6ff; /* blue-50 */
+            color: #1d4ed8; /* blue-800 */
+        }
+        .step-active i {
+            color: #3b82f6; /* blue-500 */
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="flex flex-col h-screen">
+        <!-- Header -->
+        <header class="bg-white border-b border-slate-200 p-4 flex justify-between items-center shadow-sm">
+            <h1 class="text-2xl font-bold text-slate-800">BuellDocs Paystub Generator</h1>
+            <div class="flex items-center space-x-2">
+                <button id="save-draft-btn" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="fas fa-save mr-2"></i>Save Draft
+                </button>
+                <button id="reset-form-btn" class="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    <i class="fas fa-undo mr-2"></i>Reset
+                </button>
+            </div>
+        </header>
+
+        <div class="flex flex-1 overflow-hidden">
+            <!-- Main Content Area -->
+            <main class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+
+                <!-- Form Wizard (Left Side) -->
+                <form id="paystub-form" class="w-full lg:w-1/2 xl:w-2/5 p-6 bg-white overflow-y-auto no-scrollbar">
+                    <nav class="mb-6">
+                        <ol class="flex items-center w-full text-sm font-medium text-center text-slate-500">
+                             <li id="step-nav-1" class="flex md:w-full items-center text-blue-600 after:content-[''] after:w-full after:h-1 after:border-b after:border-slate-200 after:border-1 after:hidden sm:after:inline-block after:mx-6 xl:after:mx-10">
+                                <span class="flex items-center after:content-['/'] sm:after:hidden after:mx-2 after:text-slate-200">
+                                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/></svg>
+                                    Company
+                                </span>
+                            </li>
+                             <li id="step-nav-2" class="flex md:w-full items-center after:content-[''] after:w-full after:h-1 after:border-b after:border-slate-200 after:border-1 after:hidden sm:after:inline-block after:mx-6 xl:after:mx-10">
+                                <span class="flex items-center after:content-['/'] sm:after:hidden after:mx-2 after:text-slate-200">
+                                    <span class="mr-2">2</span>
+                                    Employee
+                                </span>
+                            </li>
+                            <li id="step-nav-3" class="flex items-center">
+                                <span class="mr-2">3</span>
+                                Pay Details
+                            </li>
+                        </ol>
+                    </nav>
+                    
+                    <!-- Step 1: Company & Employee -->
+                    <div id="step-1" class="space-y-6">
+                        <!-- Company Information -->
+                        <section>
+                            <h2 class="text-lg font-semibold border-b border-slate-200 pb-2 mb-4">Company Information</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="md:col-span-2">
+                                    <label for="companyName" class="block text-sm font-medium text-slate-700">Company Name</label>
+                                    <input type="text" id="companyName" name="companyName" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+                                </div>
+                                <div>
+                                    <label for="companyStreet" class="block text-sm font-medium text-slate-700">Street Address</label>
+                                    <input type="text" id="companyStreet" name="companyStreet" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                </div>
+                                <div>
+                                    <label for="companyCity" class="block text-sm font-medium text-slate-700">City</label>
+                                    <input type="text" id="companyCity" name="companyCity" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                </div>
+                                <div>
+                                    <label for="companyState" class="block text-sm font-medium text-slate-700">State</label>
+                                    <input type="text" id="companyState" name="companyState" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                </div>
+                                <div>
+                                    <label for="companyZip" class="block text-sm font-medium text-slate-700">ZIP Code</label>
+                                    <input type="text" id="companyZip" name="companyZip" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                </div>
+                                 <div>
+                                    <label for="companyEin" class="block text-sm font-medium text-slate-700">EIN</label>
+                                    <input type="text" id="companyEin" name="companyEin" placeholder="XX-XXXXXXX" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                </div>
+                                <div>
+                                    <label for="companyNjReg" class="block text-sm font-medium text-slate-700">NJ Employer Reg. #</label>
+                                    <input type="text" id="companyNjReg" name="companyNjReg" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label for="logoUpload" class="block text-sm font-medium text-slate-700">Logo Upload</label>
+                                    <input type="file" id="logoUpload" name="logoUpload" class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                    
+                    <!-- Step 2: Employee & Pay Period -->
+                    <div id="step-2" class="space-y-6 hidden">
+                         <!-- Employee Information -->
+                        <section>
+                            <h2 class="text-lg font-semibold border-b border-slate-200 pb-2 mb-4">Employee Information</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="employeeName" class="block text-sm font-medium text-slate-700">Employee Name</label>
+                                    <input type="text" id="employeeName" name="employeeName" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+                                </div>
+                                <div>
+                                    <label for="employeeId" class="block text-sm font-medium text-slate-700">Employee ID</label>
+                                    <input type="text" id="employeeId" name="employeeId" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label for="employeeStreet" class="block text-sm font-medium text-slate-700">Street Address</label>
+                                    <input type="text" id="employeeStreet" name="employeeStreet" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                </div>
+                                <div>
+                                    <label for="employeeSsn" class="block text-sm font-medium text-slate-700">SSN</label>
+                                    <input type="text" id="employeeSsn" name="employeeSsn" placeholder="XXX-XX-XXXX" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                </div>
+                                <div>
+                                    <label for="employeeFilingStatus" class="block text-sm font-medium text-slate-700">Filing Status</label>
+                                    <select id="employeeFilingStatus" name="employeeFilingStatus" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                        <option>Single</option>
+                                        <option>Married Filing Jointly</option>
+                                        <option>Head of Household</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Pay Period & Frequency -->
+                        <section>
+                            <h2 class="text-lg font-semibold border-b border-slate-200 pb-2 mb-4">Pay Period & Frequency</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label for="payPeriodStart" class="block text-sm font-medium text-slate-700">Period Start</label>
+                                    <input type="date" id="payPeriodStart" name="payPeriodStart" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+                                </div>
+                                <div>
+                                    <label for="payPeriodEnd" class="block text-sm font-medium text-slate-700">Period End</label>
+                                    <input type="date" id="payPeriodEnd" name="payPeriodEnd" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+                                </div>
+                                <div>
+                                    <label for="payDate" class="block text-sm font-medium text-slate-700">Pay Date</label>
+                                    <input type="date" id="payDate" name="payDate" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+                                </div>
+                                <div class="md:col-span-3">
+                                     <label for="payFrequency" class="block text-sm font-medium text-slate-700">Pay Frequency</label>
+                                    <select id="payFrequency" name="payFrequency" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                        <option>Weekly</option>
+                                        <option>Bi-Weekly</option>
+                                        <option>Semi-Monthly</option>
+                                        <option>Monthly</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                    
+                    <!-- Step 3: Earnings, Deductions & Taxes -->
+                    <div id="step-3" class="space-y-6 hidden">
+                         <!-- Earnings -->
+                        <section>
+                            <div class="flex justify-between items-center border-b border-slate-200 pb-2 mb-4">
+                                <h2 class="text-lg font-semibold">Earnings</h2>
+                                <button type="button" id="add-earning-btn" class="text-sm font-medium text-blue-600 hover:text-blue-800"><i class="fas fa-plus mr-1"></i> Add Earning</button>
+                            </div>
+                            <div id="earnings-container" class="space-y-4">
+                                <!-- Dynamic earning rows will be inserted here -->
+                                <div class="grid grid-cols-5 gap-2 items-center">
+                                    <input type="text" value="Regular" class="col-span-2 block w-full rounded-md border-slate-300 shadow-sm sm:text-sm" placeholder="Description">
+                                    <input type="number" step="0.01" class="block w-full rounded-md border-slate-300 shadow-sm sm:text-sm" placeholder="Rate">
+                                    <input type="number" step="0.01" class="block w-full rounded-md border-slate-300 shadow-sm sm:text-sm" placeholder="Hours">
+                                    <input type="number" step="0.01" class="block w-full rounded-md border-slate-300 shadow-sm sm:text-sm" placeholder="YTD">
+                                    <button type="button" class="text-slate-400 hover:text-red-500" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>
+                                </div>
+                                <div class="grid grid-cols-5 gap-2 items-center">
+                                    <input type="text" value="Salary" class="col-span-2 block w-full rounded-md border-slate-300 shadow-sm sm:text-sm" placeholder="Description">
+                                    <input type="number" step="0.01" class="block w-full rounded-md border-slate-300 shadow-sm sm:text-sm" placeholder="Amount">
+                                    <div class="w-full"></div> <!-- spacer -->
+                                    <input type="number" step="0.01" class="block w-full rounded-md border-slate-300 shadow-sm sm:text-sm" placeholder="YTD">
+                                    <button type="button" class="text-slate-400 hover:text-red-500" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Deductions -->
+                        <section>
+                             <div class="flex justify-between items-center border-b border-slate-200 pb-2 mb-4">
+                                <h2 class="text-lg font-semibold">Deductions</h2>
+                                <button type="button" id="add-deduction-btn" class="text-sm font-medium text-blue-600 hover:text-blue-800"><i class="fas fa-plus mr-1"></i> Add Deduction</button>
+                            </div>
+                             <div id="deductions-container" class="space-y-4">
+                                <h3 class="text-md font-medium text-slate-600 mt-4">Pre-Tax</h3>
+                                <div class="grid grid-cols-4 gap-2 items-center">
+                                    <input type="text" value="401k" class="col-span-2 block w-full rounded-md border-slate-300 shadow-sm sm:text-sm" placeholder="Description">
+                                    <input type="number" step="0.01" class="block w-full rounded-md border-slate-300 shadow-sm sm:text-sm" placeholder="Amount">
+                                    <input type="number" step="0.01" class="block w-full rounded-md border-slate-300 shadow-sm sm:text-sm" placeholder="YTD">
+                                </div>
+                                 <h3 class="text-md font-medium text-slate-600 mt-4">Post-Tax</h3>
+                                  <div class="grid grid-cols-4 gap-2 items-center">
+                                    <input type="text" value="Union Dues" class="col-span-2 block w-full rounded-md border-slate-300 shadow-sm sm:text-sm" placeholder="Description">
+                                    <input type="number" step="0.01" class="block w-full rounded-md border-slate-300 shadow-sm sm:text-sm" placeholder="Amount">
+                                    <input type="number" step="0.01" class="block w-full rounded-md border-slate-300 shadow-sm sm:text-sm" placeholder="YTD">
+                                </div>
+                                <h3 class="text-md font-medium text-slate-600 mt-4">NJ State</h3>
+                                <div class="flex items-center space-x-4">
+                                     <label class="flex items-center space-x-2"><input type="checkbox" name="njFli" class="rounded border-slate-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-offset-0 focus:ring-blue-200 focus:ring-opacity-50"><span>NJ FLI</span></label>
+                                     <label class="flex items-center space-x-2"><input type="checkbox" name="njSdi" class="rounded border-slate-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-offset-0 focus:ring-blue-200 focus:ring-opacity-50"><span>NJ SDI</span></label>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Taxes -->
+                        <section>
+                            <h2 class="text-lg font-semibold border-b border-slate-200 pb-2 mb-4">Tax Overrides</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="fedTaxOverride" class="block text-sm font-medium text-slate-700">Federal Additional Amount</label>
+                                    <input type="number" id="fedTaxOverride" name="fedTaxOverride" step="0.01" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="0.00">
+                                </div>
+                                <div>
+                                    <label for="njTaxOverride" class="block text-sm font-medium text-slate-700">NJ Additional Amount</label>
+                                    <input type="number" id="njTaxOverride" name="njTaxOverride" step="0.01" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="0.00">
+                                </div>
+                            </div>
+                        </section>
+
+                    </div>
+
+                    <!-- Navigation Buttons -->
+                    <div class="mt-8 pt-6 border-t border-slate-200 flex justify-between">
+                        <button type="button" id="prev-btn" class="px-6 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50" disabled>Previous</button>
+                        <button type="button" id="next-btn" class="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Next</button>
+                        <button type="button" id="generate-btn" class="hidden px-6 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                           <i class="fas fa-cogs mr-2"></i>Generate PDF
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Paystub Preview (Right Side) -->
+                <aside class="flex-1 p-6 bg-slate-100 overflow-y-auto no-scrollbar">
+                    <div class="sticky top-0 bg-slate-100 py-2 mb-4 z-10">
+                         <h2 class="text-lg font-semibold text-slate-800">Live Preview</h2>
+                    </div>
+
+                    <div id="paystub-preview" class="max-w-2xl mx-auto bg-white p-6 shadow-lg rounded-lg text-xs">
+                        <!-- VOID Pantograph -->
+                        <div id="void-pantograph" class="absolute inset-0 flex items-center justify-center overflow-hidden z-0">
+                            <div class="text-[12rem] font-black text-red-500/5 whitespace-nowrap opacity-50 select-none -rotate-12">
+                                VOID
+                            </div>
+                        </div>
+
+                        <div class="relative z-10">
+                            <!-- Header -->
+                            <header class="flex justify-between items-start pb-4 border-b">
+                                <div>
+                                    <img id="preview-logo" src="https://placehold.co/150x50/f0f0f0/333333?text=Your+Logo" alt="Company Logo" class="h-12 mb-2 object-contain">
+                                    <p id="preview-companyName" class="font-bold text-lg">Your Company Name</p>
+                                    <p id="preview-companyAddress" class="text-slate-600">123 Main St, Anytown, ST 12345</p>
+                                </div>
+                                <div class="text-right">
+                                    <h3 class="text-xl font-bold">Earnings Statement</h3>
+                                    <p class="text-slate-600">Pay Date: <span id="preview-payDate">2025-06-07</span></p>
+                                </div>
+                            </header>
+                            
+                            <!-- Employee & Pay Period Info -->
+                            <section class="grid grid-cols-2 gap-4 my-4">
+                                <div>
+                                    <h4 class="font-semibold text-slate-500 uppercase tracking-wider mb-1">Employee</h4>
+                                    <p id="preview-employeeName" class="font-bold">John Doe</p>
+                                    <p id="preview-employeeAddress" class="text-slate-600">456 Oak Ave, Workburg, ST 67890</p>
+                                    <p class="text-slate-600">SSN: <span id="preview-ssn">XXX-XX-1234</span></p>
+                                </div>
+                                <div class="text-right">
+                                    <h4 class="font-semibold text-slate-500 uppercase tracking-wider mb-1">Pay Period</h4>
+                                    <p id="preview-payPeriod" class="text-slate-600">2025-05-24 to 2025-06-06</p>
+                                    <p class="text-slate-600">Employee ID: <span id="preview-employeeId">E12345</span></p>
+                                </div>
+                            </section>
+
+                            <!-- Tables -->
+                            <section class="grid grid-cols-2 gap-6 my-4">
+                                <!-- Earnings -->
+                                <div>
+                                    <h4 class="font-semibold text-slate-500 uppercase tracking-wider mb-2">Earnings</h4>
+                                    <table class="w-full">
+                                        <thead>
+                                            <tr class="border-b text-left">
+                                                <th class="py-1 font-medium">Description</th>
+                                                <th class="py-1 font-medium text-right">Amount</th>
+                                                <th class="py-1 font-medium text-right">YTD</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="preview-earnings-body">
+                                            <!-- Dynamic Rows -->
+                                            <tr>
+                                                <td class="py-1">Regular</td>
+                                                <td class="py-1 text-right">$2,884.62</td>
+                                                <td class="py-1 text-right">$34,615.44</td>
+                                            </tr>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr class="border-t font-bold">
+                                                <td class="pt-2">Gross Earnings</td>
+                                                <td id="preview-gross" class="pt-2 text-right">$2,884.62</td>
+                                                <td id="preview-gross-ytd" class="pt-2 text-right">$34,615.44</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                                <!-- Deductions -->
+                                <div>
+                                    <h4 class="font-semibold text-slate-500 uppercase tracking-wider mb-2">Deductions</h4>
+                                    <table class="w-full">
+                                        <thead>
+                                            <tr class="border-b text-left">
+                                                <th class="py-1 font-medium">Description</th>
+                                                <th class="py-1 font-medium text-right">Amount</th>
+                                                <th class="py-1 font-medium text-right">YTD</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="preview-deductions-body">
+                                            <!-- Dynamic Rows -->
+                                            <tr><td class="py-1">Federal Tax</td><td class="py-1 text-right">$250.11</td><td class="py-1 text-right">$3,001.32</td></tr>
+                                            <tr><td class="py-1">Social Security</td><td class="py-1 text-right">$178.85</td><td class="py-1 text-right">$2,146.20</td></tr>
+                                            <tr><td class="py-1">Medicare</td><td class="py-1 text-right">$41.83</td><td class="py-1 text-right">$501.96</td></tr>
+                                            <tr><td class="py-1">NJ State Tax</td><td class="py-1 text-right">$121.50</td><td class="py-1 text-right">$1,458.00</td></tr>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr class="border-t font-bold">
+                                                <td class="pt-2">Total Deductions</td>
+                                                <td id="preview-deductions" class="pt-2 text-right">$592.29</td>
+                                                <td id="preview-deductions-ytd" class="pt-2 text-right">$7,107.48</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </section>
+
+                            <!-- Summary -->
+                            <section class="bg-slate-50 p-4 rounded-md mt-4 flex justify-between items-center">
+                                <h4 class="text-lg font-bold">Net Pay</h4>
+                                <p id="preview-net" class="text-lg font-bold">$2,292.33</p>
+                            </section>
+
+                            <!-- Check Portion -->
+                            <section class="border-t-2 border-dashed mt-6 pt-6">
+                                <div class="grid grid-cols-3 gap-4 items-end">
+                                    <div class="col-span-2">
+                                        <p class="font-bold">Your Company Name</p>
+                                        <p class="text-slate-600">123 Main St, Anytown, ST 12345</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="flex justify-end items-baseline">
+                                            <span class="text-slate-600 mr-2">Date</span>
+                                            <p id="preview-check-date" class="border-b w-32 text-center">2025-06-07</p>
+                                        </div>
+                                         <div class="flex justify-end items-baseline mt-2">
+                                            <span class="text-slate-600 mr-2">Amount</span>
+                                            <p id="preview-check-amount-box" class="border p-1 w-32 text-center font-semibold">**2,292.33</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center mt-4">
+                                    <span class="text-slate-600 mr-2">Pay To The Order Of</span>
+                                    <p id="preview-check-payee" class="border-b flex-1 pb-1 font-semibold">John Doe</p>
+                                </div>
+                                 <div class="flex items-center mt-4">
+                                    <p id="preview-check-amount-text" class="border-b flex-1 pb-1">Two thousand two hundred ninety-two and 33/100</p>
+                                    <span class="text-slate-600 ml-2">Dollars</span>
+                                </div>
+                                 <div class="flex justify-between items-end mt-4">
+                                    <div>
+                                        <span class="text-slate-600 block">Memo</span>
+                                        <div class="border-b w-64"></div>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-600 block text-center">Signature</span>
+                                        <div class="border-b w-64"></div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 text-center micr-font text-lg">
+                                    <p id="micr-line">C012345678C A987654321A 123456</p>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </aside>
+            </main>
+        </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Application Logic -->
+    <script src="app-integration.js" type="module" defer></script>
+    
+    <script>
+        // Inline script for basic wizard navigation.
+        // The full logic will be in app-integration.js
+        document.addEventListener('DOMContentLoaded', () => {
+            const steps = [document.getElementById('step-1'), document.getElementById('step-2'), document.getElementById('step-3')];
+            const navs = [document.getElementById('step-nav-1'), document.getElementById('step-nav-2'), document.getElementById('step-nav-3')];
+            const nextBtn = document.getElementById('next-btn');
+            const prevBtn = document.getElementById('prev-btn');
+            const generateBtn = document.getElementById('generate-btn');
+            let currentStep = 0;
+
+            function updateStepVisibility() {
+                steps.forEach((step, index) => {
+                    step.classList.toggle('hidden', index !== currentStep);
+                });
+                
+                // Update nav styles
+                navs.forEach((nav, index) => {
+                    const icon = nav.querySelector('svg');
+                    const number = nav.querySelector('span:not(.flex)');
+
+                    if (index < currentStep) { // Completed
+                        nav.classList.add('text-blue-600');
+                        nav.classList.remove('text-slate-500');
+                        if (icon) icon.outerHTML = `<svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/></svg>`;
+                         if (number) number.innerHTML = `<svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/></svg>`;
+
+                    } else if (index === currentStep) { // Active
+                        nav.classList.add('text-blue-600');
+                        nav.classList.remove('text-slate-500');
+                    } else { // Pending
+                        nav.classList.add('text-slate-500');
+                        nav.classList.remove('text-blue-600');
+                        if (number) number.innerText = index + 1;
+                    }
+                });
+
+                prevBtn.disabled = currentStep === 0;
+                nextBtn.classList.toggle('hidden', currentStep === steps.length - 1);
+                generateBtn.classList.toggle('hidden', currentStep !== steps.length - 1);
+            }
+
+            nextBtn.addEventListener('click', () => {
+                if (currentStep < steps.length - 1) {
+                    currentStep++;
+                    updateStepVisibility();
+                }
+            });
+
+            prevBtn.addEventListener('click', () => {
+                if (currentStep > 0) {
+                    currentStep--;
+                    updateStepVisibility();
+                }
+            });
+
+            updateStepVisibility();
+        });
+    </script>
+</body>
+</html>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BuellDocs Paystub Generator</title>
     <link rel="stylesheet" href="styles.css">

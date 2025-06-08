@@ -1,43 +1,168 @@
-/* --- Print Styles for BuellDocs v4 --- */
+/* PDF Print-Specific Styles */
 
-@media print {
-    /* Hide everything that isn't the preview */
-    body > *:not(#preview-container) {
-        display: none !important;
-    }
-    
-    /* Ensure the preview container takes up the full space */
-    #preview-container {
-        display: block !important;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        border: none;
-        box-shadow: none;
-    }
+@page {
+    size: A4;
+    margin: 0.5in;
+}
 
-    /* General print settings for clarity */
-    @page {
-        size: auto;
-        margin: 1cm;
-    }
+body {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 10pt;
+    color: #000000;
+    line-height: 1.4;
+    -webkit-print-color-adjust: exact; /* Ensures colors and backgrounds are printed */
+    print-color-adjust: exact;
+}
 
-    body {
-        background-color: #fff;
-        color: #000;
-        font-family: 'Times New Roman', Times, serif;
-    }
+/* Hide everything except the paystub content */
+body > *:not(#paystub-preview) {
+    display: none;
+}
 
-    /* Make sure the check and stub look good on paper */
-    .paystub, .check {
-        border: 1px solid #333 !important;
-        page-break-inside: avoid;
-    }
-    
-    .check {
-      margin-top: 20px;
-    }
+#paystub-preview {
+    display: block !important; /* Ensure it is visible for printing */
+    border: 1px solid #888;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+    border-radius: 0;
+    width: 100%;
+}
+
+/* Header Section */
+.print-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0.25in;
+    border-bottom: 2px solid #000;
+}
+
+.company-info-print, .employee-info-print {
+    width: 48%;
+}
+
+.company-info-print h1 {
+    font-size: 16pt;
+    font-weight: bold;
+    margin: 0;
+    padding: 0;
+}
+
+.company-info-print p, .employee-info-print p {
+    margin: 0;
+    padding: 0;
+    font-size: 10pt;
+}
+
+.employee-info-print p {
+    text-align: right;
+}
+
+/* Pay Period & Pay Date */
+.pay-details-print {
+    display: flex;
+    justify-content: space-around;
+    padding: 0.1in 0.25in;
+    border-bottom: 1px solid #888;
+    background-color: #f0f0f0;
+}
+
+.pay-details-print div {
+    text-align: center;
+}
+
+.pay-details-print .label {
+    font-size: 8pt;
+    text-transform: uppercase;
+    color: #555;
+}
+
+.pay-details-print .value {
+    font-size: 11pt;
+    font-weight: bold;
+}
+
+/* Tables: Earnings, Taxes, Deductions */
+.summary-grid-print {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.25in;
+    gap: 0.25in;
+}
+
+.print-table-container {
+    flex: 1;
+}
+
+.print-table-container h3 {
+    font-size: 12pt;
+    font-weight: bold;
+    margin: 0 0 0.1in 0;
+    border-bottom: 1px solid #444;
+    padding-bottom: 0.05in;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 0.05in 0.1in;
+    text-align: left;
+    vertical-align: top;
+}
+
+thead th {
+    font-size: 9pt;
+    font-weight: bold;
+    border-bottom: 2px solid #000;
+    background-color: #e9e9e9;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.earnings-table-print td:first-child,
+.deductions-table-print td:first-child {
+    width: 60%;
+}
+
+.taxes-table-print td:first-child {
+    width: 40%;
+}
+
+/* Totals and Summary */
+.totals-row td {
+    font-weight: bold;
+    border-top: 1px solid #888;
+    padding-top: 0.1in;
+}
+
+.net-pay-summary-print {
+    padding: 0.25in;
+    border-top: 2px solid #000;
+    margin-top: 0.25in;
+    text-align: right;
+}
+
+.net-pay-line {
+    font-size: 14pt;
+    font-weight: bold;
+}
+
+.net-pay-label {
+    margin-right: 1in;
+}
+
+/* Footer */
+.print-footer {
+    padding: 0.25in;
+    margin-top: 0.25in;
+    font-size: 8pt;
+    color: #555;
+    text-align: center;
+    border-top: 1px solid #ccc;
 }

@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Inconsolata&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="print.css" media="print">
-    <!-- jsPDF and html2canvas for PDF Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
@@ -21,7 +20,6 @@
         <main class="main-content">
             <div class="form-column">
                 <form id="paystub-form" autocomplete="off">
-                    <!-- Company Information -->
                     <fieldset>
                         <legend>Company Information</legend>
                         <div class="form-group">
@@ -34,7 +32,6 @@
                         </div>
                     </fieldset>
 
-                    <!-- Employee Information -->
                     <fieldset>
                         <legend>Employee Information</legend>
                          <div class="form-group">
@@ -51,7 +48,6 @@
                         </div>
                     </fieldset>
 
-                    <!-- Pay Period & Payday -->
                     <fieldset>
                          <legend>Pay Period & Payday</legend>
                          <div class="form-grid">
@@ -75,7 +71,6 @@
                          </div>
                     </fieldset>
 
-                    <!-- Earnings -->
                     <fieldset>
                         <legend>Current Earnings</legend>
                         <div class="form-grid">
@@ -102,7 +97,6 @@
                         </div>
                     </fieldset>
                     
-                    <!-- Year-to-Date -->
                     <fieldset>
                         <legend>Year-to-Date Totals (before this pay period)</legend>
                         <div class="form-grid ytd-grid">
@@ -117,7 +111,6 @@
                         </div>
                     </fieldset>
                     
-                    <!-- Tax Details -->
                     <fieldset>
                         <legend>Tax Details</legend>
                         <div class="form-group">
@@ -139,7 +132,6 @@
                 </div>
                 <div id="error-container" class="error-message" style="display: none;"></div>
                 <div id="preview-container">
-                    <!-- Paystub section -->
                     <div class="paystub">
                         <div class="stub-header">
                             <div><strong><span id="company-name-preview"></span></strong></div>
@@ -162,13 +154,11 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <!-- Earnings -->
                                     <tr class="section-header"><td colspan="3">Earnings</td></tr>
                                     <tr><td>Regular Pay</td><td id="regular-pay-current"></td><td>-</td></tr>
                                     <tr><td>Overtime Pay</td><td id="ot-pay-current"></td><td>-</td></tr>
                                     <tr><td>Bonus</td><td id="bonus-current"></td><td>-</td></tr>
                                     <tr class="total-row"><td>Gross Pay</td><td id="gross-pay-current"></td><td id="gross-pay-ytd"></td></tr>
-                                    <!-- Deductions -->
                                     <tr class="section-header"><td colspan="3">Deductions</td></tr>
                                     <tr><td>Federal Income Tax</td><td id="fed-tax-current"></td><td id="fed-tax-ytd"></td></tr>
                                     <tr><td>Social Security</td><td id="ss-tax-current"></td><td id="ss-tax-ytd"></td></tr>
@@ -184,7 +174,6 @@
                             <div>Net Pay: <span id="net-pay-current"></span></div>
                         </div>
                     </div>
-                    <!-- Check section -->
                     <div class="check">
                         <div class="check-header">
                             <div class="company-info">
@@ -223,6 +212,6 @@
         </main>
     </div>
 
-    <script type="module" src="script.js"></script>
+    <script type="module" src="script.js" defer></script>
 </body>
 </html>

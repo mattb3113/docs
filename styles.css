@@ -1,330 +1,341 @@
-/**
- * paystub-styles.css
- * Version: 1.0
- * Description: Professional styles for the BuellDocs Paystub Generator application.
- * This file provides a modern, corporate aesthetic for the user interface and a
- * visually authentic style for the paystub preview.
+/*
+ * ==========================================================================
+ * Consolidated Stylesheet
+ * Merged from: styles.css, css/main.css, print.css
+ * Date: 2025-06-08
+ * ==========================================================================
  */
 
-/* --- Google Font Imports --- */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+/* ==========================================================================
+   Font Faces & Imports
+   ========================================================================== */
 
-/* NOTE: The MICR E-13B font is highly specialized. For a true representation, you would
-  host a font file (e.g., in WOFF2 format) and link it here.
-  For this example, we will fall back to a standard monospace font if 'OCRAExtended' is not available.
-*/
+/*
+ * Fonts 'Inter' and 'Roboto Mono' are imported via <link> in the HTML <head>.
+ * <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+ */
+
 @font-face {
-  font-family: 'OCRAExtended'; /* As referenced in index.html */
-  /* src: url('/path/to/your/OCRAExtended.woff2') format('woff2'); */
-  /* If the font is not loaded, it will fall back to the specified monospace fonts below. */
+    font-family: 'OCR-B';
+    /* This path is relative to the project root where index.html is located. */
+    src: url('assets/fonts/ocrb.woff2') format('woff2');
+    /* Note: Ensure the font file exists at the specified path. */
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
 }
 
+/* ==========================================================================
+   Resets, Variables, and Base Styles
+   ========================================================================== */
 
-/* ---------------------------------- */
-/* --- ROOT & THEME VARIABLES --- */
-/* ---------------------------------- */
+/* Universal Box Sizing Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Color Scheme Variables for Light/Dark Mode */
 :root {
-    /* Color Palette */
-    --color-primary: #3b82f6; /* blue-500 */
-    --color-primary-hover: #2563eb; /* blue-600 */
-    --color-secondary: #6b7280; /* gray-500 */
-    --color-success: #16a34a; /* green-600 */
-    --color-danger: #dc2626; /* red-600 */
-    --color-bg-light: #f9fafb; /* gray-50 */
-    --color-bg-white: #ffffff;
-    --color-text-primary: #1f2937; /* gray-800 */
-    --color-text-secondary: #4b5563; /* gray-600 */
-    --color-border: #d1d5db; /* gray-300 */
-    --color-border-focus: var(--color-primary);
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-
-    /* Typography */
-    --font-sans: 'Inter', sans-serif;
-    --font-mono: 'Courier Prime', 'Courier New', monospace;
-    --font-micr: 'OCRAExtended', 'Courier New', monospace;
-
-    /* Sizing & Radius */
-    --border-radius: 0.5rem; /* 8px */
+    --bg-color: #f4f7f6;
+    --text-color: #333;
+    --card-bg: #ffffff;
+    --border-color: #ccc;
+    --input-bg: #fff;
+    --input-border: #ccc;
+    --primary-color: #005a9c;
+    --button-text-color: #fff;
+    --shadow-color: rgba(0,0,0,0.1);
 }
 
-/* ---------------------------------- */
-/* --- OVERALL APP STYLING --- */
-/* ---------------------------------- */
 body {
-    font-family: var(--font-sans);
-    background-color: var(--color-bg-light);
-    color: var(--color-text-primary);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    transition: background-color 0.3s, color 0.3s;
 }
 
-/* Clear typography hierarchy */
-h1, h2, h3, h4, h5, h6 {
-    font-weight: 600;
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+
+h1, h2, h3 {
+    margin-bottom: 0.75em;
+    font-weight: 700;
 }
 
-/* ---------------------------------- */
-/* --- FORM STYLING --- */
-/* ---------------------------------- */
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.3em; }
+h3 { font-size: 1.5rem; }
 
-/* Group form sections into cards */
-.form-section-card {
-    background-color: var(--color-bg-white);
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius);
-    padding: 1.5rem; /* 24px */
-    margin-bottom: 2rem; /* 32px */
-    box-shadow: var(--shadow-md);
+a {
+    color: var(--primary-color);
+    text-decoration: none;
 }
 
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem; /* 8px */
-    font-weight: 500;
-    color: var(--color-text-secondary);
+a:hover {
+    text-decoration: underline;
 }
 
-.form-group input[type="text"],
-.form-group input[type="number"],
-.form-group input[type="email"],
-.form-group input[type="date"],
-.form-group select,
-.form-group textarea {
-    display: block;
+.ocr-text, .form-input.ocr-text {
+    font-family: 'OCR-B', 'Roboto Mono', monospace;
+    font-size: 1.1em;
+    letter-spacing: 1px;
+}
+
+/* ==========================================================================
+   Main Layout & Wizard
+   ========================================================================== */
+
+.wizard-container {
     width: 100%;
-    padding: 0.75rem 1rem; /* 12px 16px */
-    font-size: 1rem;
-    color: var(--color-text-primary);
-    background-color: var(--color-bg-white);
-    border: 1px solid var(--color-border);
-    border-radius: 0.375rem; /* 6px */
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    max-width: 1400px;
+    display: grid;
+    grid-template-columns: 1fr 1.25fr;
+    gap: 30px;
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    transition: background-color 0.3s;
 }
 
-.form-group input:hover,
-.form-group select:hover,
-.form-group textarea:hover {
-    border-color: #a5b4fc; /* A lighter blue for hover */
+.form-column,
+.preview-column {
+    padding: 20px;
+    border-radius: 5px;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: var(--color-border-focus);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+.preview-column {
+    position: sticky;
+    top: 20px;
+    height: calc(100vh - 40px);
+    overflow-y: auto;
 }
 
-/* Validation states */
-.form-group input.is-valid,
-.form-group select.is-valid {
-    border-color: var(--color-success);
-}
-.form-group input.is-valid:focus,
-.form-group select.is-valid:focus {
-    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.3);
-}
-
-.form-group input.is-invalid,
-.form-group select.is-invalid {
-    border-color: var(--color-danger);
-}
-.form-group input.is-invalid:focus,
-.form-group select.is-invalid:focus {
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.3);
+/* Responsive Grid Layout */
+@media (max-width: 992px) {
+    .wizard-container {
+        grid-template-columns: 1fr;
+    }
+    .preview-column {
+        position: static;
+        height: auto;
+        margin-top: 30px;
+    }
 }
 
-/* Button styles */
-.btn {
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
+/* ==========================================================================
+   Forms & UI Controls
+   ========================================================================== */
+
+fieldset {
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+legend {
+    padding: 0 10px;
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 1.25rem;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
     font-weight: 600;
-    text-align: center;
-    border-radius: 0.375rem;
-    border: 1px solid transparent;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    transition: border-color 0.3s, background-color 0.3s;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 90, 156, 0.2);
+}
+
+button {
+    background-color: var(--primary-color);
+    color: var(--button-text-color);
+    border: none;
+    padding: 12px 20px;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+    transition: background-color 0.2s;
 }
 
-.btn-primary {
-    background-color: var(--color-primary);
-    color: var(--color-bg-white);
+button:hover {
+    background-color: #00416b;
 }
 
-.btn-primary:hover {
-    background-color: var(--color-primary-hover);
-}
-
-.btn:active {
-    transform: translateY(1px);
-}
-
-/* ---------------------------------- */
-/* --- PAYSTUB PREVIEW STYLING --- */
-/* ---------------------------------- */
+/* ==========================================================================
+   Paystub Preview
+   ========================================================================== */
 
 #paystub-preview {
-    background: var(--color-bg-white);
-    border: 2px dashed #9ca3af; /* gray-400 */
-    padding: 1.5rem;
-    box-shadow: var(--shadow-lg);
-    font-family: var(--font-mono); /* Monospace font for authentic feel */
-    position: relative;
-    overflow: hidden; /* Important for the overlay */
+    background: #fff;
+    color: #000;
+    padding: 40px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    font-family: 'Roboto Mono', monospace;
 }
 
-/* Paystub Table Styling */
+#paystub-preview .header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
 #paystub-preview table {
     width: 100%;
     border-collapse: collapse;
-    margin: 1.5rem 0;
-    font-size: 0.875rem; /* 14px */
+    margin-bottom: 20px;
+    font-size: 0.9rem;
 }
 
 #paystub-preview th,
 #paystub-preview td {
-    padding: 0.5rem 0.75rem; /* 8px 12px */
+    border: 1px solid #ccc;
+    padding: 8px;
     text-align: left;
-    border-bottom: 1px solid #e5e7eb; /* gray-200 */
 }
 
 #paystub-preview th {
-    font-weight: 700;
-    color: var(--color-text-secondary);
-    text-transform: uppercase;
-    font-size: 0.75rem; /* 12px */
-    letter-spacing: 0.05em;
+    background-color: #f2f2f2;
 }
 
-/* Align numeric columns to the right */
-#paystub-preview .col-rate,
-#paystub-preview .col-hours,
-#paystub-preview .col-current,
-#paystub-preview .col-ytd {
-    text-align: right;
-    font-variant-numeric: tabular-nums; /* Ensures numbers align vertically */
+#paystub-preview .totals-section td {
+    font-weight: bold;
 }
 
-/* Alternating row colors for readability */
-#paystub-preview tbody tr:nth-child(even) {
-    background-color: var(--color-bg-light);
+#paystub-preview .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
 }
 
-/* Summary Totals */
-#paystub-preview .summary-totals {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 2px solid var(--color-text-primary);
+/* ==========================================================================
+   Dark Mode Theme
+   ========================================================================== */
+
+body[data-theme="dark"] {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --card-bg: #1e1e1e;
+    --border-color: #444;
+    --input-bg: #2c2c2c;
+    --input-border: #555;
+    --primary-color: #58a6ff;
+    --button-text-color: #121212;
+    --shadow-color: rgba(255,255,255,0.05);
 }
 
-#paystub-preview .summary-totals .total-row {
-    display: flex;
-    justify-content: flex-end;
-    font-weight: 700;
-    font-size: 1rem;
-}
-#paystub-preview .summary-totals .total-row .label {
-    margin-right: 2rem;
+/* Keep the paystub preview looking like a white paper document in dark mode */
+body[data-theme="dark"] #paystub-preview {
+    background: #fff;
+    color: #000;
 }
 
-/* --- Void Pantograph Overlay --- */
-.void-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 10;
-    opacity: 0.08;
-    pointer-events: none; /* Allows interaction with elements underneath */
-    /* SVG created with a diagonal "VOID" text pattern */
-    background-image: url("data:image/svg+xml,%3Csvg width='150' height='150' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cstyle%3Etext%7Bfont-size:32px; font-weight:bold; fill:%23dc2626;%7D%3C/style%3E%3Ctext x='50' y='50' dominant-baseline='middle' text-anchor='middle' transform='rotate(-45 50 50)'%3EVOID%3C/text%3E%3C/svg%3E");
-    background-repeat: repeat;
+body[data-theme="dark"] #paystub-preview th {
+    background-color: #f2f2f2;
+    color: #000;
 }
 
-/* To be toggled with JavaScript */
-#paystub-preview.is-void .void-overlay {
-    display: block;
-}
-#paystub-preview:not(.is-void) .void-overlay {
-    display: none;
-}
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
 
+@media print {
+    @page {
+        size: letter;
+        margin: 0.75in;
+    }
 
-/* --- MICR Line Styling --- */
-.micr-line {
-    font-family: var(--font-micr);
-    font-size: 12pt; /* Standard MICR font size */
-    text-align: center;
-    margin-top: 1.5rem;
-    letter-spacing: 1px;
-}
+    body {
+        font-family: 'Roboto Mono', monospace;
+        background-color: #fff !important;
+        color: #000 !important;
+        margin: 0;
+        padding: 0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
 
-/* --- Check Portion --- */
-.check-portion {
-    border-top: 2px dashed #9ca3af;
-    margin-top: 2rem;
-    padding-top: 1.5rem;
-}
+    .wizard-container {
+        display: block; /* Change from grid to block for printing */
+        box-shadow: none;
+        border: none;
+        padding: 0;
+        width: 100%;
+        max-width: 100%;
+    }
 
-/* ---------------------------------- */
-/* --- MOBILE RESPONSIVENESS --- */
-/* ---------------------------------- */
+    /* Hide UI controls and form for printing */
+    .form-column,
+    button,
+    header,
+    footer,
+    .no-print {
+        display: none !important;
+    }
 
-@media (max-width: 768px) {
-    .main-grid {
-        grid-template-columns: 1fr;
+    .preview-column {
+        width: 100%;
+        float: none; /* Ensure no floating */
+        display: block;
+        padding: 0;
+        position: static;
+        height: auto;
+        overflow: visible;
     }
 
     #paystub-preview {
-        padding: 1rem;
+        border: 1px solid #999;
+        width: 100%;
+        max-width: 100%;
+        box-shadow: none;
+        margin: 0;
+        padding: 0; /* Page margins are handled by @page rule */
+        page-break-inside: avoid;
+        border-radius: 0;
     }
 
-    #paystub-preview table,
-    #paystub-preview thead,
-    #paystub-preview tbody,
+    #paystub-preview table {
+        font-size: 9pt;
+    }
+
     #paystub-preview th,
-    #paystub-preview td,
-    #paystub-preview tr {
-        display: block;
-    }
-
-    #paystub-preview thead tr {
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
-    }
-
-    #paystub-preview tr {
-        border: 1px solid var(--color-border);
-        border-radius: 0.25rem;
-        margin-bottom: 0.5rem;
-    }
-    
     #paystub-preview td {
-        border: none;
-        border-bottom: 1px solid #eee;
-        position: relative;
-        padding-left: 50%;
-        text-align: right !important; /* Force right alignment */
-    }
-
-    #paystub-preview td:before {
-        position: absolute;
-        top: 0.5rem;
-        left: 0.75rem;
-        width: 45%;
-        padding-right: 0.5rem;
-        white-space: nowrap;
-        text-align: left;
-        font-weight: bold;
-        color: var(--color-text-secondary);
-        content: attr(data-label); /* Use data-label for mobile headers */
-    }
-
-    .form-group {
-        /* Allow grid layout in forms to wrap nicely */
+        border: 1px solid #999;
     }
 }

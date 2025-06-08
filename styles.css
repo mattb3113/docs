@@ -1,214 +1,285 @@
-/*
-  styles.css
-  Main stylesheet for the Paystub Generator application.
-  This file contains the styles for the main form and user interface.
-  It uses a modern design approach, ensuring the application is clean,
-  responsive, and professional.
-*/
-
-/* -- Font and Body Styles -- */
+/* General Body and Layout Styles */
 body {
-  font-family: 'Inter', sans-serif;
-  background-color: #f8fafc; /* gray-50 */
-  color: #1f2937; /* gray-800 */
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    background-color: #f3f4f6;
+    color: #111827;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 2rem;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* -- Main Container -- */
 .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-  width: 100%;
+    width: 100%;
+    max-width: 1200px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
 }
 
-/* -- Header -- */
-header {
-  background-color: #ffffff;
-  border-bottom: 1px solid #e5e7eb; /* gray-200 */
-  padding: 1rem 0;
-  margin-bottom: 2rem;
+/* Form and Wizard Styles */
+.form-container {
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
 }
 
-header h1 {
-  font-size: 1.875rem; /* 30px */
-  font-weight: 700;
-  text-align: center;
-  color: #111827; /* gray-900 */
+h1 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.5rem;
 }
 
-/* -- Main Application Layout -- */
-main {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2rem;
+p {
+    color: #6b7280;
+    margin-bottom: 2rem;
 }
 
-#app-form {
-  flex: 1 1 500px; /* Flex-grow, flex-shrink, basis */
-  background-color: #ffffff;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
+/* Step Indicator */
+.step-indicator {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding: 0;
+    list-style: none;
 }
 
-#preview-container {
-  flex: 1 1 600px; /* Flex-grow, flex-shrink, basis */
-  background-color: #ffffff;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
-  position: sticky;
-  top: 2rem;
+.step {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    position: relative;
 }
 
-/* -- Section and Form Element Styling -- */
+.step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: calc(100% - 3rem);
+    height: 2px;
+    background-color: #d1d5db;
+    z-index: 0;
+}
+
+.step-number {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background-color: #ffffff;
+    color: #6b7280;
+    border: 2px solid #d1d5db;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+    position: relative;
+    z-index: 1;
+}
+
+.step-label {
+    margin-left: 0.75rem;
+    font-weight: 500;
+    color: #6b7280;
+    transition: color 0.3s;
+}
+
+.step.active .step-number {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    color: #ffffff;
+}
+
+.step.active .step-label {
+    color: #111827;
+    font-weight: 600;
+}
+
+.step.completed .step-number {
+    background-color: #10b981;
+    border-color: #10b981;
+    color: #ffffff;
+}
+.step.completed:not(:last-child)::after {
+    background-color: #10b981;
+}
+
+/* Form Section and Element Styles */
+.form-step {
+    display: none;
+}
+
+.form-step.active {
+    display: block;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .form-section {
-  margin-bottom: 2rem;
-  border-bottom: 1px solid #e5e7eb; /* gray-200 */
-  padding-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
-.form-section:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
-.form-section h2 {
-  font-size: 1.25rem; /* 20px */
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-  color: #111827; /* gray-900 */
+h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0.5rem;
 }
 
 .form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-}
-
-.form-field {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-field label {
-  font-size: 0.875rem; /* 14px */
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-  color: #374151; /* gray-700 */
-}
-
-.form-field input,
-.form-field select {
-  padding: 0.75rem 1rem;
-  border: 1px solid #d1d5db; /* gray-300 */
-  border-radius: 0.375rem;
-  font-size: 1rem;
-  color: #1f2937; /* gray-800 */
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.form-field input:focus,
-.form-field select:focus {
-  outline: none;
-  border-color: #3b82f6; /* blue-500 */
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
-}
-
-/* -- Dynamic Section Styling -- */
-.dynamic-section h3 {
-    font-size: 1.125rem; /* 18px */
-    font-weight: 600;
-    margin-bottom: 1rem;
-}
-
-.item {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
-    align-items: center;
-    margin-bottom: 1rem;
 }
 
-.item input {
-    flex-grow: 1;
+label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
 }
 
-/* -- Button Styling -- */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background-color: #ffffff;
+    font-size: 1rem;
+    color: #111827;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Navigation Buttons */
+.form-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2.5rem;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 1.5rem;
+}
+
 .btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 0.375rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  text-align: center;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
 }
 
-.btn-primary {
-  background-color: #3b82f6; /* blue-500 */
-  color: #ffffff;
-}
-
-.btn-primary:hover {
-  background-color: #2563eb; /* blue-600 */
+.btn:active {
+    transform: scale(0.98);
 }
 
 .btn-secondary {
-  background-color: #6b7280; /* gray-500 */
-  color: #ffffff;
+    background-color: #e5e7eb;
+    color: #374151;
 }
 
 .btn-secondary:hover {
-  background-color: #4b5563; /* gray-600 */
+    background-color: #d1d5db;
 }
 
-.btn-danger {
-  background-color: #ef4444; /* red-500 */
-  color: white;
-  padding: 0.5rem;
-  font-size: 0.75rem;
-  line-height: 1;
+.btn-primary {
+    background-color: #3b82f6;
+    color: #ffffff;
 }
 
-.btn-danger:hover {
-  background-color: #dc2626; /* red-600 */
+.btn-primary:hover {
+    background-color: #2563eb;
+}
+
+.btn-success {
+    background-color: #10b981;
+    color: #ffffff;
+}
+
+.btn-success:hover {
+    background-color: #059669;
 }
 
 
-.action-buttons {
-  display: flex;
-  justify-content: flex-start;
-  gap: 1rem;
-  margin-top: 2rem;
+/* Preview Area Styles */
+.preview-container {
+    background-color: #f9fafb;
+    padding: 2.5rem;
+    border-left: 1px solid #e5e7eb;
+    overflow-y: auto;
 }
 
-/* -- Paystub Preview -- */
 #paystub-preview {
-  border: 1px solid #e5e7eb; /* gray-200 */
-  border-radius: 0.5rem;
-  min-height: 500px;
-  overflow: auto;
-  padding: 2rem;
+    background-color: #ffffff;
+    padding: 2rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transform-origin: top center;
+    transition: transform 0.3s ease;
 }
 
+/* Utility and Helper Classes */
+.hidden {
+    display: none;
+}
 
-/* -- Responsive Design -- */
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .container {
+        grid-template-columns: 1fr;
+        max-width: 800px;
+    }
+    .preview-container {
+        border-left: none;
+        border-top: 1px solid #e5e7eb;
+    }
+}
+
 @media (max-width: 768px) {
-  main {
-    flex-direction: column;
-  }
-
-  #app-form, #preview-container {
-    width: 100%;
-  }
-
-  #preview-container {
-    position: static;
-  }
+    body {
+        padding: 1rem;
+    }
+    .container {
+        gap: 1rem;
+    }
+    .form-container, .preview-container {
+        padding: 1.5rem;
+    }
+    .step-label {
+        display: none;
+    }
+     .step:not(:last-child)::after {
+        width: calc(100% - 2.5rem);
+        left: 1.25rem;
+    }
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
 }

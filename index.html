@@ -32,819 +32,1066 @@
     </script>
     <style>
         /* A few minor style overrides for better presentation */
-        body { font-family: 'Inter', sans-serif; }
-        .font-display { font-family: 'Lexend', sans-serif; }
-        .form-group { margin-bottom: 1rem; }
-        .dynamic-row, .readonly-row { margin-bottom: 0.5rem; }
-        .dynamic-input-desc, .dynamic-input-rate, .dynamic-input-hours, .dynamic-input-current, .dynamic-input-ytd {
-            width: 100%;
-            padding: 0.5rem;
-            font-size: 0.875rem;
-            border: 1px solid #D1D5DB;
-            border-radius: 0.375rem;
-        }
-        .remove-row-btn {
-            background-color: #EF4444; color: white; border: none; border-radius: 9999px;
-            width: 1.5rem; height: 1.5rem; font-weight: bold; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .add-row-btn {
-            background-color: #22C55E; color: white; border: none; border-radius: 0.375rem;
-            padding: 0.5rem 1rem; font-weight: 500; cursor: pointer; margin-top: 0.5rem;
-        }
-        .tax-value-current, .tax-value-ytd {
-            display: block;
-            text-align: right;
-            padding-right: 0.5rem;
-            font-family: monospace;
-            font-size: 0.9rem;
-        }
-        .preview-container table { width: 100%; border-collapse: collapse; }
-        .preview-container th, .preview-container td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        /* Ensure inputs don't get browser default styling that overrides Tailwind */
-        input, select {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        .paystub-preview-container { min-height: 800px; }
+        /* Prevent ugly spinners on number inputs */
+        input[type='number']::-webkit-inner-spin-button,
+        input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type='number'] { -moz-appearance: textfield; }
+        /* Styling for the PDF output */
+        @media print {
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
     </style>
 </head>
 
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-gray-100">
 
-    <div class="container mx-auto p-4 lg:p-8">
-        
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-display font-bold text-gray-900">BuellDocs Pro Paystub Generator</h1>
-            <p class="mt-2 text-lg text-gray-600">Instantly create professional paystubs with accurate tax calculations.</p>
+    <div class="max-w-screen-2xl mx-auto p-4 sm:p-6 lg:p-8">
+        <!-- Header -->
+        <header class="mb-8">
+            <h1 class="font-display text-4xl font-bold text-slate-800">Paystub Generator <span class="text-indigo-600">Pro</span></h1>
+            <p class="text-lg text-slate-600 mt-1">Create, calculate, and download professional paystubs with ease.</p>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Left Side: Input Form -->
-            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg">
-                <form id="paystub-form">
-                    <!-- Company & Employee Info -->
-                    <div class="mb-6 border-b pb-4">
-                        <h3 class="text-xl font-display font-semibold mb-4 text-indigo-700">Company & Employee</h3>
-                        <div class="grid grid-cols-1 gap-4">
-                            <div class="form-group"><label for="companyName" class="block text-sm font-medium text-gray-700">Company Name</label><input type="text" id="companyName" value="Buell Consulting, Inc." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></div>
-                            <div class="form-group"><label for="employeeName" class="block text-sm font-medium text-gray-700">Employee Name</label><input type="text" id="employeeName" value="Matthew Buell" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></div>
-                        </div>
-                    </div>
-
-                    <!-- Pay Period & Dates -->
-                    <div class="mb-6 border-b pb-4">
-                         <h3 class="text-xl font-display font-semibold mb-4 text-indigo-700">Pay Period</h3>
-                         <div class="grid grid-cols-2 gap-4">
-                            <div class="form-group col-span-2"><label for="payFrequency" class="block text-sm font-medium text-gray-700">Pay Frequency</label><select id="payFrequency" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"><option>Bi-Weekly</option><option>Weekly</option><option>Semi-Monthly</option><option>Monthly</option></select></div>
-                            <div class="form-group"><label for="payPeriodStart" class="block text-sm font-medium text-gray-700">Period Start</label><input type="date" id="payPeriodStart" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></div>
-                            <div class="form-group"><label for="payPeriodEnd" class="block text-sm font-medium text-gray-700">Period End</label><input type="date" id="payPeriodEnd" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></div>
-                            <div class="form-group col-span-2"><label for="payDate" class="block text-sm font-medium text-gray-700">Pay Date</label><input type="date" id="payDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></div>
-                            <div class="form-group col-span-2"><label for="numPaystubs" class="block text-sm font-medium text-gray-700">Number of Paystubs</label><input type="number" id="numPaystubs" value="1" min="1" max="52" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></div>
-                         </div>
-                    </div>
-                     <!-- Tax Information -->
-                    <div class="mb-6 border-b pb-4">
-                        <h3 class="text-xl font-display font-semibold mb-4 text-indigo-700">Tax Information</h3>
-                        <div class="grid grid-cols-6 gap-4">
-                            <div class="form-group col-span-2">
-                                <label for="fedFilingStatus" class="block text-sm font-medium text-gray-700">Fed Filing Status</label>
-                                <select id="fedFilingStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                    <option>Single</option>
-                                    <option>Married</option>
-                                </select>
-                            </div>
-                            <div class="form-group col-span-2">
-                                <label for="fedAllowances" class="block text-sm font-medium text-gray-700">Federal Allowances</label>
-                                <input id="fedAllowances" type="number" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                            </div>
-                            <div class="form-group col-span-2">
-                                <label for="addlFedWithholding" class="block text-sm font-medium text-gray-700">Addl Fed Withholding ($)</label>
-                                <input id="addlFedWithholding" type="number" step="0.01" value="0.00" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                            </div>
-                            <div class="form-group col-span-3">
-                                <label for="state" class="block text-sm font-medium text-gray-700">State</label>
-                                <select id="state" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                    <option>NJ</option>
-                                </select>
-                            </div>
-                            <div class="form-group col-span-3">
-                                <label for="stateFilingStatus" class="block text-sm font-medium text-gray-700">State Filing Status</label>
-                                <select id="stateFilingStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                    <option value="A">A</option>
-                                    <option value="B" selected>B</option>
-                                    <option value="C">C</option>
-                                    <option value="D">D</option>
-                                    <option value="E">E</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Earnings -->
-                    <div class="mb-6 border-b pb-4">
-                        <h3 class="text-xl font-display font-semibold mb-2 text-indigo-700">Earnings</h3>
-                        <div class="grid grid-cols-12 gap-x-2 text-xs font-bold text-gray-500 mb-2">
-                            <div class="col-span-4">Description</div>
-                            <div class="col-span-2">Rate</div>
-                            <div class="col-span-2">Hours</div>
-                            <div class="col-span-3">Current Pay</div>
-                        </div>
-                        <div id="earnings-rows">
-                            <!-- Dynamic earnings rows will be injected here -->
-                            <div class="grid grid-cols-12 gap-x-2 items-center dynamic-row">
-                                <div class="col-span-4"><input type="text" value="Regular Pay" class="dynamic-input-desc"></div>
-                                <div class="col-span-2"><input type="number" step="0.01" value="31.25" class="dynamic-input-rate"></div>
-                                <div class="col-span-2"><input type="number" step="0.01" value="80" class="dynamic-input-hours"></div>
-                                <div class="col-span-3"><input type="text" disabled class="dynamic-input-current bg-gray-100"></div>
-                                <div class="col-span-1"><button class="remove-row-btn">X</button></div>
-                            </div>
-                            <div class="grid grid-cols-12 gap-x-2 items-center dynamic-row">
-                                <div class="col-span-4"><input type="text" value="Overtime Pay" class="dynamic-input-desc"></div>
-                                <div class="col-span-2"><input type="number" step="0.01" placeholder="Auto" class="dynamic-input-rate" data-rate-multiplier="1.5" readonly></div>
-                                <div class="col-span-2"><input type="number" step="0.01" placeholder="0" class="dynamic-input-hours"></div>
-                                <div class="col-span-3"><input type="text" disabled class="dynamic-input-current bg-gray-100"></div>
-                                <div class="col-span-1"><button class="remove-row-btn">X</button></div>
-                            </div>
-                            <div class="grid grid-cols-12 gap-x-2 items-center dynamic-row">
-                                <div class="col-span-4"><input type="text" value="PTO Pay" class="dynamic-input-desc"></div>
-                                <div class="col-span-2"><input type="number" step="0.01" placeholder="Auto" class="dynamic-input-rate" data-rate-multiplier="1.0" readonly></div>
-                                <div class="col-span-2"><input type="number" step="0.01" placeholder="0" class="dynamic-input-hours"></div>
-                                <div class="col-span-3"><input type="text" disabled class="dynamic-input-current bg-gray-100"></div>
-                                <div class="col-span-1"><button class="remove-row-btn">X</button></div>
-                            </div>
-                            <div class="grid grid-cols-12 gap-x-2 items-center dynamic-row">
-                                <div class="col-span-4"><input type="text" value="Bonus" class="dynamic-input-desc"></div>
-                                <div class="col-span-2"><input type="number" step="0.01" placeholder="N/A" class="dynamic-input-rate" disabled></div>
-                                <div class="col-span-2"><input type="number" step="0.01" placeholder="Amount" class="dynamic-input-hours"></div>
-                                <div class="col-span-3"><input type="text" disabled class="dynamic-input-current bg-gray-100"></div>
-                                <div class="col-span-1"><button class="remove-row-btn">X</button></div>
-                            </div>
-                            <div class="grid grid-cols-12 gap-x-2 items-center dynamic-row" data-nontaxable="true">
-                                <div class="col-span-4"><input type="text" value="Reimbursement" class="dynamic-input-desc"></div>
-                                <div class="col-span-2"><input type="number" step="0.01" placeholder="N/A" class="dynamic-input-rate" disabled></div>
-                                <div class="col-span-2"><input type="number" step="0.01" placeholder="Amount" class="dynamic-input-hours"></div>
-                                <div class="col-span-3"><input type="text" disabled class="dynamic-input-current bg-gray-100"></div>
-                                <div class="col-span-1"><button class="remove-row-btn">X</button></div>
-                            </div>
-                        </div>
-                        <button id="add-earning-btn" type="button" class="add-row-btn">Add Earning</button>
-                    </div>
-
-                    <!-- Deductions -->
-                    <div class="mb-6">
-                        <h3 class="text-xl font-display font-semibold mb-2 text-indigo-700">Deductions</h3>
-                        <div class="grid grid-cols-12 gap-x-2 text-xs font-bold text-gray-500 mb-2">
-                            <div class="col-span-5">Description</div>
-                            <div class="col-span-3">Current</div>
-                            <div class="col-span-3">YTD</div>
-                        </div>
-                        <div id="deductions-rows">
-                            <!-- Dynamic deductions rows will be injected here -->
-                            <div class="grid grid-cols-12 gap-x-2 items-center dynamic-row">
-                                <div class="col-span-5"><input type="text" value="Health Insurance" class="dynamic-input-desc"></div>
-                                <div class="col-span-3"><input type="number" step="0.01" value="150" class="dynamic-input-current"></div>
-                                <div class="col-span-3"><input type="number" step="0.01" value="3600" class="dynamic-input-ytd"></div>
-                                <div class="col-span-1"><button class="remove-row-btn">X</button></div>
-                            </div>
-                            <div class="grid grid-cols-12 gap-x-2 items-center dynamic-row">
-                                <div class="col-span-5"><input type="text" value="401k" class="dynamic-input-desc"></div>
-                                <div class="col-span-3"><input type="number" step="0.01" value="125" class="dynamic-input-current"></div>
-                                <div class="col-span-3"><input type="number" step="0.01" value="3000" class="dynamic-input-ytd"></div>
-                                <div class="col-span-1"><button class="remove-row-btn">X</button></div>
-                            </div>
-                            <div class="grid grid-cols-12 gap-x-2 items-center dynamic-row">
-                                <div class="col-span-5"><input type="text" value="Garnishment" class="dynamic-input-desc"></div>
-                                <div class="col-span-3"><input type="number" step="0.01" placeholder="0.00" class="dynamic-input-current"></div>
-                                <div class="col-span-3"><input type="number" step="0.01" placeholder="0.00" class="dynamic-input-ytd"></div>
-                                <div class="col-span-1"><button class="remove-row-btn">X</button></div>
-                            </div>
-                        </div>
-                        <button id="add-deduction-btn" type="button" class="add-row-btn">Add Deduction</button>
+        <!-- Main Content Layout -->
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Form Section -->
+            <aside class="lg:col-span-5 xl:col-span-4">
+                <div class="bg-white p-6 rounded-2xl shadow-sm sticky top-8">
+                    <form id="paystub-form" class="space-y-8">
                         
-                        <!-- Read-only tax rows -->
-                        <div class="mt-4 pt-4 border-t border-gray-200">
-                            <h4 class="text-sm font-semibold text-gray-500 col-span-12 mb-2">Taxes (Calculated)</h4>
-                             <div class="grid grid-cols-12 gap-x-2 items-center readonly-row py-1">
-                                <div class="col-span-5"><span class="text-sm text-gray-800">Federal Tax</span></div>
-                                <div class="col-span-3"><span data-id="federalTax" class="tax-value-current">0.00</span></div>
-                                <div class="col-span-3"><span data-id="federalTaxYtd" class="tax-value-ytd">0.00</span></div>
+                        <!-- Top-level controls: Batch Generation & Income Calculator -->
+                        <section>
+                             <h3 class="font-display text-lg font-semibold text-slate-800 border-b pb-3 mb-4">Controls</h3>
+                             <div class="space-y-4">
+                                <!-- Batch Generation -->
+                                <div class="form-group">
+                                   <label for="numPaystubs" class="block text-sm font-medium text-gray-700">Number of Paystubs (1-12)</label>
+                                   <input type="number" id="numPaystubs" name="numPaystubs" min="1" max="12" value="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" aria-label="Number of Paystubs">
+                                </div>
+                                <!-- Income Calculator -->
+                                <div class="form-group">
+                                    <label for="incomeType" class="block text-sm font-medium text-gray-700">Calculate Pay From</label>
+                                    <select id="incomeType" name="incomeType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" aria-label="Calculate Pay From">
+                                        <option value="manual" selected>Manual Entry Below</option>
+                                        <option value="annual">Annual Salary</option>
+                                    </select>
+                                </div>
+                                 <div class="form-group" id="income-amount-group" style="display: none;">
+                                    <label for="incomeAmount" class="block text-sm font-medium text-gray-700">Annual Salary Amount</label>
+                                    <div class="relative mt-1">
+                                      <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                                      <input type="number" id="incomeAmount" name="incomeAmount" placeholder="e.g., 65000" step="0.01" class="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" aria-label="Annual Salary Amount">
+                                    </div>
+                                </div>
+                             </div>
+                        </section>
+
+                        <!-- Paystub Dates -->
+                        <section>
+                            <h3 class="font-display text-lg font-semibold text-slate-800 border-b pb-3 mb-4">Pay Period Dates</h3>
+                            <div id="paystub-dates-container" class="space-y-4">
+                                <!-- Paystub date inputs will be generated here by JS -->
                             </div>
-                            <div class="grid grid-cols-12 gap-x-2 items-center readonly-row py-1">
-                                <div class="col-span-5"><span class="text-sm text-gray-800">Social Security</span></div>
-                                <div class="col-span-3"><span data-id="socialSecurity" class="tax-value-current">0.00</span></div>
-                                <div class="col-span-3"><span data-id="socialSecurityYtd" class="tax-value-ytd">0.00</span></div>
+                        </section>
+
+                        <!-- Business Information -->
+                        <section>
+                            <h3 class="font-display text-lg font-semibold text-slate-800 border-b pb-3 mb-4">Business Information</h3>
+                            <div class="space-y-4">
+                                <div class="form-group"><label for="businessName" class="block text-sm font-medium text-gray-700">Business Name</label><input type="text" id="businessName" value="Innovatech Solutions LLC" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></div>
+                                <div class="form-group"><label for="businessAddress" class="block text-sm font-medium text-gray-700">Business Address</label><input type="text" id="businessAddress" value="123 Innovation Drive, Tech City, CA 94105" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></div>
                             </div>
-                            <div class="grid grid-cols-12 gap-x-2 items-center readonly-row py-1">
-                                <div class="col-span-5"><span class="text-sm text-gray-800">Medicare</span></div>
-                                <div class="col-span-3"><span data-id="medicare" class="tax-value-current">0.00</span></div>
-                                <div class="col-span-3"><span data-id="medicareYtd" class="tax-value-ytd">0.00</span></div>
+                        </section>
+
+                        <!-- Employee Information -->
+                        <section>
+                            <h3 class="font-display text-lg font-semibold text-slate-800 border-b pb-3 mb-4">Employee Information</h3>
+                            <div class="space-y-4">
+                                <div class="form-group"><label for="employeeName" class="block text-sm font-medium text-gray-700">Employee Name</label><input type="text" id="employeeName" value="Alex Doe" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></div>
+                                <div class="form-group"><label for="employeeId" class="block text-sm font-medium text-gray-700">Employee ID</label><input type="text" id="employeeId" value="EMP-007" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></div>
                             </div>
-                            <div class="grid grid-cols-12 gap-x-2 items-center readonly-row py-1">
-                                <div class="col-span-5"><span class="text-sm text-gray-800">State Tax</span></div>
-                                <div class="col-span-3"><span data-id="stateTax" class="tax-value-current">0.00</span></div>
-                                <div class="col-span-3"><span data-id="stateTaxYtd" class="tax-value-ytd">0.00</span></div>
+                        </section>
+                        
+                        <!-- Pay Details -->
+                        <section>
+                             <h3 class="font-display text-lg font-semibold text-slate-800 border-b pb-3 mb-4">Pay Details</h3>
+                             <div class="grid grid-cols-2 gap-4">
+                                 <div class="form-group">
+                                    <label for="payPeriod" class="block text-sm font-medium text-gray-700">Pay Frequency</label>
+                                    <select id="payPeriod" name="payPeriod" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" aria-label="Pay Frequency">
+                                        <option value="weekly">Weekly</option>
+                                        <option value="bi-weekly" selected>Bi-Weekly</option>
+                                        <option value="semi-monthly">Semi-Monthly</option>
+                                        <option value="monthly">Monthly</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="taxYear" class="block text-sm font-medium text-gray-700">Tax Year</label>
+                                    <select id="taxYear" name="taxYear" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" aria-label="Tax Year">
+                                        <option value="2025">2025</option>
+                                        <option value="2024" selected>2024</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="filingStatus" class="block text-sm font-medium text-gray-700">Fed Filing Status</label>
+                                    <select id="filingStatus" name="filingStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" aria-label="Federal Filing Status">
+                                        <option value="single">Single</option>
+                                        <option value="married">Married Filing Jointly</option>
+                                        <option value="hoh">Head of Household</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="state" class="block text-sm font-medium text-gray-700">State</label>
+                                    <select id="state" name="state" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" aria-label="State"><!-- Populated by JS --></select>
+                                </div>
                             </div>
-                            <div class="grid grid-cols-12 gap-x-2 items-center readonly-row py-1">
-                                <div class="col-span-5"><span class="text-sm text-gray-800">NJ SUI</span></div>
-                                <div class="col-span-3"><span data-id="sui" class="tax-value-current">0.00</span></div>
-                                <div class="col-span-3"><span data-id="suiYtd" class="tax-value-ytd">0.00</span></div>
+                        </section>
+
+                        <!-- Earnings -->
+                        <section>
+                            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                                <h3 class="font-display text-lg font-semibold text-slate-800">Earnings</h3>
+                                <button type="button" id="add-earning" class="text-sm font-semibold text-indigo-600 hover:text-indigo-500" aria-label="Add new earning row">+ Add Earning</button>
                             </div>
-                            <div class="grid grid-cols-12 gap-x-2 items-center readonly-row py-1">
-                                <div class="col-span-5"><span class="text-sm text-gray-800">NJ SDI</span></div>
-                                <div class="col-span-3"><span data-id="sdi" class="tax-value-current">0.00</span></div>
-                                <div class="col-span-3"><span data-id="sdiYtd" class="tax-value-ytd">0.00</span></div>
+                            <div class="space-y-3" id="earnings-container">
+                                <!-- Headers -->
+                                <div class="grid grid-cols-12 gap-2 text-xs font-medium text-gray-500">
+                                    <label class="col-span-4" id="earning-desc-header">Description</label>
+                                    <label class="col-span-3 text-right" id="earning-rate-header">Rate</label>
+                                    <label class="col-span-2 text-right" id="earning-hours-header">Hours</label>
+                                    <label class="col-span-3 text-right" id="earning-ytd-header">YTD</label>
+                                </div>
+                                <!-- Dynamic earnings added here -->
                             </div>
-                            <div class="grid grid-cols-12 gap-x-2 items-center readonly-row py-1">
-                                <div class="col-span-5"><span class="text-sm text-gray-800">NJ FLI</span></div>
-                                <div class="col-span-3"><span data-id="fli" class="tax-value-current">0.00</span></div>
-                                <div class="col-span-3"><span data-id="fliYtd" class="tax-value-ytd">0.00</span></div>
+                        </section>
+                        
+                        <!-- Deductions -->
+                         <section>
+                            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                                <h3 class="font-display text-lg font-semibold text-slate-800">Deductions</h3>
+                                <button type="button" id="add-deduction" class="text-sm font-semibold text-indigo-600 hover:text-indigo-500" aria-label="Add new deduction row">+ Add Deduction</button>
                             </div>
+                            <div class="space-y-3" id="deductions-container">
+                                 <!-- Headers -->
+                                <div class="grid grid-cols-12 gap-2 text-xs font-medium text-gray-500">
+                                    <label class="col-span-6" id="deduction-desc-header">Description</label>
+                                    <label class="col-span-3 text-right" id="deduction-current-header">Current</label>
+                                    <label class="col-span-3 text-right" id="deduction-ytd-header">YTD</label>
+                                </div>
+                                <!-- Dynamic deductions added here -->
+                            </div>
+                        </section>
+
+                    </form>
+                </div>
+            </aside>
+
+            <!-- Preview Section -->
+            <section class="lg:col-span-7 xl:col-span-8">
+                <div class="sticky top-8">
+                    <!-- Preview Header and Actions -->
+                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
+                        <div class="flex items-center space-x-4 mb-4 sm:mb-0">
+                            <button id="prev-stub" aria-label="Previous paystub" class="p-2 rounded-md bg-white border border-gray-300 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                            </button>
+                             <span id="stub-nav-status" class="font-semibold text-gray-700 text-center w-24">Stub 1 of 1</span>
+                            <button id="next-stub" aria-label="Next paystub" class="p-2 rounded-md bg-white border border-gray-300 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                        <div class="w-full sm:w-auto">
+                            <div id="paypal-button-container" class="w-full min-h-[40px]"></div>
+                            <button id="download-pdf" disabled class="mt-2 w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition disabled:bg-gray-400 disabled:cursor-not-allowed">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                Pay and Download
+                            </button>
                         </div>
                     </div>
 
-                    <button type="submit" id="generate-stubs" class="w-full bg-green-600 text-white py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                        Generate Previews
-                    </button>
-
-                </form>
+                    <!-- Paystub Preview Area -->
+                    <div id="previews-container" class="bg-white rounded-2xl shadow-lg paystub-preview-container">
+                        <!-- Paystub previews will be generated and inserted here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer class="text-center mt-12 py-6">
+            <p class="text-sm text-gray-500">&copy; <span id="footer-year">2024</span> Paystub Generator Pro. All Rights Reserved.</p>
+        </footer>
+    </div>
+    
+    <!-- Paystub Template -->
+    <template id="paystub-template">
+        <div class="p-6 sm:p-8 lg:p-10 font-sans text-sm text-gray-800">
+            <!-- Header -->
+            <div class="text-center mb-6">
+                <h3 data-id="businessName" class="font-display text-2xl font-bold text-gray-900"></h3>
+                <p data-id="businessAddress" class="text-gray-600"></p>
+                <p class="mt-2 text-lg font-semibold text-gray-700 tracking-wider">EARNINGS STATEMENT</p>
             </div>
 
-            <!-- Right Side: Preview & Download -->
-            <div class="lg:col-span-2">
-                 <div class="bg-white p-6 rounded-xl shadow-lg sticky top-8">
-                     <h3 class="text-2xl font-display font-semibold mb-4 text-center text-indigo-700">Paystub Previews</h3>
-                     <div id="previews-container" class="preview-container bg-gray-100 p-4 rounded-lg border border-gray-200 min-h-[400px]">
-                         <!-- Previews will be rendered here -->
-                          <div class="p-10 text-center text-gray-500">
-                            Fill out the form and click "Generate Previews" to see your paystubs.
-                          </div>
-                     </div>
-                     <div id="preview-controls" class="hidden items-center justify-between mt-4">
-                        <button id="prev-stub" class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300">&lt; Prev</button>
-                        <span id="stub-counter" class="text-sm font-medium"></span>
-                        <button id="next-stub" class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300">Next &gt;</button>
-                     </div>
+            <!-- Info Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 border-t border-b border-gray-200 py-4 mb-6">
+                <div>
+                    <strong class="font-semibold text-gray-600">EMPLOYEE</strong>
+                    <div class="mt-1">
+                        <span data-id="employeeName"></span><br>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-x-4">
+                    <div>
+                        <strong class="font-semibold text-gray-600">EMPLOYEE ID</strong>
+                        <p data-id="employeeId" class="mt-1"></p>
+                    </div>
+                     <div>
+                        <strong class="font-semibold text-gray-600">PAY DATE</strong>
+                        <p data-id="payDate" class="mt-1"></p>
+                    </div>
+                     <div>
+                        <strong class="font-semibold text-gray-600">PAY PERIOD</strong>
+                        <p data-id="payPeriodRange" class="mt-1"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tables Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                <!-- Earnings Table -->
+                <div class="md:col-span-2">
+                    <h4 class="font-display text-lg font-semibold text-gray-800 mb-2">Earnings</h4>
+                    <table class="w-full" data-id="earnings-table" role="table">
+                        <thead class="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider">
+                            <tr>
+                                <th scope="col" class="p-3 font-medium">Description</th>
+                                <th scope="col" class="p-3 font-medium text-right">Rate</th>
+                                <th scope="col" class="p-3 font-medium text-right">Hours</th>
+                                <th scope="col" class="p-3 font-medium text-right">Current</th>
+                                <th scope="col" class="p-3 font-medium text-right">YTD</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200"></tbody>
+                        <tfoot class="bg-gray-50 font-semibold">
+                            <tr>
+                                <td scope="row" colspan="3" class="p-3">Gross Pay</td>
+                                <td class="p-3 text-right" data-id="currentGrossPay"></td>
+                                <td class="p-3 text-right" data-id="ytdGrossPay"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
 
-                    <div class="mt-6 text-center">
-                        <button id="download-pdf" disabled class="w-full bg-indigo-600 text-white py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Pay &amp; Download PDF
-                        </button>
-                        <div id="paypal-button-container" class="mt-6 hidden"></div>
+                <!-- Deductions Table -->
+                <div>
+                    <h4 class="font-display text-lg font-semibold text-gray-800 mb-2">Deductions</h4>
+                    <table class="w-full" data-id="deductions-table" role="table">
+                        <thead class="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider">
+                            <tr>
+                                <th scope="col" class="p-3 font-medium">Description</th>
+                                <th scope="col" class="p-3 font-medium text-right">Current</th>
+                                <th scope="col" class="p-3 font-medium text-right">YTD</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200"></tbody>
+                        <tfoot class="bg-gray-50 font-semibold">
+                            <tr>
+                                <td scope="row" class="p-3">Total Deductions</td>
+                                <td class="p-3 text-right" data-id="currentTotalDeductions"></td>
+                                <td class="p-3 text-right" data-id="ytdTotalDeductions"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Taxes Table -->
+                <div>
+                    <h4 class="font-display text-lg font-semibold text-gray-800 mb-2">Taxes</h4>
+                    <table class="w-full" data-id="taxes-table" role="table">
+                         <thead class="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider">
+                            <tr>
+                                <th scope="col" class="p-3 font-medium">Description</th>
+                                <th scope="col" class="p-3 font-medium text-right">Current</th>
+                                <th scope="col" class="p-3 font-medium text-right">YTD</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200"></tbody>
+                        <tfoot class="bg-gray-50 font-semibold">
+                            <tr>
+                                <td scope="row" class="p-3">Total Taxes</td>
+                                <td class="p-3 text-right" data-id="currentTotalTaxes"></td>
+                                <td class="p-3 text-right" data-id="ytdTotalTaxes"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <!-- Employer Contributions Table -->
+                <div class="md:col-span-2">
+                    <h4 class="font-display text-lg font-semibold text-gray-800 mb-2">Employer Contributions</h4>
+                    <table class="w-full" data-id="employer-taxes-table" role="table">
+                         <thead class="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider">
+                            <tr>
+                                <th scope="col" class="p-3 font-medium">Description</th>
+                                <th scope="col" class="p-3 font-medium text-right">Current</th>
+                                <th scope="col" class="p-3 font-medium text-right">YTD</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Summary Section -->
+            <div class="bg-slate-800 text-white rounded-lg p-6 mt-4">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                    <div class="summary-item">
+                        <strong class="block text-sm opacity-80 font-normal">Gross Pay</strong>
+                        <span data-id="summary-grossPay" class="text-xl font-semibold"></span>
+                    </div>
+                    <div class="summary-item">
+                        <strong class="block text-sm opacity-80 font-normal">Deductions</strong>
+                        <span data-id="summary-totalDeductions" class="text-xl font-semibold"></span>
+                    </div>
+                     <div class="summary-item">
+                        <strong class="block text-sm opacity-80 font-normal">Taxes</strong>
+                        <span data-id="summary-totalTaxes" class="text-xl font-semibold"></span>
+                    </div>
+                    <div class="summary-item">
+                        <strong class="block text-sm text-indigo-300 font-semibold">NET PAY</strong>
+                        <span data-id="summary-netPay" class="text-3xl font-bold text-white"></span>
                     </div>
                 </div>
             </div>
         </div>
+    </template>
 
-        <footer class="text-center mt-12 py-6 border-t border-gray-200">
-            <p class="text-sm text-gray-500">&copy; <span id="footer-year"></span> BuellDocs. All Rights Reserved.</p>
-        </footer>
-    </div>
-    
-    <script src="https://www.paypal.com/sdk/js?client-id=CLIENT_ID&currency=USD"></script>
+    <!-- PayPal SDK -->
+    <script src="https://www.paypal.com/sdk/js?client-id=REPLACE_WITH_ENV_VAR&currency=USD&components=buttons"></script>
+
     <script>
-    // Self-executing anonymous function to encapsulate the application logic
+    // This script combines all necessary logic for the paystub generator.
+    // It's structured into classes for better organization and maintainability.
     (function() {
         'use strict';
-        // --- NAMESPACE ---
+
+        // --- GLOBAL APP OBJECT ---
         const App = {};
 
-        // --- UTILITIES ---
-        App.PrecisionMath = {
-            add: (a, b) => parseFloat((Number(a) + Number(b)).toFixed(10)),
-            subtract: (a, b) => parseFloat((Number(a) - Number(b)).toFixed(10)),
-            multiply: (a, b) => parseFloat((Number(a) * Number(b)).toFixed(10)),
-            round: (num, places) => Number(Math.round(num + 'e' + places) + 'e-' + places)
+        // --- DATA STORE ---
+        // Contains tax information. In a real-world app, this might be fetched from a server.
+        const taxTablesData = {
+            "2024": {
+                "federal": {
+                    "single": { "brackets": [{ "rate": 0.10, "upto": 11600 }, { "rate": 0.12, "upto": 47150 }, { "rate": 0.22, "upto": 100525 }, { "rate": 0.24, "upto": 191950 }, { "rate": 0.32, "upto": 243725 }, { "rate": 0.35, "upto": 609350 }, { "rate": 0.37, "upto": Infinity }], "deduction": 14600 },
+                    "married": { "brackets": [{ "rate": 0.10, "upto": 23200 }, { "rate": 0.12, "upto": 94300 }, { "rate": 0.22, "upto": 201050 }, { "rate": 0.24, "upto": 383900 }, { "rate": 0.32, "upto": 487450 }, { "rate": 0.35, "upto": 731200 }, { "rate": 0.37, "upto": Infinity }], "deduction": 29200 },
+                    "hoh": { "brackets": [{ "rate": 0.10, "upto": 16550 }, { "rate": 0.12, "upto": 63100 }, { "rate": 0.22, "upto": 100500 }, { "rate": 0.24, "upto": 191950 }, { "rate": 0.32, "upto": 243700 }, { "rate": 0.35, "upto": 609350 }, { "rate": 0.37, "upto": Infinity }], "deduction": 21900 }
+                },
+                "fica": { "social_security_rate": 0.062, "social_security_limit": 168600, "medicare_rate": 0.0145 },
+                "futa": { "rate": 0.00, "wage_base": 7000 },
+                "states": { "AL": { "name": "Alabama", "single": { "brackets": [{ "rate": 0.02, "upto": 500 }, { "rate": 0.04, "upto": 3000 }, { "rate": 0.05, "upto": Infinity }] } }, "AK": { "name": "Alaska", "single": { "brackets": [] } }, "AZ": { "name": "Arizona", "single": { "brackets": [{ "rate": 0.025, "upto": Infinity }] } }, "AR": { "name": "Arkansas", "single": { "brackets": [{ "rate": 0.02, "upto": 24299 }, { "rate": 0.04, "upto": 87000 }, { "rate": 0.049, "upto": Infinity }] } }, "CA": { "name": "California", "single": { "brackets": [{ "rate": 0.01, "upto": 10412 }, { "rate": 0.02, "upto": 24684 }, { "rate": 0.04, "upto": 38959 }, { "rate": 0.06, "upto": 54081 }, { "rate": 0.08, "upto": 68350 }, { "rate": 0.093, "upto": 349137 }, { "rate": 0.103, "upto": 418961 }, { "rate": 0.113, "upto": 698271 }, { "rate": 0.123, "upto": Infinity }] } }, "CO": { "name": "Colorado", "single": { "brackets": [{ "rate": 0.044, "upto": Infinity }] } }, "CT": { "name": "Connecticut", "single": { "brackets": [{ "rate": 0.03, "upto": 10000 }, { "rate": 0.05, "upto": 50000 }, { "rate": 0.055, "upto": 100000 }, { "rate": 0.06, "upto": 200000 }, { "rate": 0.065, "upto": 250000 }, { "rate": 0.069, "upto": 500000 }, { "rate": 0.0699, "upto": Infinity }] } }, "DE": { "name": "Delaware", "single": { "brackets": [{ "rate": 0.022, "upto": 5000 }, { "rate": 0.039, "upto": 10000 }, { "rate": 0.048, "upto": 20000 }, { "rate": 0.052, "upto": 25000 }, { "rate": 0.0555, "upto": 60000 }, { "rate": 0.066, "upto": Infinity }] } }, "FL": { "name": "Florida", "single": { "brackets": [] } }, "GA": { "name": "Georgia", "single": { "brackets": [{ "rate": 0.0549, "upto": Infinity }] } }, "HI": { "name": "Hawaii", "single": { "brackets": [{ "rate": 0.014, "upto": 2400 }, { "rate": 0.032, "upto": 4800 }, { "rate": 0.055, "upto": 9600 }, { "rate": 0.064, "upto": 14400 }, { "rate": 0.068, "upto": 19200 }, { "rate": 0.072, "upto": 24000 }, { "rate": 0.076, "upto": 36000 }, { "rate": 0.079, "upto": 48000 }, { "rate": 0.0825, "upto": 150000 }, { "rate": 0.09, "upto": 175000 }, { "rate": 0.1, "upto": 200000 }, { "rate": 0.11, "upto": Infinity }] } }, "ID": { "name": "Idaho", "single": { "brackets": [{ "rate": 0.058, "upto": Infinity }] } }, "IL": { "name": "Illinois", "single": { "brackets": [{ "rate": 0.0495, "upto": Infinity }] } }, "IN": { "name": "Indiana", "single": { "brackets": [{ "rate": 0.0315, "upto": Infinity }] } }, "IA": { "name": "Iowa", "single": { "brackets": [{ "rate": 0.057, "upto": Infinity }] } }, "KS": { "name": "Kansas", "single": { "brackets": [{ "rate": 0.031, "upto": 15000 }, { "rate": 0.0525, "upto": 30000 }, { "rate": 0.057, "upto": Infinity }] } }, "KY": { "name": "Kentucky", "single": { "brackets": [{ "rate": 0.045, "upto": Infinity }] } }, "LA": { "name": "Louisiana", "single": { "brackets": [{ "rate": 0.0185, "upto": 12500 }, { "rate": 0.037, "upto": 50000 }, { "rate": 0.0425, "upto": Infinity }] } }, "ME": { "name": "Maine", "single": { "brackets": [{ "rate": 0.058, "upto": 24500 }, { "rate": 0.0675, "upto": 58050 }, { "rate": 0.0715, "upto": Infinity }] } }, "MD": { "name": "Maryland", "single": { "brackets": [{ "rate": 0.02, "upto": 1000 }, { "rate": 0.03, "upto": 2000 }, { "rate": 0.04, "upto": 3000 }, { "rate": 0.0475, "upto": 100000 }, { "rate": 0.05, "upto": 125000 }, { "rate": 0.0525, "upto": 150000 }, { "rate": 0.055, "upto": 250000 }, { "rate": 0.0575, "upto": Infinity }] } }, "MA": { "name": "Massachusetts", "single": { "brackets": [{ "rate": 0.05, "upto": Infinity }] } }, "MI": { "name": "Michigan", "single": { "brackets": [{ "rate": 0.0425, "upto": Infinity }] } }, "MN": { "name": "Minnesota", "single": { "brackets": [{ "rate": 0.0535, "upto": 30070 }, { "rate": 0.068, "upto": 98750 }, { "rate": 0.0785, "upto": 183340 }, { "rate": 0.0985, "upto": Infinity }] } }, "MS": { "name": "Mississippi", "single": { "brackets": [{ "rate": 0.04, "upto": 5000 }, { "rate": 0.05, "upto": Infinity }] } }, "MO": { "name": "Missouri", "single": { "brackets": [{ "rate": 0.0495, "upto": Infinity }] } }, "MT": { "name": "Montana", "single": { "brackets": [{ "rate": 0.047, "upto": 20500 }, { "rate": 0.059, "upto": Infinity }] } }, "NE": { "name": "Nebraska", "single": { "brackets": [{ "rate": 0.0246, "upto": 3220 }, { "rate": 0.0351, "upto": 19340 }, { "rate": 0.0501, "upto": 32230 }, { "rate": 0.0664, "upto": Infinity }] } }, "NV": { "name": "Nevada", "single": { "brackets": [] } }, "NH": { "name": "New Hampshire", "single": { "brackets": [] } }, "NJ": { "name": "New Jersey", "single": { "brackets": [{ "rate": 0.014, "upto": 20000 }, { "rate": 0.0175, "upto": 35000 }, { "rate": 0.035, "upto": 40000 }, { "rate": 0.05525, "upto": 75000 }, { "rate": 0.0637, "upto": 500000 }, { "rate": 0.0897, "upto": 1000000 }, { "rate": 0.1075, "upto": Infinity }] } }, "NM": { "name": "New Mexico", "single": { "brackets": [{ "rate": 0.017, "upto": 5500 }, { "rate": 0.032, "upto": 11000 }, { "rate": 0.049, "upto": 16000 }, { "rate": 0.059, "upto": Infinity }] } }, "NY": { "name": "New York", "single": { "brackets": [{ "rate": 0.04, "upto": 8500 }, { "rate": 0.045, "upto": 11700 }, { "rate": 0.0525, "upto": 13900 }, { "rate": 0.055, "upto": 80650 }, { "rate": 0.06, "upto": 215400 }, { "rate": 0.0685, "upto": 1077550 }, { "rate": 0.0965, "upto": 5000000 }, { "rate": 0.103, "upto": 25000000 }, { "rate": 0.109, "upto": Infinity }] } }, "NC": { "name": "North Carolina", "single": { "brackets": [{ "rate": 0.0475, "upto": Infinity }] } }, "ND": { "name": "North Dakota", "single": { "brackets": [{ "rate": 0.011, "upto": 44725 }, { "rate": 0.0204, "upto": 90425 }, { "rate": 0.0227, "upto": 222525 }, { "rate": 0.0264, "upto": 473975 }, { "rate": 0.029, "upto": Infinity }] } }, "OH": { "name": "Ohio", "single": { "brackets": [{ "rate": 0.02765, "upto": 26050 }, { "rate": 0.03226, "upto": 100000 }, { "rate": 0.03688, "upto": Infinity }] } }, "OK": { "name": "Oklahoma", "single": { "brackets": [{ "rate": 0.005, "upto": 1000 }, { "rate": 0.01, "upto": 2500 }, { "rate": 0.02, "upto": 3750 }, { "rate": 0.03, "upto": 4900 }, { "rate": 0.04, "upto": 7200 }, { "rate": 0.0475, "upto": Infinity }] } }, "OR": { "name": "Oregon", "single": { "brackets": [{ "rate": 0.0475, "upto": 3750 }, { "rate": 0.0675, "upto": 9450 }, { "rate": 0.0875, "upto": 125000 }, { "rate": 0.099, "upto": Infinity }] } }, "PA": { "name": "Pennsylvania", "single": { "brackets": [{ "rate": 0.0307, "upto": Infinity }] } }, "RI": { "name": "Rhode Island", "single": { "brackets": [{ "rate": 0.0375, "upto": 68250 }, { "rate": 0.0475, "upto": 155050 }, { "rate": 0.0599, "upto": Infinity }] } }, "SC": { "name": "South Carolina", "single": { "brackets": [{ "rate": 0.03, "upto": 3210 }, { "rate": 0.065, "upto": Infinity }] } }, "SD": { "name": "South Dakota", "single": { "brackets": [] } }, "TN": { "name": "Tennessee", "single": { "brackets": [] } }, "TX": { "name": "Texas", "single": { "brackets": [] } }, "UT": { "name": "Utah", "single": { "brackets": [{ "rate": 0.0465, "upto": Infinity }] } }, "VT": { "name": "Vermont", "single": { "brackets": [{ "rate": 0.0335, "upto": 45300 }, { "rate": 0.066, "upto": 109800 }, { "rate": 0.076, "upto": 229300 }, { "rate": 0.0875, "upto": Infinity }] } }, "VA": { "name": "Virginia", "single": { "brackets": [{ "rate": 0.02, "upto": 3000 }, { "rate": 0.03, "upto": 5000 }, { "rate": 0.05, "upto": 17000 }, { "rate": 0.0575, "upto": Infinity }] } }, "WA": { "name": "Washington", "single": { "brackets": [] } }, "WV": { "name": "West Virginia", "single": { "brackets": [{ "rate": 0.0236, "upto": 10000 }, { "rate": 0.0315, "upto": 25000 }, { "rate": 0.0354, "upto": 40000 }, { "rate": 0.0472, "upto": 60000 }, { "rate": 0.0512, "upto": Infinity }] } }, "WI": { "name": "Wisconsin", "single": { "brackets": [{ "rate": 0.0354, "upto": 13600 }, { "rate": 0.0465, "upto": 27210 }, { "rate": 0.053, "upto": 300090 }, { "rate": 0.0765, "upto": Infinity }] } }, "WY": { "name": "Wyoming", "single": { "brackets": [] } } }
+            }
+        };
+        // Add 2025 data, referencing 2024 state data. This is a simplification; in reality, state data changes too.
+        taxTablesData["2025"] = JSON.parse(JSON.stringify(taxTablesData["2024"])); // Deep copy
+        taxTablesData["2025"].federal = {
+            "single": { "brackets": [{ "rate": 0.10, "upto": 12000 }, { "rate": 0.12, "upto": 48500 }, { "rate": 0.22, "upto": 103500 }, { "rate": 0.24, "upto": 197500 }, { "rate": 0.32, "upto": 250000 }, { "rate": 0.35, "upto": 625000 }, { "rate": 0.37, "upto": Infinity }], "deduction": 15000 },
+            "married": { "brackets": [{ "rate": 0.10, "upto": 24000 }, { "rate": 0.12, "upto": 97000 }, { "rate": 0.22, "upto": 207000 }, { "rate": 0.24, "upto": 395000 }, { "rate": 0.32, "upto": 500000 }, { "rate": 0.35, "upto": 750000 }, { "rate": 0.37, "upto": Infinity }], "deduction": 30000 },
+            "hoh": { "brackets": [{ "rate": 0.10, "upto": 17000 }, { "rate": 0.12, "upto": 65000 }, { "rate": 0.22, "upto": 103500 }, { "rate": 0.24, "upto": 197500 }, { "rate": 0.32, "upto": 250000 }, { "rate": 0.35, "upto": 625000 }, { "rate": 0.37, "upto": Infinity }], "deduction": 22500 }
+        };
+        taxTablesData["2025"].fica.social_security_limit = 175000;
+
+
+        // --- UTILS ---
+        const pMath = {
+            add: (...nums) => nums.reduce((a, b) => a + b, 0),
+            subtract: (a, b) => a - b,
+            multiply: (a, b) => a * b,
+            divide: (a, b) => (b === 0 ? 0 : a / b),
+            round: (num) => Math.round(num * 100) / 100
+        };
+        App.pMath = pMath;
+
+        const formatDate = (dateString) => {
+            if (!dateString) return '';
+            const date = new Date(dateString + 'T00:00:00'); // Treat as local time to prevent timezone shifts
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
         };
         
-        // --- TAX DATA (Simplified) ---
-        // In a real app, this would be fetched from a server or a more robust data module.
-        App.TaxData = {
-            federal: {
-                '2024': {
-                    socialSecurity: { rate: 0.062, limit: 168600 },
-                    medicare: { rate: 0.0145, highIncomeThreshold: 200000, highIncomeRate: 0.009 },
-                    taxBrackets: {
-                        single: [
-                            { from: 0, upTo: 11600, rate: 0.10 },
-                            { from: 11600, upTo: 47150, rate: 0.12 },
-                            { from: 47150, upTo: 100525, rate: 0.22 },
-                            { from: 100525, upTo: 191950, rate: 0.24 },
-                        ],
-                        married: [
-                            { from: 0, upTo: 23200, rate: 0.10 },
-                            { from: 23200, upTo: 94300, rate: 0.12 },
-                            { from: 94300, upTo: 201050, rate: 0.22 },
-                            { from: 201050, upTo: 383900, rate: 0.24 },
-                        ]
-                    }
+        const formatCurrency = (amount) => `$${(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+        // --- DATA SERVICE ---
+        class DataService {
+            getTaxTables(year) { return Promise.resolve(taxTablesData[year] || null); }
+            getAllStateNames() {
+                const yearData = taxTablesData['2024'];
+                if (!yearData || !yearData.states) return {};
+                const states = {};
+                for (const abbr in yearData.states) {
+                    states[abbr] = yearData.states[abbr].name;
                 }
-            },
-            state: {
-                'NJ': {
-                    '2024': {
-                        sui: { rate: 0.00425, limit: 42300 },
-                        sdi: { rate: 0.000, limit: 42300 }, // Rate is 0% for 2024
-                        fli: { rate: 0.0006, limit: 161400 },
-                        taxBrackets: {
-                            'A': [{ from: 0, upTo: 20000, rate: 0.015054 }, { from: 20000, upTo: 35000, rate: 0.020313 }, { from: 35000, upTo: 40000, rate: 0.030586 }, { from: 40000, upTo: 75000, rate: 0.056077 }],
-                            'B': [{ from: 0, upTo: 20000, rate: 0.015054 }, { from: 20000, upTo: 50000, rate: 0.020313 }, { from: 50000, upTo: 70000, rate: 0.027469 }, { from: 70000, upTo: 80000, rate: 0.038169 }],
-                            'C': [{ from: 0, upTo: 25000, rate: 0.015054 }, { from: 25000, upTo: 55000, rate: 0.020313 }, { from: 55000, upTo: 75000, rate: 0.027469 }],
-                            'D': [{ from: 0, upTo: 35000, rate: 0.015054 }, { from: 35000, upTo: 60000, rate: 0.020313 }],
-                            'E': [{ from: 0, upTo: Infinity, rate: 0.015054 }],
-                        }
-                    }
-                }
-            }
-        };
-
-        // --- FORM MANAGER ---
-        class FormManager {
-            constructor() {
-                this.form = document.getElementById('paystub-form');
-                this.setupDateDefaults();
-                this.setupDynamicRows();
-            }
-
-            setupDateDefaults() {
-                const today = new Date();
-                const endDate = today.toISOString().split('T')[0];
-                document.getElementById('payDate').value = endDate;
-
-                const freq = document.getElementById('payFrequency').value;
-                const startDate = new Date(today);
-                if (freq === 'Bi-Weekly') startDate.setDate(today.getDate() - 13);
-                else if (freq === 'Weekly') startDate.setDate(today.getDate() - 6);
-                
-                document.getElementById('payPeriodEnd').value = endDate;
-                document.getElementById('payPeriodStart').value = startDate.toISOString().split('T')[0];
-            }
-            
-            setupDynamicRows() {
-                document.getElementById('add-earning-btn').addEventListener('click', () => this.addEarningRow());
-                document.getElementById('add-deduction-btn').addEventListener('click', () => this.addDeductionRow());
-                
-                // Add event listeners for dynamically added remove buttons
-                document.getElementById('earnings-rows').addEventListener('click', e => {
-                    if (e.target.classList.contains('remove-row-btn')) e.target.closest('.dynamic-row').remove();
-                });
-                document.getElementById('deductions-rows').addEventListener('click', e => {
-                    if (e.target.classList.contains('remove-row-btn')) e.target.closest('.dynamic-row').remove();
-                });
-            }
-
-            addEarningRow() {
-                const row = document.createElement('div');
-                row.className = 'grid grid-cols-12 gap-x-2 items-center dynamic-row';
-                row.innerHTML = `
-                    <div class="col-span-4"><input type="text" placeholder="e.g., Commission" class="dynamic-input-desc"></div>
-                    <div class="col-span-2"><input type="number" step="0.01" placeholder="Rate" class="dynamic-input-rate"></div>
-                    <div class="col-span-2"><input type="number" step="0.01" placeholder="Hours" class="dynamic-input-hours"></div>
-                    <div class="col-span-3"><input type="text" disabled class="dynamic-input-current bg-gray-100"></div>
-                    <div class="col-span-1"><button class="remove-row-btn">X</button></div>`;
-                document.getElementById('earnings-rows').appendChild(row);
-            }
-            
-            addDeductionRow() {
-                const row = document.createElement('div');
-                row.className = 'grid grid-cols-12 gap-x-2 items-center dynamic-row';
-                row.innerHTML = `
-                    <div class="col-span-5"><input type="text" placeholder="e.g., Dental" class="dynamic-input-desc"></div>
-                    <div class="col-span-3"><input type="number" step="0.01" placeholder="0.00" class="dynamic-input-current"></div>
-                    <div class="col-span-3"><input type="number" step="0.01" placeholder="0.00" class="dynamic-input-ytd"></div>
-                    <div class="col-span-1"><button class="remove-row-btn">X</button></div>`;
-                document.getElementById('deductions-rows').appendChild(row);
-            }
-
-            getDynamicRows(containerId, isEarning = true) {
-                const rows = document.querySelectorAll(`#${containerId} .dynamic-row`);
-                const rowsData = [];
-                rows.forEach(row => {
-                    const description = row.querySelector('.dynamic-input-desc')?.value || '';
-                    if (!description) return; // Skip empty rows
-
-                    const isNonTaxable = row.dataset.nontaxable === 'true';
-                    const rateInput = row.querySelector('.dynamic-input-rate');
-                    const rateMultiplier = rateInput ? rateInput.dataset.rateMultiplier : null;
-
-                    if (isEarning) {
-                        rowsData.push({
-                            description,
-                            rate: parseFloat(rateInput?.value) || 0,
-                            hours: parseFloat(row.querySelector('.dynamic-input-hours')?.value) || 0,
-                            isNonTaxable,
-                            rateMultiplier
-                        });
-                    } else {
-                        rowsData.push({
-                            description,
-                            current: parseFloat(row.querySelector('.dynamic-input-current')?.value) || 0,
-                            ytd: parseFloat(row.querySelector('.dynamic-input-ytd')?.value) || 0
-                        });
-                    }
-                });
-                return rowsData;
-            }
-
-            getFormValues() {
-                return {
-                    companyName: document.getElementById('companyName').value,
-                    employeeName: document.getElementById('employeeName').value,
-                    payFrequency: document.getElementById('payFrequency').value,
-                    payPeriodStart: document.getElementById('payPeriodStart').value,
-                    payPeriodEnd: document.getElementById('payPeriodEnd').value,
-                    payDate: document.getElementById('payDate').value,
-                    numPaystubs: parseInt(document.getElementById('numPaystubs').value, 10),
-                    fedFilingStatus: document.getElementById('fedFilingStatus').value,
-                    fedAllowances: parseFloat(document.getElementById('fedAllowances').value) || 0,
-                    addlFedWithholding: parseFloat(document.getElementById('addlFedWithholding').value) || 0,
-                    state: document.getElementById('state').value,
-                    stateFilingStatus: document.getElementById('stateFilingStatus').value,
-                    earnings: this.getDynamicRows('earnings-rows', true),
-                    deductions: this.getDynamicRows('deductions-rows', false)
-                };
+                return states;
             }
         }
-        App.FormManager = FormManager;
+        App.DataService = DataService;
 
         // --- PAYSTUB CALCULATOR ---
         class PaystubCalculator {
             constructor() {
-                this.taxTables = App.TaxData;
-                this.year = '2024'; // Can be made dynamic
+                this.dataService = new App.DataService();
             }
 
-            getPayPeriodsPerYear(frequency) {
-                const map = { 'Weekly': 52, 'Bi-Weekly': 26, 'Semi-Monthly': 24, 'Monthly': 12 };
-                return map[frequency] || 26;
-            }
+            async calculateAll(baseFormData) {
+                const results = [];
+                const taxTables = await this.dataService.getTaxTables(baseFormData.taxYear);
+                if (!taxTables) throw new Error(`Tax info for ${baseFormData.taxYear} not found.`);
 
-            getFederalTax(taxableIncome, formValues) {
-                // Per user request, this logic now includes allowances and additional withholding
-                const allowanceDeduction = (formValues.fedAllowances || 0) * 86.54; // $86.54 is a specified fixed value per allowance
-                const adjustedIncome = Math.max(0, App.PrecisionMath.subtract(taxableIncome, allowanceDeduction));
-                const addlWithholding = formValues.addlFedWithholding || 0;
-
-                const annualIncome = App.PrecisionMath.multiply(adjustedIncome, this.getPayPeriodsPerYear(formValues.payFrequency));
-                const brackets = this.taxTables.federal[this.year].taxBrackets[formValues.fedFilingStatus.toLowerCase()];
-                
-                let annualTax = 0;
-                let lastBracketLimit = 0;
-
-                for (const bracket of brackets) {
-                    if (annualIncome > lastBracketLimit) {
-                        const taxableInBracket = Math.min(annualIncome, bracket.upTo) - lastBracketLimit;
-                        annualTax = App.PrecisionMath.add(annualTax, App.PrecisionMath.multiply(taxableInBracket, bracket.rate));
-                    }
-                    lastBracketLimit = bracket.upTo;
-                    if (annualIncome <= bracket.upTo) break;
-                }
-                
-                let periodTax = App.PrecisionMath.round(annualTax / this.getPayPeriodsPerYear(formValues.payFrequency), 2);
-                periodTax = App.PrecisionMath.add(periodTax, addlWithholding);
-                
-                return Math.max(0, periodTax);
-            }
-
-            getStateTax(taxableIncome, formValues) {
-                const state = formValues.state;
-                if (!this.taxTables.state[state]) return 0;
-                
-                const annualIncome = App.PrecisionMath.multiply(taxableIncome, this.getPayPeriodsPerYear(formValues.payFrequency));
-                const brackets = this.taxTables.state[state][this.year].taxBrackets[formValues.stateFilingStatus];
-                
-                let annualTax = 0;
-                let lastBracketLimit = 0;
-
-                for (const bracket of brackets) {
-                    if(annualIncome > lastBracketLimit) {
-                        const taxableInBracket = Math.min(annualIncome, bracket.upTo) - lastBracketLimit;
-                        annualTax += taxableInBracket * bracket.rate;
-                    }
-                    lastBracketLimit = bracket.upTo;
-                    if(annualIncome <= bracket.upTo) break;
-                }
-
-                return App.PrecisionMath.round(annualTax / this.getPayPeriodsPerYear(formValues.payFrequency), 2);
-            }
-
-            calculateSingle(formValues, ytdData = {}) {
-                const { PM } = App.PrecisionMath; // Alias for brevity
-                
-                const regularPayRate = parseFloat(formValues.earnings.find(e => e.description.toLowerCase().includes('regular'))?.rate) || 0;
-
-                // Calculate current earnings, handling multipliers and non-taxable types
-                const earnings = formValues.earnings.map(e => {
-                    let rate = parseFloat(e.rate) || 0;
-                    if (e.rateMultiplier && regularPayRate > 0) {
-                        rate = App.PrecisionMath.multiply(regularPayRate, parseFloat(e.rateMultiplier));
-                    }
-                    const hours = parseFloat(e.hours) || 0;
-                    let current = (e.isNonTaxable || e.description.toLowerCase().includes('bonus')) ? hours : App.PrecisionMath.multiply(rate, hours);
-                    return { ...e, rate, current: App.PrecisionMath.round(current, 2) };
-                });
-
-                const taxableEarnings = earnings.filter(e => !e.isNonTaxable);
-                const nonTaxableTotal = earnings.filter(e => e.isNonTaxable).reduce((acc, e) => App.PrecisionMath.add(acc, e.current), 0);
-                const grossPay = taxableEarnings.reduce((acc, e) => App.PrecisionMath.add(acc, e.current), 0);
-
-                // YTD Calculations
-                const ytdGross = App.PrecisionMath.add(ytdData.grossPay || 0, grossPay);
-
-                // FICA Taxes
-                const fedConfig = this.taxTables.federal[this.year];
-                let socialSecurity = 0;
-                if (ytdGross < fedConfig.socialSecurity.limit) {
-                    const ssTaxable = Math.min(grossPay, App.PrecisionMath.subtract(fedConfig.socialSecurity.limit, ytdData.grossPay || 0));
-                    socialSecurity = App.PrecisionMath.multiply(ssTaxable, fedConfig.socialSecurity.rate);
-                }
-                let medicare = App.PrecisionMath.multiply(grossPay, fedConfig.medicare.rate);
-
-                // State Taxes (NJ specific)
-                const stateConfig = this.taxTables.state.NJ[this.year];
-                let sui = 0, sdi = 0, fli = 0;
-                if (ytdGross < stateConfig.sui.limit) {
-                    sui = App.PrecisionMath.multiply(grossPay, stateConfig.sui.rate);
-                }
-                if (ytdGross < stateConfig.sdi.limit) {
-                    sdi = App.PrecisionMath.multiply(grossPay, stateConfig.sdi.rate);
-                }
-                 if (ytdGross < stateConfig.fli.limit) {
-                    fli = App.PrecisionMath.multiply(grossPay, stateConfig.fli.rate);
-                }
-
-                const federalTax = this.getFederalTax(grossPay, formValues);
-                const stateTax = this.getStateTax(grossPay, formValues);
-                
-                const totalTaxes = [socialSecurity, medicare, federalTax, stateTax, sui, sdi, fli].reduce(App.PrecisionMath.add, 0);
-                const totalDeductions = formValues.deductions.reduce((acc, d) => App.PrecisionMath.add(acc, d.current), 0);
-                const netPay = App.PrecisionMath.round(App.PrecisionMath.subtract(App.PrecisionMath.add(grossPay, nonTaxableTotal), App.PrecisionMath.add(totalTaxes, totalDeductions)), 2);
-
-                const updatedYtd = {
-                    grossPay: ytdGross,
-                    netPay: App.PrecisionMath.add(ytdData.netPay || 0, netPay),
-                    taxes: {
-                        federalTax: App.PrecisionMath.add(ytdData.taxes?.federalTax || 0, federalTax),
-                        socialSecurity: App.PrecisionMath.add(ytdData.taxes?.socialSecurity || 0, socialSecurity),
-                        medicare: App.PrecisionMath.add(ytdData.taxes?.medicare || 0, medicare),
-                        stateTax: App.PrecisionMath.add(ytdData.taxes?.stateTax || 0, stateTax),
-                        sui: App.PrecisionMath.add(ytdData.taxes?.sui || 0, sui),
-                        sdi: App.PrecisionMath.add(ytdData.taxes?.sdi || 0, sdi),
-                        fli: App.PrecisionMath.add(ytdData.taxes?.fli || 0, fli),
-                    },
-                    deductions: formValues.deductions.map(d => ({
-                        description: d.description,
-                        ytd: App.PrecisionMath.add(d.ytd, d.current)
-                    }))
+                let ytdState = {
+                    earnings: { ...baseFormData.initialYtd.earnings },
+                    deductions: { ...baseFormData.initialYtd.deductions },
+                    taxes: { ...baseFormData.initialYtd.taxes },
+                    employerTaxes: { ...baseFormData.initialYtd.employerTaxes }
                 };
+
+                for (let i = 0; i < baseFormData.numPaystubs; i++) {
+                    const singleStubData = { ...baseFormData, ...baseFormData.stubs[i] };
+                    const result = this.calculateSingle(singleStubData, taxTables, ytdState);
+                    
+                    // Update YTD trackers for the next iteration
+                    result.earnings.forEach(e => ytdState.earnings[e.description] = e.ytd);
+                    result.deductions.forEach(d => ytdState.deductions[d.description] = d.ytd);
+                    result.taxes.forEach(t => ytdState.taxes[t.name] = t.ytd);
+                    result.employerTaxes.forEach(t => ytdState.employerTaxes[t.name] = t.ytd);
+                    
+                    results.push(result);
+                }
+                return results;
+            }
+
+            calculateSingle(formData, taxTables, ytdState) {
+                const payPeriodsPerYear = { weekly: 52, 'bi-weekly': 26, 'semi-monthly': 24, monthly: 12 };
+                const numPayPeriods = payPeriodsPerYear[formData.payPeriod] || 26;
+                
+                // Calculate current and YTD earnings
+                const currentGrossPay = formData.earnings.reduce((total, item) => pMath.add(total, item.current), 0);
+                const processedEarnings = formData.earnings.map(e => ({
+                    ...e,
+                    ytd: pMath.add(ytdState.earnings[e.description] || 0, e.current)
+                }));
+                const ytdGrossPay = processedEarnings.reduce((total, item) => pMath.add(total, item.ytd), 0);
+
+                const annualGross = pMath.multiply(currentGrossPay, numPayPeriods);
+
+                // Calculate current deductions and update YTD
+                const processedDeductions = formData.deductions.map(d => ({
+                    ...d,
+                    ytd: pMath.add(ytdState.deductions[d.description] || 0, d.current)
+                }));
+                const currentTotalDeductions = processedDeductions.reduce((total, item) => pMath.add(total, item.current), 0);
+
+                // Calculate taxes and update YTD
+                const calculatedTaxes = this.calculateTaxes(currentGrossPay, annualGross, formData, taxTables, numPayPeriods, ytdState);
+                const processedTaxes = [
+                    { name: 'Federal', current: calculatedTaxes.federal, ytd: pMath.add(ytdState.taxes['Federal'] || 0, calculatedTaxes.federal) },
+                    { name: 'Social Security', current: calculatedTaxes.socialSecurity, ytd: pMath.add(ytdState.taxes['Social Security'] || 0, calculatedTaxes.socialSecurity) },
+                    { name: 'Medicare', current: calculatedTaxes.medicare, ytd: pMath.add(ytdState.taxes['Medicare'] || 0, calculatedTaxes.medicare) },
+                    { name: 'State', current: calculatedTaxes.state, ytd: pMath.add(ytdState.taxes['State'] || 0, calculatedTaxes.state) },
+                ].filter(t => t.current > 0 || t.ytd > 0);
+                
+                const currentTotalTaxes = processedTaxes.reduce((sum, tax) => pMath.add(sum, tax.current), 0);
+
+                // Calculate employer taxes
+                const processedEmployerTaxes = [
+                    { name: 'FUTA (0%)', current: 0, ytd: 0 },
+                    { name: 'Employer Social Security', current: calculatedTaxes.socialSecurity, ytd: pMath.add(ytdState.employerTaxes['Employer Social Security'] || 0, calculatedTaxes.socialSecurity) },
+                    { name: 'Employer Medicare', current: calculatedTaxes.medicare, ytd: pMath.add(ytdState.employerTaxes['Employer Medicare'] || 0, calculatedTaxes.medicare) }
+                ];
+
+                // Final Net Pay calculation
+                const netPay = pMath.subtract(pMath.subtract(currentGrossPay, currentTotalTaxes), currentTotalDeductions);
 
                 return {
-                    grossPay, netPay, earnings, nonTaxableTotal,
-                    deductions: formValues.deductions,
-                    taxes: { federalTax, socialSecurity, medicare, stateTax, sui, sdi, fli },
-                    ytd: updatedYtd
+                    ...formData,
+                    grossPay: currentGrossPay,
+                    ytdGrossPay: ytdGrossPay,
+                    netPay,
+                    totalDeductions: currentTotalDeductions,
+                    totalTaxes: currentTotalTaxes,
+                    earnings: processedEarnings,
+                    deductions: processedDeductions,
+                    taxes: processedTaxes,
+                    employerTaxes: processedEmployerTaxes,
                 };
             }
+            
+            calculateTaxes(currentGross, annualGross, formData, taxTables, numPayPeriods, ytdState) {
+                const totalYtdGrossBeforeThisStub = Object.values(ytdState.earnings).reduce((a, b) => a + b, 0);
+                const federal = this.getFederalTax(annualGross, formData.filingStatus, taxTables.federal, numPayPeriods);
+                const socialSecurity = this.getSocialSecurityTax(currentGross, totalYtdGrossBeforeThisStub, taxTables.fica);
+                const medicare = this.getMedicareTax(currentGross, taxTables.fica);
+                const state = this.getStateTax(annualGross, formData.state, formData.filingStatus, taxTables.states, numPayPeriods);
+                return { federal, socialSecurity, medicare, state };
+            }
 
-            calculateAll(formValues) {
-                const stubs = [];
-                let cumulativeYtd = { deductions: formValues.deductions.map(d => ({ description: d.description, ytd: d.ytd })) };
-                const intervalDays = { 'Bi-Weekly': 14, 'Weekly': 7 }[formValues.payFrequency] || 14;
-
-                for (let i = 0; i < formValues.numPaystubs; i++) {
-                    const currentStubValues = { ...formValues };
-                    const endDate = new Date(formValues.payPeriodEnd);
-                    endDate.setDate(endDate.getDate() - (intervalDays * i));
-                    const startDate = new Date(endDate);
-                    startDate.setDate(endDate.getDate() - (intervalDays - 1));
-                    
-                    currentStubValues.payPeriodEnd = endDate.toISOString().split('T')[0];
-                    currentStubValues.payPeriodStart = startDate.toISOString().split('T')[0];
-                    
-                    const payDate = new Date(formValues.payDate);
-                    payDate.setDate(payDate.getDate() - (intervalDays * i));
-                    currentStubValues.payDate = payDate.toISOString().split('T')[0];
-                    
-                    const result = this.calculateSingle(currentStubValues, cumulativeYtd);
-                    
-                    cumulativeYtd = result.ytd;
-
-                    // Add current period dates to the result for rendering
-                    result.payPeriodStart = currentStubValues.payPeriodStart;
-                    result.payPeriodEnd = currentStubValues.payPeriodEnd;
-                    result.payDate = currentStubValues.payDate;
-                    
-                    stubs.unshift(result); // Add to beginning to get chronological order
+            calculateBracketTax(annualIncome, taxInfo) {
+                let tax = 0;
+                let lastUpto = 0;
+                if (!taxInfo || !taxInfo.brackets) return 0;
+                for (const bracket of taxInfo.brackets) {
+                    if (annualIncome > lastUpto) {
+                        const taxableInBracket = Math.min(annualIncome, bracket.upto) - lastUpto;
+                        tax += pMath.multiply(taxableInBracket, bracket.rate);
+                    }
+                    lastUpto = bracket.upto;
                 }
-                return stubs;
+                return tax;
+            }
+
+            getFederalTax(annualGross, filingStatus, federalTables, numPayPeriods) {
+                const table = federalTables[filingStatus];
+                if (!table) return 0;
+                const taxableIncome = Math.max(0, pMath.subtract(annualGross, table.deduction));
+                const annualTax = this.calculateBracketTax(taxableIncome, table);
+                return pMath.round(pMath.divide(annualTax, numPayPeriods));
+            }
+
+            getStateTax(annualGross, stateAbbr, filingStatus, stateTables, numPayPeriods) {
+                const stateInfo = stateTables[stateAbbr];
+                const table = (stateInfo && stateInfo[filingStatus]) || (stateInfo && stateInfo.single);
+                if (!table || table.brackets.length === 0) return 0;
+                const annualTax = this.calculateBracketTax(annualGross, table);
+                return pMath.round(pMath.divide(annualTax, numPayPeriods));
+            }
+
+            getSocialSecurityTax(currentGross, ytdGross, ficaTable) {
+                const limit = ficaTable.social_security_limit;
+                if (ytdGross >= limit) return 0;
+                const remainingTaxable = pMath.subtract(limit, ytdGross);
+                const taxableThisPeriod = Math.min(currentGross, remainingTaxable);
+                return pMath.round(pMath.multiply(taxableThisPeriod, ficaTable.social_security_rate));
+            }
+
+            getMedicareTax(currentGross, ficaTable) {
+                return pMath.round(pMath.multiply(currentGross, ficaTable.medicare_rate));
             }
         }
         App.PaystubCalculator = PaystubCalculator;
-        
+
         // --- PREVIEW UPDATER ---
         class PreviewUpdater {
             constructor() {
-                this.stubs = [];
-                this.currentIndex = 0;
                 this.container = document.getElementById('previews-container');
-                this.controls = document.getElementById('preview-controls');
-                this.counter = document.getElementById('stub-counter');
+                this.template = document.getElementById('paystub-template');
+                this.currentIndex = 0;
+                this.totalStubs = 0;
             }
 
-            setStubs(stubsData) {
-                this.stubs = stubsData;
-                this.currentIndex = this.stubs.length - 1; // Start at the most recent stub
-                this.updateView();
-            }
+            updateAll(results) {
+                this.container.innerHTML = '';
+                this.totalStubs = results.length;
+                this.currentIndex = 0;
 
-            updateView() {
-                if (this.stubs.length === 0) {
-                    this.container.innerHTML = `<div class="p-10 text-center text-gray-500">No stubs to display.</div>`;
-                    this.controls.classList.add('hidden');
-                    return;
+                if (results.length === 0) {
+                     this.container.innerHTML = `<div class="p-10 text-center text-gray-500">Please fill out the form to see a preview.</div>`;
+                     this.updateNav();
+                     return;
                 }
-                
-                const stubData = this.stubs[this.currentIndex];
-                const formVals = new App.FormManager().getFormValues();
-                this.container.innerHTML = this.generateStubHTML(stubData, formVals);
-                
-                this.counter.textContent = `Stub ${this.currentIndex + 1} of ${this.stubs.length}`;
-                document.getElementById('prev-stub').disabled = this.currentIndex === 0;
-                document.getElementById('next-stub').disabled = this.currentIndex === this.stubs.length - 1;
-                this.controls.classList.remove('hidden');
 
-                // Update the tax recap on the main form
-                this.updateTaxRecap(stubData);
+                results.forEach((data, index) => {
+                    const newStubContent = this.template.content.cloneNode(true);
+                    const newStubWrapper = document.createElement('div');
+                    newStubWrapper.id = `paystub-preview-${index}`;
+                    newStubWrapper.classList.add('paystub-wrapper');
+                    if (index !== 0) newStubWrapper.style.display = 'none';
+                    newStubWrapper.appendChild(newStubContent);
+                    
+                    this.container.appendChild(newStubWrapper);
+                    this.populateStub(newStubWrapper, data);
+                });
+                this.updateNav();
             }
 
-            updateTaxRecap(stubData) {
-                const { taxes, ytd } = stubData;
-                const updateField = (id, value) => document.querySelector(`[data-id="${id}"]`).textContent = value.toFixed(2);
+            populateStub(stubElement, data) {
+                const find = (selector) => stubElement.querySelector(`[data-id="${selector}"]`);
                 
-                updateField('federalTax', taxes.federalTax);
-                updateField('socialSecurity', taxes.socialSecurity);
-                updateField('medicare', taxes.medicare);
-                updateField('stateTax', taxes.stateTax);
-                updateField('sui', taxes.sui);
-                updateField('sdi', taxes.sdi);
-                updateField('fli', taxes.fli);
+                // Header & Info
+                find('businessName').textContent = data.businessName;
+                find('businessAddress').textContent = data.businessAddress;
+                find('employeeName').textContent = data.employeeName;
+                find('employeeId').textContent = data.employeeId;
+                find('payDate').textContent = formatDate(data.payDate);
+                find('payPeriodRange').textContent = `${formatDate(data.payPeriodStart)} - ${formatDate(data.payPeriodEnd)}`;
+                
+                // Tables
+                this.updateEarningsTable(find('earnings-table'), data.earnings, data.grossPay, data.ytdGrossPay);
+                this.updateGenericTable(find('deductions-table'), data.deductions, 'currentTotalDeductions', 'ytdTotalDeductions');
+                this.updateGenericTable(find('taxes-table'), data.taxes, 'currentTotalTaxes', 'ytdTotalTaxes');
+                this.updateGenericTable(find('employer-taxes-table'), data.employerTaxes);
 
-                updateField('federalTaxYtd', ytd.taxes.federalTax);
-                updateField('socialSecurityYtd', ytd.taxes.socialSecurity);
-                updateField('medicareYtd', ytd.taxes.medicare);
-                updateField('stateTaxYtd', ytd.taxes.stateTax);
-                updateField('suiYtd', ytd.taxes.sui);
-                updateField('sdiYtd', ytd.taxes.sdi);
-                updateField('fliYtd', ytd.taxes.fli);
+                // Summary
+                find('summary-grossPay').textContent = formatCurrency(data.grossPay);
+                find('summary-totalDeductions').textContent = formatCurrency(data.totalDeductions);
+                find('summary-totalTaxes').textContent = formatCurrency(data.totalTaxes);
+                find('summary-netPay').textContent = formatCurrency(data.netPay);
+            }
+            
+            updateEarningsTable(table, items, currentTotal, ytdTotal) {
+                const tbody = table.querySelector('tbody');
+                tbody.innerHTML = '';
+                if (!items || items.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-gray-500">None</td></tr>`;
+                } else {
+                    items.forEach(item => {
+                        tbody.innerHTML += `
+                            <tr class="text-gray-700">
+                                <td class="p-3">${item.description}</td>
+                                <td class="p-3 text-right">${formatCurrency(item.rate)}</td>
+                                <td class="p-3 text-right">${(item.hours || 0).toFixed(2)}</td>
+                                <td class="p-3 text-right font-medium text-gray-900">${formatCurrency(item.current)}</td>
+                                <td class="p-3 text-right">${formatCurrency(item.ytd)}</td>
+                            </tr>`;
+                    });
+                }
+                table.querySelector('[data-id="currentGrossPay"]').textContent = formatCurrency(currentTotal);
+                table.querySelector('[data-id="ytdGrossPay"]').textContent = formatCurrency(ytdTotal);
+            }
+            
+            updateGenericTable(table, items, currentTotalDataId, ytdTotalDataId) {
+                const tbody = table.querySelector('tbody');
+                tbody.innerHTML = '';
+                const currentTotal = items.reduce((sum, item) => sum + item.current, 0);
+                const ytdTotal = items.reduce((sum, item) => sum + item.ytd, 0);
+
+                if (!items || items.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" class="p-3 text-gray-500">None</td></tr>`;
+                } else {
+                    items.forEach(item => {
+                        tbody.innerHTML += `
+                            <tr class="text-gray-700">
+                                <td class="p-3">${item.name || item.description}</td>
+                                <td class="p-3 text-right font-medium text-gray-900">${formatCurrency(item.current)}</td>
+                                <td class="p-3 text-right">${formatCurrency(item.ytd)}</td>
+                            </tr>`;
+                    });
+                }
+                if (currentTotalDataId && ytdTotalDataId) {
+                    table.querySelector(`[data-id="${currentTotalDataId}"]`).textContent = formatCurrency(currentTotal);
+                    table.querySelector(`[data-id="${ytdTotalDataId}"]`).textContent = formatCurrency(ytdTotal);
+                }
             }
 
-            generateStubHTML(data, form) {
-                const f = (n) => n.toFixed(2); // Format numbers
-                const earningsHTML = data.earnings.map(e => `<tr><td>${e.description}</td><td class="text-right">${f(e.rate)}</td><td class="text-right">${e.isNonTaxable ? 'N/A' : f(e.hours)}</td><td class="text-right">${f(e.current)}</td><td class="text-right">${'N/A'}</td></tr>`).join('');
-                const deductionsHTML = data.deductions.map(d => `<tr><td>${d.description}</td><td class="text-right">${f(d.current)}</td><td class="text-right">${f(data.ytd.deductions.find(y => y.description === d.description).ytd)}</td></tr>`).join('');
-                const taxesHTML = `
-                    <tr><td>Federal Tax</td><td class="text-right">${f(data.taxes.federalTax)}</td><td class="text-right">${f(data.ytd.taxes.federalTax)}</td></tr>
-                    <tr><td>Social Security</td><td class="text-right">${f(data.taxes.socialSecurity)}</td><td class="text-right">${f(data.ytd.taxes.socialSecurity)}</td></tr>
-                    <tr><td>Medicare</td><td class="text-right">${f(data.taxes.medicare)}</td><td class="text-right">${f(data.ytd.taxes.medicare)}</td></tr>
-                    <tr><td>State Tax (NJ)</td><td class="text-right">${f(data.taxes.stateTax)}</td><td class="text-right">${f(data.ytd.taxes.stateTax)}</td></tr>
-                    <tr><td>NJ SUI</td><td class="text-right">${f(data.taxes.sui)}</td><td class="text-right">${f(data.ytd.taxes.sui)}</td></tr>
-                    <tr><td>NJ SDI</td><td class="text-right">${f(data.taxes.sdi)}</td><td class="text-right">${f(data.ytd.taxes.sdi)}</td></tr>
-                    <tr><td>NJ FLI</td><td class="text-right">${f(data.taxes.fli)}</td><td class="text-right">${f(data.ytd.taxes.fli)}</td></tr>
-                `;
-                const totalTaxes = Object.values(data.taxes).reduce(App.PrecisionMath.add, 0);
-                const totalDeductions = data.deductions.reduce((acc, d) => App.PrecisionMath.add(acc, d.current), 0);
-                const totalYtdTaxes = Object.values(data.ytd.taxes).reduce(App.PrecisionMath.add, 0);
-                const totalYtdDeductions = data.ytd.deductions.reduce((acc, d) => App.PrecisionMath.add(acc, d.ytd), 0);
 
-                return `
-                    <div id="pdf-content-${this.currentIndex}" class="p-4 bg-white text-xs">
-                        <h2 class="text-lg font-bold">${form.companyName}</h2>
-                        <p>${form.employeeName}</p>
-                        <hr class="my-2"/>
-                        <div class="grid grid-cols-3 gap-4">
-                            <div><strong>Pay Period:</strong> ${data.payPeriodStart} - ${data.payPeriodEnd}</div>
-                            <div><strong>Pay Date:</strong> ${data.payDate}</div>
-                            <div class="text-right"><strong>Net Pay: <span class="font-bold text-base">$${f(data.netPay)}</span></strong></div>
-                        </div>
-                        <hr class="my-2"/>
-                        <div class="grid grid-cols-2 gap-8">
-                            <div>
-                                <h4 class="font-bold mb-1">Earnings</h4>
-                                <table class="w-full"><thead><tr><th>Description</th><th class="text-right">Rate</th><th class="text-right">Hours</th><th class="text-right">Current</th><th class="text-right">YTD</th></tr></thead><tbody>${earningsHTML}</tbody><tfoot><tr class="font-bold"><td>Total</td><td></td><td></td><td class="text-right">${f(data.grossPay + data.nonTaxableTotal)}</td><td class="text-right">${f(data.ytd.grossPay + data.nonTaxableTotal)}</td></tr></tfoot></table>
-                            </div>
-                            <div>
-                                <h4 class="font-bold mb-1">Deductions & Taxes</h4>
-                                <table class="w-full"><thead><tr><th>Description</th><th class="text-right">Current</th><th class="text-right">YTD</th></tr></thead>
-                                <tbody>${deductionsHTML}</tbody>
-                                <tbody class="border-t-2 border-gray-400">${taxesHTML}</tbody>
-                                <tfoot><tr class="font-bold"><td>Total</td><td class="text-right">${f(totalDeductions + totalTaxes)}</td><td class="text-right">${f(totalYtdDeductions + totalYtdTaxes)}</td></tr></tfoot></table>
-                            </div>
-                        </div>
-                    </div>
-                `;
+            showStub(index) {
+                if (index < 0 || index >= this.totalStubs) return;
+                this.currentIndex = index;
+                this.container.querySelectorAll('.paystub-wrapper').forEach((stub, i) => {
+                    stub.style.display = (i === this.currentIndex) ? 'block' : 'none';
+                });
+                this.updateNav();
+            }
+            
+            next() { this.showStub(this.currentIndex + 1); }
+            prev() { this.showStub(this.currentIndex - 1); }
+            
+            updateNav() {
+                const statusEl = document.getElementById('stub-nav-status');
+                const prevBtn = document.getElementById('prev-stub');
+                const nextBtn = document.getElementById('next-stub');
+                
+                if(!statusEl || !prevBtn || !nextBtn) return;
+
+                statusEl.textContent = `Stub ${this.currentIndex + 1} of ${this.totalStubs}`;
+                prevBtn.disabled = this.currentIndex === 0;
+                nextBtn.disabled = this.currentIndex >= this.totalStubs - 1;
+
+                if (this.totalStubs <= 1) {
+                    statusEl.parentElement.style.display = 'none';
+                } else {
+                    statusEl.parentElement.style.display = 'flex';
+                }
             }
 
             getCurrentStubHTMLforPDF() {
-                // Find the currently displayed stub and return its outerHTML for printing
-                return document.getElementById(`pdf-content-${this.currentIndex}`);
-            }
-
-            next() {
-                if (this.currentIndex < this.stubs.length - 1) {
-                    this.currentIndex++;
-                    this.updateView();
-                }
-            }
-
-            prev() {
-                if (this.currentIndex > 0) {
-                    this.currentIndex--;
-                    this.updateView();
-                }
+                const activeStub = this.container.querySelector(`#paystub-preview-${this.currentIndex}`);
+                if (!activeStub) return "<div>No paystub selected.</div>";
+                
+                // Create a temporary clone for PDF generation to apply specific styles
+                const pdfClone = activeStub.cloneNode(true);
+                // Use a smaller font size for better PDF fitting
+                pdfClone.style.fontSize = '12px';
+                pdfClone.style.width = '8.5in'; // Set width for PDF layout
+                return pdfClone;
             }
         }
         App.PreviewUpdater = PreviewUpdater;
 
-        // --- UI CONTROLLER ---
-        class UIController {
-            constructor() {
-                this.formManager = new App.FormManager();
-                this.calculator = new App.PaystubCalculator();
-                this.previewUpdater = new App.PreviewUpdater();
-                this.paystubs = []; // To store calculation results
+        // --- FORM MANAGER ---
+        class FormManager {
+            constructor(updateCallback) {
+                this.form = document.getElementById('paystub-form');
+                this.updateCallback = updateCallback;
+                this.dataService = new App.DataService();
+                this.earningFieldCount = 0;
+                this.deductionFieldCount = 0;
+                
+                this.form.addEventListener('input', () => this.updateCallback());
+                document.getElementById('incomeType').addEventListener('change', () => this.handleIncomeTypeChange());
+                document.getElementById('incomeAmount').addEventListener('input', () => this.handleIncomeCalculation());
+                document.getElementById('payPeriod').addEventListener('change', () => {
+                    this.generateDateInputs(); // Also recalculates dates
+                    this.handleIncomeCalculation();
+                });
+                document.getElementById('add-earning').addEventListener('click', () => this.addEarningField());
+                document.getElementById('add-deduction').addEventListener('click', () => this.addDeductionField());
+                document.getElementById('numPaystubs').addEventListener('input', () => this.generateDateInputs());
 
-                this.formManager.form.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    this.generateAndDisplayStubs();
+                this.populateStateOptions();
+                this.addDefaultFields();
+                this.generateDateInputs();
+            }
+            
+            getFormData() {
+                const getValues = (selector) => Array.from(document.querySelectorAll(selector)).map(el => el.value);
+
+                const earnings = [];
+                document.querySelectorAll('#earnings-container .dynamic-field').forEach(field => {
+                    const desc = field.querySelector('[name*="earningDescription"]').value;
+                    if (desc) {
+                        const rate = parseFloat(field.querySelector('[name*="earningRate"]').value) || 0;
+                        const hours = parseFloat(field.querySelector('[name*="earningHours"]').value) || 0;
+                        earnings.push({
+                            description: desc,
+                            rate,
+                            hours,
+                            current: pMath.round(pMath.multiply(rate, hours))
+                        });
+                    }
                 });
                 
-                this.setupEventListeners();
+                const deductions = [];
+                document.querySelectorAll('#deductions-container .dynamic-field').forEach(field => {
+                    const desc = field.querySelector('[name*="deductionDescription"]').value;
+                    if (desc) {
+                        deductions.push({
+                            description: desc,
+                            current: parseFloat(field.querySelector('[name*="deductionAmountCurrent"]').value) || 0
+                        });
+                    }
+                });
+                
+                const getInitialYTD = (containerId, namePrefix, isEarning = false) => {
+                    const ytd = {};
+                    document.querySelectorAll(`#${containerId} .dynamic-field`).forEach(field => {
+                        const desc = field.querySelector(`[name*="${namePrefix}Description"]`).value;
+                        if(desc) {
+                           const ytdInputName = isEarning ? `earningAmountYTD` : `${namePrefix}AmountYTD`;
+                           ytd[desc] = parseFloat(field.querySelector(`[name*="${ytdInputName}"]`).value) || 0;
+                        }
+                    });
+                    return ytd;
+                };
+
+                const payPeriod = document.getElementById('payPeriod').value;
+                const numPaystubs = parseInt(document.getElementById('numPaystubs').value, 10);
+                const stubs = [];
+                 for(let i=0; i<numPaystubs; i++){
+                    const payPeriodStart = document.getElementById(`payPeriodStart-${i}`).value;
+                    const { payPeriodEnd, payDate } = this.calculateEndAndPayDates(payPeriodStart, payPeriod);
+                    stubs.push({ payPeriodStart, payPeriodEnd, payDate });
+                }
+
+                return {
+                    businessName: document.getElementById('businessName').value,
+                    businessAddress: document.getElementById('businessAddress').value,
+                    employeeName: document.getElementById('employeeName').value,
+                    employeeId: document.getElementById('employeeId').value,
+                    payPeriod: payPeriod,
+                    taxYear: document.getElementById('taxYear').value,
+                    filingStatus: document.getElementById('filingStatus').value,
+                    state: document.getElementById('state').value,
+                    numPaystubs,
+                    stubs,
+                    earnings,
+                    deductions,
+                    initialYtd: {
+                        earnings: getInitialYTD('earnings-container', 'earning', true),
+                        deductions: getInitialYTD('deductions-container', 'deduction'),
+                        taxes: {},
+                        employerTaxes: {}
+                    }
+                };
+            }
+            
+            generateDateInputs() {
+                const container = document.getElementById('paystub-dates-container');
+                const num = Math.min(12, Math.max(1, parseInt(document.getElementById('numPaystubs').value, 10) || 1));
+                const payPeriod = document.getElementById('payPeriod').value;
+                
+                // Preserve existing dates
+                const existingDates = [];
+                for (let i = 0; i < container.children.length; i++) {
+                    existingDates.push(document.getElementById(`payPeriodStart-${i}`).value);
+                }
+
+                container.innerHTML = '';
+                
+                let lastStartDateStr = existingDates[0] || new Date().toISOString().split('T')[0];
+                
+                for (let i = 0; i < num; i++) {
+                    const dateValue = existingDates[i] || lastStartDateStr;
+                    const div = document.createElement('div');
+                    div.className = 'form-group';
+                    div.innerHTML = `
+                        <label for="payPeriodStart-${i}" class="block text-sm font-medium text-gray-700">Paystub ${i + 1} Start Date</label>
+                        <input type="date" id="payPeriodStart-${i}" name="payPeriodStart-${i}" value="${dateValue}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    `;
+                    container.appendChild(div);
+                    
+                    // Increment date for next stub if it wasn't pre-filled
+                    if (!existingDates[i+1]) {
+                        const { payPeriodEnd } = this.calculateEndAndPayDates(dateValue, payPeriod);
+                        let nextStartDate = new Date(payPeriodEnd + 'T00:00:00');
+                        nextStartDate.setDate(nextStartDate.getDate() + 1);
+                        lastStartDateStr = nextStartDate.toISOString().split('T')[0];
+                    }
+                }
+                this.updateCallback();
             }
 
-            generateAndDisplayStubs() {
-                try {
-                    const formValues = this.formManager.getFormValues();
-                    this.paystubs = this.calculator.calculateAll(formValues);
+            calculateEndAndPayDates(startDateString, payPeriod) {
+                if (!startDateString) return { payPeriodEnd: '', payDate: '' };
+                const startDate = new Date(startDateString + 'T00:00:00');
+                const endDate = new Date(startDate);
+                let payDate;
+                
+                switch(payPeriod) {
+                    case 'weekly': endDate.setDate(startDate.getDate() + 6); break;
+                    case 'bi-weekly': endDate.setDate(startDate.getDate() + 13); break;
+                    case 'semi-monthly':
+                        if (startDate.getDate() === 1) {
+                            endDate.setDate(15);
+                        } else {
+                            endDate.setMonth(endDate.getMonth() + 1, 0);
+                        }
+                        break;
+                    case 'monthly': endDate.setMonth(endDate.getMonth() + 1, 0); break;
+                }
+                payDate = new Date(endDate);
+                payDate.setDate(endDate.getDate() + 5); // Example: Pay 5 days after period ends
+                
+                return { 
+                    payPeriodEnd: endDate.toISOString().split('T')[0],
+                    payDate: payDate.toISOString().split('T')[0]
+                };
+            }
 
-                    if (this.paystubs && this.paystubs.length > 0) {
-                        this.previewUpdater.setStubs(this.paystubs);
-                        this.setupPayPalButton(); // New: Setup PayPal button after successful preview generation
-                    } else {
-                        document.getElementById('previews-container').innerHTML = `<div class="p-10 text-center text-red-500">Could not generate paystubs. Please check your inputs.</div>`;
-                    }
-                } catch (error) {
-                    console.error("Calculation Error:", error);
-                    document.getElementById('previews-container').innerHTML = `<div class="p-10 text-center text-red-500">An error occurred during calculation. Check console for details.</div>`;
+            handleIncomeTypeChange() {
+                const incomeType = document.getElementById('incomeType').value;
+                const incomeGroup = document.getElementById('income-amount-group');
+                incomeGroup.style.display = (incomeType === 'annual') ? 'block' : 'none';
+                if (incomeType === 'manual') {
+                    // Potentially clear the auto-calculated fields if desired
+                } else {
+                    this.handleIncomeCalculation();
                 }
             }
             
+            handleIncomeCalculation() {
+                const incomeType = document.getElementById('incomeType').value;
+                if (incomeType !== 'annual') return;
+
+                const incomeAmount = parseFloat(document.getElementById('incomeAmount').value) || 0;
+                if (incomeAmount <= 0) return;
+                
+                const payPeriod = document.getElementById('payPeriod').value;
+                const payPeriodsPerYear = { weekly: 52, 'bi-weekly': 26, 'semi-monthly': 24, monthly: 12 };
+                const hoursPerPeriod = { weekly: 40, 'bi-weekly': 80, 'semi-monthly': 86.67, monthly: 173.33 };
+
+                const grossPerPeriod = pMath.divide(incomeAmount, payPeriodsPerYear[payPeriod]);
+                const hourlyRate = pMath.divide(grossPerPeriod, hoursPerPeriod[payPeriod]);
+
+                // Update the 'Regular Pay' earning field, if it exists
+                const regularPayField = document.querySelector('#earnings-container .dynamic-field');
+                if (regularPayField) {
+                    const rateInput = regularPayField.querySelector('[name*="earningRate"]');
+                    const hoursInput = regularPayField.querySelector('[name*="earningHours"]');
+                    if (rateInput) rateInput.value = pMath.round(hourlyRate);
+                    if (hoursInput) hoursInput.value = hoursPerPeriod[payPeriod].toFixed(2);
+                    // Manually trigger update since we changed value via script
+                    this.updateCallback();
+                }
+            }
+            
+            async populateStateOptions() {
+                const stateSelect = document.getElementById('state');
+                const states = this.dataService.getAllStateNames();
+                const sortedStates = Object.entries(states).sort((a, b) => a[1].localeCompare(b[1]));
+                for (const [abbr, name] of sortedStates) {
+                    stateSelect.add(new Option(name, abbr));
+                }
+                stateSelect.value = 'CA'; // Default to California
+            }
+            
+            addDefaultFields() {
+                this.addEarningField({ desc: 'Regular Pay', rate: 31.25, hours: 80, ytd: 65000 });
+                this.addEarningField({ desc: 'Overtime', rate: '', hours: '', ytd: '' });
+                this.addEarningField({ desc: 'Double Time', rate: '', hours: '', ytd: '' });
+                this.addEarningField({ desc: 'Commission', rate: '', hours: '', ytd: '' });
+                this.addEarningField({ desc: 'Sick', rate: '', hours: '', ytd: '' });
+                this.addEarningField({ desc: 'Holiday', rate: '', hours: '', ytd: '' });
+                this.addDeductionField({ desc: 'Health Insurance', curr: 150, ytd: 3600 });
+                this.addDeductionField({ desc: 'Insurance – Dental', curr: '', ytd: '' });
+                this.addDeductionField({ desc: 'Insurance – Vision', curr: '', ytd: '' });
+                this.addDeductionField({ desc: '401k', curr: 125, ytd: 3000 });
+                this.addDeductionField({ desc: 'Garnishment', curr: '', ytd: '' });
+            }
+
+            addEarningField(defaults = {}) {
+                const container = document.getElementById('earnings-container');
+                const newField = document.createElement('div');
+                newField.className = 'dynamic-field grid grid-cols-12 gap-2 items-center';
+                const fieldId = this.earningFieldCount++;
+
+                newField.innerHTML = `
+                    <div class="col-span-4">
+                        <input type="text" name="earningDescription-${fieldId}" placeholder="Description" value="${defaults.desc || ''}" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="earning-desc-header">
+                    </div>
+                    <div class="col-span-3">
+                         <input type="number" name="earningRate-${fieldId}" placeholder="0.00" value="${defaults.rate || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="earning-rate-header">
+                    </div>
+                    <div class="col-span-2">
+                        <input type="number" name="earningHours-${fieldId}" placeholder="0.00" value="${defaults.hours || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="earning-hours-header">
+                    </div>
+                    <div class="col-span-2">
+                         <input type="number" name="earningAmountYTD-${fieldId}" placeholder="0.00" value="${defaults.ytd || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="earning-ytd-header">
+                    </div>
+                    <div class="col-span-1 text-right">
+                        <button type="button" class="text-gray-400 hover:text-red-500 remove-btn" aria-label="Remove ${defaults.desc || 'earning'} row">&times;</button>
+                    </div>
+                `;
+                container.appendChild(newField);
+                newField.querySelector('.remove-btn').addEventListener('click', (e) => {
+                    e.target.closest('.dynamic-field').remove();
+                    this.updateCallback();
+                });
+            }
+
+            addDeductionField(defaults = {}) {
+                const container = document.getElementById('deductions-container');
+                const newField = document.createElement('div');
+                newField.className = 'dynamic-field grid grid-cols-12 gap-2 items-center';
+                const fieldId = this.deductionFieldCount++;
+
+                newField.innerHTML = `
+                    <div class="col-span-6">
+                        <input type="text" name="deductionDescription-${fieldId}" placeholder="Description" value="${defaults.desc || ''}" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="deduction-desc-header">
+                    </div>
+                    <div class="col-span-2">
+                         <input type="number" name="deductionAmountCurrent-${fieldId}" placeholder="0.00" value="${defaults.curr || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="deduction-current-header">
+                    </div>
+                     <div class="col-span-3">
+                         <input type="number" name="deductionAmountYTD-${fieldId}" placeholder="0.00" value="${defaults.ytd || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="deduction-ytd-header">
+                    </div>
+                    <div class="col-span-1 text-right">
+                        <button type="button" class="text-gray-400 hover:text-red-500 remove-btn" aria-label="Remove ${defaults.desc || 'deduction'} row">&times;</button>
+                    </div>
+                `;
+                container.appendChild(newField);
+                 newField.querySelector('.remove-btn').addEventListener('click', (e) => {
+                    e.target.closest('.dynamic-field').remove();
+                    this.updateCallback();
+                });
+            }
+        }
+        App.FormManager = FormManager;
+
+        // --- UI CONTROLLER ---
+        class UIController {
+            constructor() {
+                this.previewUpdater = new App.PreviewUpdater();
+                this.formManager = new App.FormManager(() => this.processUpdate());
+                this.calculator = new App.PaystubCalculator();
+                this.isPayPalReady = false;
+                
+                this.setupEventListeners();
+                this.processUpdate(); // Initial calculation and render
+            }
+
+            async processUpdate() {
+                try {
+                    const formData = this.formManager.getFormData();
+                    const calculationResults = await this.calculator.calculateAll(formData);
+                    this.previewUpdater.updateAll(calculationResults);
+                    if (this.isPayPalReady) {
+                        this.setupPayPalButton();
+                    }
+                } catch (error) {
+                    console.error("Calculation Error:", error);
+                    // Optionally, display an error message to the user in the preview area
+                    document.getElementById('previews-container').innerHTML = `<div class="p-10 text-center text-red-500">An error occurred during calculation. Check console for details.</div>`;
+                }
+            }
+
             setupPayPalButton() {
-                const numStubs = this.paystubs.length;
-                if (numStubs === 0) return;
-
-                const payPalContainer = document.getElementById('paypal-button-container');
-                payPalContainer.innerHTML = ''; // Clear previous button if any
-                payPalContainer.classList.remove('hidden');
-
-                const priceMap = {
-                    1: '3.25', 2: '5.95', 3: '8.50', 4: '11.20', 5: '13.90',
-                    6: '16.60', 7: '19.30', 8: '22.00', 9: '24.70', 10: '27.40',
-                    11: '30.10', 12: '32.80'
-                };
-                let amount = priceMap[numStubs] || App.PrecisionMath.add(32.80, App.PrecisionMath.multiply(numStubs - 12, 2.70)).toFixed(2);
+                // Clear previous buttons
+                const container = document.getElementById('paypal-button-container');
+                container.innerHTML = '';
+                
+                const numStubs = this.formManager.getFormData().numPaystubs;
+                let amount;
+                if (numStubs >= 6) {
+                    amount = '14.99';
+                } else if (numStubs >= 2) {
+                    amount = '9.99';
+                } else {
+                    amount = '4.99';
+                }
 
                 paypal.Buttons({
                     createOrder: (data, actions) => {
                         return actions.order.create({
                             purchase_units: [{
-                                description: `Paystub Generation (${numStubs} stubs)`,
-                                amount: { currency_code: 'USD', value: amount }
+                                description: `Paystub Generation (${numStubs} stub/s)`,
+                                amount: {
+                                    value: amount
+                                }
                             }]
                         });
                     },
                     onApprove: (data, actions) => {
                         return actions.order.capture().then(details => {
+                            console.log('Transaction completed by ' + details.payer.name.given_name);
                             const downloadBtn = document.getElementById('download-pdf');
                             downloadBtn.disabled = false;
-                            downloadBtn.classList.remove('opacity-50', 'disabled:cursor-not-allowed');
-                            downloadBtn.click();
-                            payPalContainer.classList.add('hidden');
+                            
+                            // A small visual cue before download
+                            downloadBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+                            downloadBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                            downloadBtn.textContent = 'Download Approved!';
+
+                            setTimeout(() => {
+                                downloadBtn.click();
+                                container.style.display = 'none';
+                                downloadBtn.style.display = 'none'; // Hide button after download
+                            }, 500);
                         });
                     },
-                    onError: err => {
-                        console.error('PayPal button error:', err);
-                        payPalContainer.innerHTML = `<p class="text-red-500 text-sm">An error occurred with the payment process. Please try again.</p>`;
+                    onError: (err) => {
+                        console.error("PayPal Error:", err);
+                        container.innerHTML = `<p class="text-sm text-red-600 text-center">An error occurred with the payment. Please try again.</p>`;
                     }
-                }).render('#paypal-button-container');
+                }).render('#paypal-button-container').catch(err => {
+                     console.error("Failed to render PayPal buttons:", err);
+                });
             }
 
             setupEventListeners() {
                 document.getElementById('download-pdf').addEventListener('click', () => {
                     const elementToPrint = this.previewUpdater.getCurrentStubHTMLforPDF();
-                    const numStubs = this.paystubs.length || 1;
-                    const formValues = this.formManager.getFormValues();
-                    const filename = `Paystubs_${formValues.companyName.replace(/ /g, '_')}_${formValues.employeeName.replace(/ /g, '_')}_(${numStubs}_count).pdf`;
-                    
+                    const formData = this.formManager.getFormData();
+                    const filename = `paystub_${formData.employeeName.replace(/ /g, '_')}_${formData.stubs[this.previewUpdater.currentIndex].payDate}.pdf`;
                     const opt = {
                         margin:       [0.25, 0.25, 0.25, 0.25],
                         filename:     filename,
@@ -858,6 +1105,17 @@
                 document.getElementById('next-stub').addEventListener('click', () => this.previewUpdater.next());
                 document.getElementById('prev-stub').addEventListener('click', () => this.previewUpdater.prev());
                 document.getElementById('footer-year').textContent = new Date().getFullYear();
+                
+                // Defer PayPal setup until SDK is fully loaded
+                setTimeout(() => {
+                    if (typeof paypal !== 'undefined') {
+                        this.isPayPalReady = true;
+                        this.setupPayPalButton();
+                    } else {
+                        console.error("PayPal SDK not loaded.");
+                        document.getElementById('paypal-button-container').innerHTML = `<p class="text-sm text-red-600 text-center">Payment system failed to load. Please refresh.</p>`;
+                    }
+                }, 500);
             }
         }
         App.UIController = UIController;

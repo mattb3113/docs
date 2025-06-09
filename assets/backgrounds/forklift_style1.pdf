@@ -1,6 +1,5 @@
-%PDF-1.7
-% A minimal, valid, blank PDF for use as a background.
-% Page size is US Letter (8.5x11 inches = 612x792 points).
+%PDF-1.4
+%âãÏÓ
 
 1 0 obj
 << /Type /Catalog
@@ -18,9 +17,9 @@ endobj
 3 0 obj
 << /Type /Page
    /Parent 2 0 R
-   /MediaBox [0 0 612 792]
+   /Resources << >>
+   /MediaBox [0 0 792 612]
    /Contents 4 0 R
-   /Resources <<>>
 >>
 endobj
 
@@ -34,12 +33,14 @@ xref
 0 5
 0000000000 65535 f 
 0000000018 00000 n 
-0000000078 00000 n 
-0000000140 00000 n 
-0000000242 00000 n 
+0000000077 00000 n 
+0000000141 00000 n 
+0000000257 00000 n 
 
 trailer
 << /Size 5
    /Root 1 0 R
 >>
+startxref
+288
 %%EOF

@@ -30,6 +30,7 @@
             }
         }
     </script>
+
     <style>
         /* A few minor style overrides for better presentation */
         body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
@@ -203,10 +204,7 @@
                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
                             </button>
                         </div>
-                        <button id="download-pdf" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
-                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                            Download PDF
-                        </button>
+                        <div id="paypal-container-SGT94FSVSGRMY"></div>
                     </div>
 
                     <!-- Paystub Preview Area -->
@@ -972,17 +970,6 @@
             }
 
             setupEventListeners() {
-                document.getElementById('download-pdf').addEventListener('click', () => {
-                    const elementToPrint = this.previewUpdater.getCurrentStubHTMLforPDF();
-                    const opt = {
-                        margin:       [0.25, 0.25, 0.25, 0.25],
-                        filename:     'paystub.pdf',
-                        image:        { type: 'jpeg', quality: 0.98 },
-                        html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
-                        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-                    };
-                    html2pdf().from(elementToPrint).set(opt).save();
-                });
 
                 document.getElementById('next-stub').addEventListener('click', () => this.previewUpdater.next());
                 document.getElementById('prev-stub').addEventListener('click', () => this.previewUpdater.prev());
@@ -993,10 +980,32 @@
 
         // --- APP INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
-            new App.UIController();
+            window.appUI = new App.UIController();
         });
+
+        window.downloadPDF = function() {
+            const elementToPrint = window.appUI.previewUpdater.getCurrentStubHTMLforPDF();
+            const opt = {
+                margin:       [0.25, 0.25, 0.25, 0.25],
+                filename:     'paystub.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().from(elementToPrint).set(opt).save();
+        };
     })();
     </script>
+
+    <script>
+      paypal.HostedButtons({
+        hostedButtonId: "SGT94FSVSGRMY",
+        onApprove: () => {
+          window.downloadPDF();
+        }
+      }).render("#paypal-container-SGT94FSVSGRMY");
+    </script>
+    <script src="https://www.paypal.com/sdk/js?client-id=BAAyNBY4BjmIEQ-f08fnqyVgKln8_A_xEHD0DKtvfN_XnYmsZpXFIc2KKtREWXiQYwzQRFRyzXY9Gk6TrA&components=hosted-buttons&enable-funding=venmo&currency=USD"></script>
 </body>
 
 </html>

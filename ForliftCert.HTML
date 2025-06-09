@@ -1,17 +1,18 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-gray-50">
+<html lang="en" class="bg-gray-100">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BuellDocs Forklift Certification Generator</title>
+    <title>Forklift Certification Generator</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lexend:wght@500;600;700&display=swap" rel="stylesheet">
     
-    <script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID&currency=USD&components=buttons"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=AarU_P-7N56A1PZ-fveW92Tq2_s_gLnhx1ZJbK1kYlYI53NToz1aKjP1t63wscjGjmm2Kk5cmGvI3qjA&currency=USD&components=buttons"></script>
+
     <script>
         // Customizations for Tailwind to use 'Inter' and 'Lexend' fonts
         tailwind.config = {
@@ -26,10 +27,9 @@
         }
     </script>
     <style>
-        /* Minor style overrides for better presentation */
-        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-        .preview-container { min-height: 800px; }
-        /* Prevent ugly spinners on number inputs */
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .preview-container { min-height: 700px; max-height: 80vh; }
+        /* Hide number input spinners */
         input[type='number']::-webkit-inner-spin-button,
         input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type='number'] { -moz-appearance: textfield; }
@@ -40,13 +40,8 @@
 
     <div class="max-w-screen-2xl mx-auto p-4 sm:p-6 lg:p-8">
         <header class="mb-8">
-            <nav class="text-sm font-medium text-gray-500 mb-2">
-                <a href="/index.html" class="hover:text-gray-700">BuellDocs</a>
-                <span class="mx-2">»</span>
-                <span class="text-gray-700">Forklift Certification Generator</span>
-            </nav>
             <h1 class="font-display text-4xl font-bold text-slate-800">Forklift Certification Generator</h1>
-            <p class="text-lg text-slate-600 mt-1">Fill in the details, preview the certificate, and download.</p>
+            <p class="text-lg text-slate-600 mt-1">Enter the operator's details, preview the certificate, and download.</p>
         </header>
 
         <main class="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -54,47 +49,39 @@
             <aside class="lg:col-span-5 xl:col-span-4">
                 <div class="bg-white p-6 rounded-2xl shadow-sm sticky top-8">
                     <form id="cert-form" class="space-y-6">
-                        
                         <section>
-                            <h3 class="font-display text-lg font-semibold text-slate-800 border-b pb-3 mb-4">Certification Details</h3>
+                            <h3 class="font-display text-lg font-semibold text-slate-800 border-b pb-3 mb-4">Operator & Training Details</h3>
                             <div class="space-y-4">
                                 <div class="form-group">
-                                    <label for="certStyle" class="block text-sm font-medium text-gray-700">Certificate Style</label>
-                                    <select id="certStyle" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                        <option value="style1" selected>Classic OSHA</option>
-                                        <option value="style2">Modern Minimal</option>
-                                        <option value="style3">Dark Pro</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
                                     <label for="operatorName" class="block text-sm font-medium text-gray-700">Operator Name</label>
-                                    <input type="text" id="operatorName" name="operatorName" value="John Doe" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                    <input type="text" id="operatorName" value="John Doe" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="courseType" class="block text-sm font-medium text-gray-700">Course Type</label>
-                                    <select id="courseType" name="courseType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
-                                        <option>Counterbalance Forklift</option>
-                                        <option>Reach-Truck</option>
-                                        <option>Order Picker</option>
+                                    <label for="courseType" class="block text-sm font-medium text-gray-700">Forklift Class Trained</label>
+                                    <select id="courseType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                        <option>Class I, IV, V: Sit-Down Counterbalance</option>
+                                        <option>Class II: Reach-Truck / Order Picker</option>
+                                        <option>Class III: Pallet Jack / Walkie Stacker</option>
+                                        <option>All Classes (I-V)</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
                                     <label for="trainerName" class="block text-sm font-medium text-gray-700">Trainer Name</label>
-                                    <input type="text" id="trainerName" name="trainerName" value="Jane Smith" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                    <input type="text" id="trainerName" value="Jane Smith, C.S.T." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
                                 </div>
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="form-group">
-                                        <label for="issueDate" class="block text-sm font-medium text-gray-700">Issue Date</label>
-                                        <input type="date" id="issueDate" name="issueDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                        <label for="issueDate" class="block text-sm font-medium text-gray-700">Date of Training</label>
+                                        <input type="date" id="issueDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
                                     </div>
                                     <div class="form-group">
                                         <label for="expirationDate" class="block text-sm font-medium text-gray-700">Expiration Date</label>
-                                        <input type="date" id="expirationDate" name="expirationDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                        <input type="date" id="expirationDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="certificateNumber" class="block text-sm font-medium text-gray-700">Certificate #</label>
-                                    <input type="text" id="certificateNumber" name="certificateNumber" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                    <label for="certNumber" class="block text-sm font-medium text-gray-700">Certificate ID</label>
+                                    <input type="text" id="certNumber" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
                                 </div>
                             </div>
                         </section>
@@ -105,145 +92,143 @@
             <section class="lg:col-span-7 xl:col-span-8">
                 <div class="sticky top-8">
                     <div class="flex flex-col sm:flex-row sm:justify-end sm:items-center mb-4 gap-4">
-                        <button type="button" id="preview-btn" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition">
+                        <button type="button" id="preview-btn" class="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition">
                             Generate Preview
                         </button>
                         <div id="paypal-button-container" class="w-full sm:w-auto"></div>
-                        <button id="download-pdf" disabled class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition disabled:bg-gray-400 disabled:cursor-not-allowed">
+                        <button id="download-btn" disabled class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition disabled:bg-gray-400 disabled:cursor-not-allowed">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                             Pay and Download
                         </button>
                     </div>
                     
-                    <div id="pdf-preview" class="bg-white rounded-2xl shadow-lg preview-container overflow-hidden flex items-center justify-center">
-                        <div class="p-10 text-center text-gray-500">
-                            <p>Click "Generate Preview" to see your certificate.</p>
-                        </div>
+                    <div id="pdf-preview" class="bg-white rounded-2xl shadow-lg preview-container overflow-hidden flex items-center justify-center text-gray-500">
+                        <p>Click "Generate Preview" to see your certificate.</p>
                     </div>
                 </div>
             </section>
         </main>
-        
-        <footer class="text-center mt-12 py-6">
-            <p class="text-sm text-gray-500">&copy; <span id="footer-year"></span> BuellDocs. All Rights Reserved.</p>
-        </footer>
     </div>
-    
+
     <script id="forklift-schema" type="application/json">
     {
-      "basePdf": "/assets/forklift_style1.pdf",
+      "basePdf": "https://raw.githubusercontent.com/mattb3113/docs/main/assets/forklift_style1.pdf",
       "schemas": [
-        { "key": "Operator Name",   "type": "text", "position": { "x": 50, "y": 150 }, "fontSize": 18, "alignment": "center", "width": 200 },
-        { "key": "Course Type",     "type": "text", "position": { "x": 50, "y": 180 }, "fontSize": 14, "alignment": "center", "width": 200 },
-        { "key": "Trainer Name",    "type": "text", "position": { "x": 50, "y": 210 }, "fontSize": 14, "alignment": "center", "width": 200 },
-        { "key": "Issue Date",      "type": "text", "position": { "x": 50, "y": 240 }, "fontSize": 14, "alignment": "center", "width": 200 },
-        { "key": "Expiration Date", "type": "text", "position": { "x": 50, "y": 270 }, "fontSize": 14, "alignment": "center", "width": 200 },
-        { "key": "Certificate #",   "type": "text", "position": { "x": 50, "y": 300 }, "fontSize": 12, "alignment": "center", "width": 200 }
+        { "key": "operatorName", "type": "text", "position": { "x": 35.5, "y": 91 }, "width": 140, "alignment": "center", "fontSize": 22, "fontName": "Lexend", "fontColor": "#1E293B" },
+        { "key": "courseType",   "type": "text", "position": { "x": 35.5, "y": 122 }, "width": 140, "alignment": "center", "fontSize": 11, "fontName": "Inter" },
+        { "key": "issueDate",    "type": "text", "position": { "x": 51,   "y": 158.5 }, "width": 45, "alignment": "center", "fontSize": 10, "fontName": "Inter" },
+        { "key": "trainerName",  "type": "text", "position": { "x": 115,  "y": 158.5 }, "width": 45, "alignment": "center", "fontSize": 10, "fontName": "Inter" },
+        { "key": "certNumber",   "type": "text", "position": { "x": 3,    "y": 182 }, "width": 45, "alignment": "left", "fontSize": 8, "fontColor": "#64748B" }
       ]
     }
     </script>
 
     <script type="module">
+        const { generate } = await import('https://unpkg.com/@pdfme/generator@1.7.0');
+
         // --- DOM Elements ---
-        const downloadBtn = document.getElementById('download-pdf');
+        const downloadBtn = document.getElementById('download-btn');
+        const previewPane = document.getElementById('pdf-preview');
         
         // --- Helper Functions ---
         const getYYYYMMDD = (date) => date.toISOString().split('T')[0];
 
         const generateCertNumber = () => {
             const now = new Date();
-            const year = now.getFullYear();
+            const year = now.getFullYear().toString().slice(-2);
             const month = String(now.getMonth() + 1).padStart(2, '0');
-            const random = String(Math.floor(Math.random() * 9000) + 1000);
-            return `FLT-${year}${month}${random}`;
+            const random = String(Math.floor(Math.random() * 90000) + 10000);
+            return `FLT${year}${month}-${random}`;
+        };
+
+        const getInputs = () => {
+            // Expiration date is handled by the init function, not in the schema
+            const inputs = [{
+                operatorName: document.getElementById('operatorName').value,
+                courseType: document.getElementById('courseType').value,
+                trainerName: document.getElementById('trainerName').value,
+                issueDate: document.getElementById('issueDate').value,
+                certNumber: "ID: " + document.getElementById('certNumber').value,
+            }];
+            return inputs;
         };
         
-        async function getInputs() {
+        const generatePdf = async () => {
             const template = JSON.parse(document.getElementById('forklift-schema').textContent);
-            const inputs = [{
-                "Operator Name": document.getElementById('operatorName').value,
-                "Course Type": document.getElementById('courseType').value,
-                "Trainer Name": document.getElementById('trainerName').value,
-                "Issue Date": document.getElementById('issueDate').value,
-                "Expiration Date": document.getElementById('expirationDate').value,
-                "Certificate #": document.getElementById('certificateNumber').value,
-            }];
-            return { template, inputs };
-        }
-        
-        async function generatePreview() {
-            const { generate } = await import('https://unpkg.com/@pdfme/generator@1.7.0');
-            const { template, inputs } = await getInputs();
-            const pdf = await generate({ template, inputs }); // pdf is a Uint8Array
-            const blob = new Blob([pdf], { type: 'application/pdf' });
-            const url = URL.createObjectURL(blob);
+            const inputs = getInputs();
+            return await generate({ template, inputs });
+        };
 
-            const preview = document.getElementById('pdf-preview');
-            preview.innerHTML = `<iframe src="${url}" class="w-full h-full border-none rounded-lg"></iframe>`;
-        }
+        const renderPreview = async () => {
+            previewPane.innerHTML = `<div class="p-10 text-center text-gray-500">Generating...</div>`;
+            try {
+                const pdf = await generatePdf();
+                const blob = new Blob([pdf], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                previewPane.innerHTML = `<iframe src="${url}" class="w-full h-full border-none rounded-lg"></iframe>`;
+            } catch (error) {
+                console.error("PDF Generation Error:", error);
+                previewPane.innerHTML = `<div class="p-10 text-center text-red-600">Error generating preview. Check console for details.</div>`;
+            }
+        };
 
-        async function handleDownload() {
-            const { generate } = await import('https://unpkg.com/@pdfme/generator@1.7.0');
-            const { template, inputs } = await getInputs();
-            const pdf = await generate({ template, inputs });
-            const blob = new Blob([pdf], { type: 'application/pdf' });
-            const operator = document.getElementById('operatorName').value.replace(/\s+/g, '_');
-            const filename = `${operator}_forklift_cert.pdf`;
+        const downloadPdf = async () => {
+            try {
+                const pdf = await generatePdf();
+                const blob = new Blob([pdf], { type: 'application/pdf' });
+                const operator = document.getElementById('operatorName').value.trim().replace(/\s+/g, '_');
+                const filename = `Forklift_Certificate_${operator}.pdf`;
 
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                console.error("PDF Download Error:", error);
+                alert("Could not generate PDF for download. Please try again.");
+            }
+        };
 
-        // --- Initialization ---
+        // --- PayPal & Event Listeners ---
         const init = () => {
-            document.getElementById('footer-year').textContent = new Date().getFullYear();
-
+            document.getElementById('preview-btn').addEventListener('click', renderPreview);
+            downloadBtn.addEventListener('click', downloadPdf);
+            
+            // Set default dates
             const today = new Date();
             const expiration = new Date();
-            expiration.setFullYear(today.getFullYear() + 3);
+            expiration.setFullYear(today.getFullYear() + 3); // OSHA standard: 3 years
             
             document.getElementById('issueDate').value = getYYYYMMDD(today);
             document.getElementById('expirationDate').value = getYYYYMMDD(expiration);
-            document.getElementById('certificateNumber').value = generateCertNumber();
+            document.getElementById('certNumber').value = generateCertNumber();
 
-            document.getElementById('preview-btn').addEventListener('click', e => {
-                e.preventDefault();
-                generatePreview();
-            });
-
-            downloadBtn.addEventListener('click', handleDownload);
-
+            // Render PayPal Buttons
             try {
                 paypal.Buttons({
-                    // Using PayPal's public test client ID
-                    client: 'AZDxjDScFpQtjWTOUtWKbyN_bDt4OgqaF4eYXlewfBP4-8aqX3PiV8e124gA-DYURi2cSpL392I3cAaN',
                     createOrder: (data, actions) => {
                         return actions.order.create({
                             purchase_units: [{
-                                description: "Forklift Safety Certificate",
-                                amount: { currency_code: 'USD', value: '3.25' }
+                                description: "Forklift Operator Certificate (Digital PDF)",
+                                amount: { currency_code: 'USD', value: '4.99' }
                             }]
                         });
                     },
                     onApprove: async (data, actions) => {
                         await actions.order.capture();
-                        await generatePreview(); // Refresh in case the user changed fields
                         downloadBtn.disabled = false;
-                        downloadBtn.classList.remove('disabled:bg-gray-400', 'disabled:cursor-not-allowed');
-                        await handleDownload(); // Use direct call instead of click
+                        await downloadPdf();
                     },
                     onError: (err) => {
                         console.error("PayPal Error:", err);
-                        alert("An error occurred with the payment. Please try again.");
+                        alert("An error occurred with the payment. Please check the console and try again.");
                     }
                 }).render('#paypal-button-container');
             } catch (err) {
-                 console.error("Failed to render PayPal buttons", err);
-                 document.getElementById('paypal-button-container').innerHTML = `<p class="text-sm text-red-600">Payment system failed to load.</p>`;
+                 console.error("Failed to render PayPal buttons:", err);
+                 document.getElementById('paypal-button-container').innerHTML = `<p class="text-xs text-red-600">Payment system failed to load.</p>`;
             }
         };
 

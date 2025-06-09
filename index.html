@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BuellDocs Paystub Builder</title>
+    <title> BuellDocs Paystub Generator Pro</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -13,6 +13,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lexend:wght@500;600;700&display=swap" rel="stylesheet">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=USD"></script>
 
     <script>
         // Customizations for Tailwind to use the 'Inter' and 'Lexend' font families
@@ -39,6 +41,7 @@
         @media print {
             body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
+        .hidden { display: none; }
     </style>
 </head>
 
@@ -46,7 +49,7 @@
 
     <div class="max-w-screen-2xl mx-auto p-4 sm:p-6 lg:p-8">
         <header class="mb-8">
-            <h1 class="font-display text-4xl font-bold text-slate-800">BuellDocs Paystub Builder</h1>
+            <h1 class="font-display text-4xl font-bold text-slate-800">Paystub Generator <span class="text-indigo-600">Pro</span></h1>
             <p class="text-lg text-slate-600 mt-1">Create, calculate, and download professional paystubs with ease.</p>
         </header>
 
@@ -61,20 +64,21 @@
                              <div class="space-y-4">
                                 <div class="form-group">
                                    <label for="numPaystubs" class="block text-sm font-medium text-gray-700">Number of Paystubs (1-12)</label>
-                                   <input type="number" id="numPaystubs" name="numPaystubs" min="1" max="12" value="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" aria-label="Number of Paystubs">
+                                   <input type="number" id="numPaystubs" name="numPaystubs" min="1" max="12" value="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                 </div>
                                 <div class="form-group">
-                                    <label for="representedIncomeType" class="block text-sm font-medium text-gray-700">Represented Income Type</label>
-                                    <select id="representedIncomeType" name="representedIncomeType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" aria-label="Represented Income Type">
-                                        <option value="manual" selected>Manual Rate/Hours Entry</option>
-                                        <option value="annual">Annual</option>
-                                        <option value="monthly">Monthly</option>
-                                        <option value="weekly">Weekly</option>
+                                    <label for="incomeType" class="block text-sm font-medium text-gray-700">Calculate Pay From</label>
+                                    <select id="incomeType" name="incomeType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        <option value="manual" selected>Manual Entry Below</option>
+                                        <option value="annual">Annual Salary</option>
                                     </select>
                                 </div>
-                                 <div class="form-group" id="income-amount-group">
-                                    <label for="representedIncomeAmount" class="block text-sm font-medium text-gray-700">Amount</label>
-                                      <input type="number" id="representedIncomeAmount" name="representedIncomeAmount" placeholder="e.g. 65000" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" aria-label="Represented Income Amount">
+                                 <div class="form-group" id="income-amount-group" style="display: none;">
+                                    <label for="incomeAmount" class="block text-sm font-medium text-gray-700">Annual Salary Amount</label>
+                                    <div class="relative mt-1">
+                                      <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                                      <input type="number" id="incomeAmount" name="incomeAmount" placeholder="e.g., 65000" step="0.01" class="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    </div>
                                 </div>
                              </div>
                         </section>
@@ -106,7 +110,7 @@
                              <div class="grid grid-cols-2 gap-4">
                                  <div class="form-group">
                                     <label for="payPeriod" class="block text-sm font-medium text-gray-700">Pay Frequency</label>
-                                    <select id="payPeriod" name="payPeriod" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" aria-label="Pay Frequency">
+                                    <select id="payPeriod" name="payPeriod" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                         <option value="weekly">Weekly</option>
                                         <option value="bi-weekly" selected>Bi-Weekly</option>
                                         <option value="semi-monthly">Semi-Monthly</option>
@@ -115,14 +119,14 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="taxYear" class="block text-sm font-medium text-gray-700">Tax Year</label>
-                                    <select id="taxYear" name="taxYear" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" aria-label="Tax Year">
+                                    <select id="taxYear" name="taxYear" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                         <option value="2025">2025</option>
                                         <option value="2024" selected>2024</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
                                     <label for="filingStatus" class="block text-sm font-medium text-gray-700">Fed Filing Status</label>
-                                    <select id="filingStatus" name="filingStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" aria-label="Federal Filing Status">
+                                    <select id="filingStatus" name="filingStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                         <option value="single">Single</option>
                                         <option value="married">Married Filing Jointly</option>
                                         <option value="hoh">Head of Household</option>
@@ -130,7 +134,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="state" class="block text-sm font-medium text-gray-700">State</label>
-                                    <select id="state" name="state" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" aria-label="State"></select>
+                                    <select id="state" name="state" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></select>
                                 </div>
                             </div>
                         </section>
@@ -138,14 +142,14 @@
                         <section>
                             <div class="flex justify-between items-center border-b pb-3 mb-4">
                                 <h3 class="font-display text-lg font-semibold text-slate-800">Earnings</h3>
-                                <button type="button" id="add-earning" class="text-sm font-semibold text-indigo-600 hover:text-indigo-500" aria-label="Add new earning row">+ Add Earning</button>
+                                <button type="button" id="add-earning" class="text-sm font-semibold text-indigo-600 hover:text-indigo-500">+ Add Earning</button>
                             </div>
                             <div class="space-y-3" id="earnings-container">
                                 <div class="grid grid-cols-12 gap-2 text-xs font-medium text-gray-500">
-                                    <label class="col-span-4" id="earning-desc-header">Description</label>
-                                    <label class="col-span-3 text-right" id="earning-rate-header">Rate</label>
-                                    <label class="col-span-2 text-right" id="earning-hours-header">Hours</label>
-                                    <label class="col-span-3 text-right" id="earning-ytd-header">YTD</label>
+                                    <label class="col-span-4">Description</label>
+                                    <label class="col-span-3 text-right">Rate</label>
+                                    <label class="col-span-2 text-right">Hours</label>
+                                    <label class="col-span-3 text-right">YTD</label>
                                 </div>
                                 </div>
                         </section>
@@ -153,13 +157,13 @@
                         <section>
                             <div class="flex justify-between items-center border-b pb-3 mb-4">
                                 <h3 class="font-display text-lg font-semibold text-slate-800">Deductions</h3>
-                                <button type="button" id="add-deduction" class="text-sm font-semibold text-indigo-600 hover:text-indigo-500" aria-label="Add new deduction row">+ Add Deduction</button>
+                                <button type="button" id="add-deduction" class="text-sm font-semibold text-indigo-600 hover:text-indigo-500">+ Add Deduction</button>
                             </div>
                             <div class="space-y-3" id="deductions-container">
                                  <div class="grid grid-cols-12 gap-2 text-xs font-medium text-gray-500">
-                                    <label class="col-span-6" id="deduction-desc-header">Description</label>
-                                    <label class="col-span-3 text-right" id="deduction-current-header">Current</label>
-                                    <label class="col-span-3 text-right" id="deduction-ytd-header">YTD</label>
+                                    <label class="col-span-6">Description</label>
+                                    <label class="col-span-3 text-right">Current</label>
+                                    <label class="col-span-3 text-right">YTD</label>
                                 </div>
                                 </div>
                         </section>
@@ -170,23 +174,23 @@
 
             <section class="lg:col-span-7 xl:col-span-8">
                 <div class="sticky top-8">
-                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
                         <div class="flex items-center space-x-4 mb-4 sm:mb-0">
-                            <button id="prev-stub" aria-label="Previous paystub" class="p-2 rounded-md bg-white border border-gray-300 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button id="prev-stub" class="p-2 rounded-md bg-white border border-gray-300 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
                             </button>
                              <span id="stub-nav-status" class="font-semibold text-gray-700 text-center w-24">Stub 1 of 1</span>
-                            <button id="next-stub" aria-label="Next paystub" class="p-2 rounded-md bg-white border border-gray-300 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button id="next-stub" class="p-2 rounded-md bg-white border border-gray-300 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
                             </button>
                         </div>
-                        <div class="w-full sm:w-auto flex items-center gap-x-3">
-                            <button type="button" id="pay-button" aria-haspopup="dialog" class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
-                                Pay Now $3.25
+                        <div class="flex items-center gap-2">
+                             <button id="pay-button" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition">
+                                Pay Now
                             </button>
-                            <button id="download-pdf" disabled class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition disabled:bg-gray-400 disabled:cursor-not-allowed">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                                Download
+                            <button id="download-pdf" disabled class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                Download PDF
                             </button>
                         </div>
                     </div>
@@ -202,6 +206,16 @@
         </footer>
     </div>
     
+    <div id="paypal-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md relative">
+            <button id="close-paypal-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            <h3 class="font-display text-2xl font-bold text-slate-800 mb-2">Complete Your Purchase</h3>
+            <p class="text-slate-600 mb-6">Your download will be enabled automatically after payment.</p>
+            <div id="paypal-container"></div>
+        </div>
+    </div>
+
+
     <template id="paystub-template">
         <div class="p-6 sm:p-8 lg:p-10 font-sans text-sm text-gray-800">
             <div class="text-center mb-6">
@@ -236,20 +250,20 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
                 <div class="md:col-span-2">
                     <h4 class="font-display text-lg font-semibold text-gray-800 mb-2">Earnings</h4>
-                    <table class="w-full" data-id="earnings-table" role="table">
+                    <table class="w-full" data-id="earnings-table">
                         <thead class="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider">
                             <tr>
-                                <th scope="col" class="p-3 font-medium">Description</th>
-                                <th scope="col" class="p-3 font-medium text-right">Rate</th>
-                                <th scope="col" class="p-3 font-medium text-right">Hours</th>
-                                <th scope="col" class="p-3 font-medium text-right">Current</th>
-                                <th scope="col" class="p-3 font-medium text-right">YTD</th>
+                                <th class="p-3 font-medium">Description</th>
+                                <th class="p-3 font-medium text-right">Rate</th>
+                                <th class="p-3 font-medium text-right">Hours</th>
+                                <th class="p-3 font-medium text-right">Current</th>
+                                <th class="p-3 font-medium text-right">YTD</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200"></tbody>
                         <tfoot class="bg-gray-50 font-semibold">
                             <tr>
-                                <td scope="row" colspan="3" class="p-3">Gross Pay</td>
+                                <td colspan="3" class="p-3">Gross Pay</td>
                                 <td class="p-3 text-right" data-id="currentGrossPay"></td>
                                 <td class="p-3 text-right" data-id="ytdGrossPay"></td>
                             </tr>
@@ -259,18 +273,18 @@
 
                 <div>
                     <h4 class="font-display text-lg font-semibold text-gray-800 mb-2">Deductions</h4>
-                    <table class="w-full" data-id="deductions-table" role="table">
+                    <table class="w-full" data-id="deductions-table">
                         <thead class="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider">
                             <tr>
-                                <th scope="col" class="p-3 font-medium">Description</th>
-                                <th scope="col" class="p-3 font-medium text-right">Current</th>
-                                <th scope="col" class="p-3 font-medium text-right">YTD</th>
+                                <th class="p-3 font-medium">Description</th>
+                                <th class="p-3 font-medium text-right">Current</th>
+                                <th class="p-3 font-medium text-right">YTD</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200"></tbody>
                         <tfoot class="bg-gray-50 font-semibold">
                             <tr>
-                                <td scope="row" class="p-3">Total Deductions</td>
+                                <td class="p-3">Total Deductions</td>
                                 <td class="p-3 text-right" data-id="currentTotalDeductions"></td>
                                 <td class="p-3 text-right" data-id="ytdTotalDeductions"></td>
                             </tr>
@@ -280,35 +294,22 @@
 
                 <div>
                     <h4 class="font-display text-lg font-semibold text-gray-800 mb-2">Taxes</h4>
-                    <table class="w-full" data-id="taxes-table" role="table">
+                    <table class="w-full" data-id="taxes-table">
                          <thead class="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider">
                             <tr>
-                                <th scope="col" class="p-3 font-medium">Description</th>
-                                <th scope="col" class="p-3 font-medium text-right">Current</th>
-                                <th scope="col" class="p-3 font-medium text-right">YTD</th>
+                                <th class="p-3 font-medium">Description</th>
+                                <th class="p-3 font-medium text-right">Current</th>
+                                <th class="p-3 font-medium text-right">YTD</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200"></tbody>
                         <tfoot class="bg-gray-50 font-semibold">
                             <tr>
-                                <td scope="row" class="p-3">Total Taxes</td>
+                                <td class="p-3">Total Taxes</td>
                                 <td class="p-3 text-right" data-id="currentTotalTaxes"></td>
                                 <td class="p-3 text-right" data-id="ytdTotalTaxes"></td>
                             </tr>
                         </tfoot>
-                    </table>
-                </div>
-                <div class="md:col-span-2">
-                    <h4 class="font-display text-lg font-semibold text-gray-800 mb-2">Employer Contributions</h4>
-                    <table class="w-full" data-id="employer-taxes-table" role="table">
-                         <thead class="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider">
-                            <tr>
-                                <th scope="col" class="p-3 font-medium">Description</th>
-                                <th scope="col" class="p-3 font-medium text-right">Current</th>
-                                <th scope="col" class="p-3 font-medium text-right">YTD</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200"></tbody>
                     </table>
                 </div>
             </div>
@@ -336,18 +337,7 @@
         </div>
     </template>
 
-    <div id="paypal-modal" role="dialog" aria-modal="true" aria-labelledby="paypal-modal-title" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-xl p-6 sm:p-8 w-full max-w-md relative">
-            <h2 id="paypal-modal-title" class="text-xl font-bold text-gray-800 mb-4">Complete Your Payment</h2>
-            <p class="text-gray-600 mb-6">Please complete the payment via PayPal to unlock your download.</p>
-            <div id="paypal-container-SGT94FSVSGRMY"></div>
-            <button id="close-modal-button" type="button" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600" aria-label="Close payment modal">
-                 <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-        </div>
-    </div>
-    <script src="https://www.paypal.com/sdk/js?client-id=BAAyNBY4BjmIEQ-f08fnqyVgKln8_A_xEHD0DKtvfN_XnYmsZpXFIc2KKtREWXiQYwzQRFRyzXY9Gk6TrA&components=hosted-buttons&enable-funding=venmo&currency=USD"></script>
-    
+
     <script>
     // This script combines all necessary logic for the paystub generator.
     // It's structured into classes for better organization and maintainability.
@@ -367,7 +357,6 @@
                     "hoh": { "brackets": [{ "rate": 0.10, "upto": 16550 }, { "rate": 0.12, "upto": 63100 }, { "rate": 0.22, "upto": 100500 }, { "rate": 0.24, "upto": 191950 }, { "rate": 0.32, "upto": 243700 }, { "rate": 0.35, "upto": 609350 }, { "rate": 0.37, "upto": Infinity }], "deduction": 21900 }
                 },
                 "fica": { "social_security_rate": 0.062, "social_security_limit": 168600, "medicare_rate": 0.0145 },
-                "futa": { "rate": 0.00, "wage_base": 7000 },
                 "states": { "AL": { "name": "Alabama", "single": { "brackets": [{ "rate": 0.02, "upto": 500 }, { "rate": 0.04, "upto": 3000 }, { "rate": 0.05, "upto": Infinity }] } }, "AK": { "name": "Alaska", "single": { "brackets": [] } }, "AZ": { "name": "Arizona", "single": { "brackets": [{ "rate": 0.025, "upto": Infinity }] } }, "AR": { "name": "Arkansas", "single": { "brackets": [{ "rate": 0.02, "upto": 24299 }, { "rate": 0.04, "upto": 87000 }, { "rate": 0.049, "upto": Infinity }] } }, "CA": { "name": "California", "single": { "brackets": [{ "rate": 0.01, "upto": 10412 }, { "rate": 0.02, "upto": 24684 }, { "rate": 0.04, "upto": 38959 }, { "rate": 0.06, "upto": 54081 }, { "rate": 0.08, "upto": 68350 }, { "rate": 0.093, "upto": 349137 }, { "rate": 0.103, "upto": 418961 }, { "rate": 0.113, "upto": 698271 }, { "rate": 0.123, "upto": Infinity }] } }, "CO": { "name": "Colorado", "single": { "brackets": [{ "rate": 0.044, "upto": Infinity }] } }, "CT": { "name": "Connecticut", "single": { "brackets": [{ "rate": 0.03, "upto": 10000 }, { "rate": 0.05, "upto": 50000 }, { "rate": 0.055, "upto": 100000 }, { "rate": 0.06, "upto": 200000 }, { "rate": 0.065, "upto": 250000 }, { "rate": 0.069, "upto": 500000 }, { "rate": 0.0699, "upto": Infinity }] } }, "DE": { "name": "Delaware", "single": { "brackets": [{ "rate": 0.022, "upto": 5000 }, { "rate": 0.039, "upto": 10000 }, { "rate": 0.048, "upto": 20000 }, { "rate": 0.052, "upto": 25000 }, { "rate": 0.0555, "upto": 60000 }, { "rate": 0.066, "upto": Infinity }] } }, "FL": { "name": "Florida", "single": { "brackets": [] } }, "GA": { "name": "Georgia", "single": { "brackets": [{ "rate": 0.0549, "upto": Infinity }] } }, "HI": { "name": "Hawaii", "single": { "brackets": [{ "rate": 0.014, "upto": 2400 }, { "rate": 0.032, "upto": 4800 }, { "rate": 0.055, "upto": 9600 }, { "rate": 0.064, "upto": 14400 }, { "rate": 0.068, "upto": 19200 }, { "rate": 0.072, "upto": 24000 }, { "rate": 0.076, "upto": 36000 }, { "rate": 0.079, "upto": 48000 }, { "rate": 0.0825, "upto": 150000 }, { "rate": 0.09, "upto": 175000 }, { "rate": 0.1, "upto": 200000 }, { "rate": 0.11, "upto": Infinity }] } }, "ID": { "name": "Idaho", "single": { "brackets": [{ "rate": 0.058, "upto": Infinity }] } }, "IL": { "name": "Illinois", "single": { "brackets": [{ "rate": 0.0495, "upto": Infinity }] } }, "IN": { "name": "Indiana", "single": { "brackets": [{ "rate": 0.0315, "upto": Infinity }] } }, "IA": { "name": "Iowa", "single": { "brackets": [{ "rate": 0.057, "upto": Infinity }] } }, "KS": { "name": "Kansas", "single": { "brackets": [{ "rate": 0.031, "upto": 15000 }, { "rate": 0.0525, "upto": 30000 }, { "rate": 0.057, "upto": Infinity }] } }, "KY": { "name": "Kentucky", "single": { "brackets": [{ "rate": 0.045, "upto": Infinity }] } }, "LA": { "name": "Louisiana", "single": { "brackets": [{ "rate": 0.0185, "upto": 12500 }, { "rate": 0.037, "upto": 50000 }, { "rate": 0.0425, "upto": Infinity }] } }, "ME": { "name": "Maine", "single": { "brackets": [{ "rate": 0.058, "upto": 24500 }, { "rate": 0.0675, "upto": 58050 }, { "rate": 0.0715, "upto": Infinity }] } }, "MD": { "name": "Maryland", "single": { "brackets": [{ "rate": 0.02, "upto": 1000 }, { "rate": 0.03, "upto": 2000 }, { "rate": 0.04, "upto": 3000 }, { "rate": 0.0475, "upto": 100000 }, { "rate": 0.05, "upto": 125000 }, { "rate": 0.0525, "upto": 150000 }, { "rate": 0.055, "upto": 250000 }, { "rate": 0.0575, "upto": Infinity }] } }, "MA": { "name": "Massachusetts", "single": { "brackets": [{ "rate": 0.05, "upto": Infinity }] } }, "MI": { "name": "Michigan", "single": { "brackets": [{ "rate": 0.0425, "upto": Infinity }] } }, "MN": { "name": "Minnesota", "single": { "brackets": [{ "rate": 0.0535, "upto": 30070 }, { "rate": 0.068, "upto": 98750 }, { "rate": 0.0785, "upto": 183340 }, { "rate": 0.0985, "upto": Infinity }] } }, "MS": { "name": "Mississippi", "single": { "brackets": [{ "rate": 0.04, "upto": 5000 }, { "rate": 0.05, "upto": Infinity }] } }, "MO": { "name": "Missouri", "single": { "brackets": [{ "rate": 0.0495, "upto": Infinity }] } }, "MT": { "name": "Montana", "single": { "brackets": [{ "rate": 0.047, "upto": 20500 }, { "rate": 0.059, "upto": Infinity }] } }, "NE": { "name": "Nebraska", "single": { "brackets": [{ "rate": 0.0246, "upto": 3220 }, { "rate": 0.0351, "upto": 19340 }, { "rate": 0.0501, "upto": 32230 }, { "rate": 0.0664, "upto": Infinity }] } }, "NV": { "name": "Nevada", "single": { "brackets": [] } }, "NH": { "name": "New Hampshire", "single": { "brackets": [] } }, "NJ": { "name": "New Jersey", "single": { "brackets": [{ "rate": 0.014, "upto": 20000 }, { "rate": 0.0175, "upto": 35000 }, { "rate": 0.035, "upto": 40000 }, { "rate": 0.05525, "upto": 75000 }, { "rate": 0.0637, "upto": 500000 }, { "rate": 0.0897, "upto": 1000000 }, { "rate": 0.1075, "upto": Infinity }] } }, "NM": { "name": "New Mexico", "single": { "brackets": [{ "rate": 0.017, "upto": 5500 }, { "rate": 0.032, "upto": 11000 }, { "rate": 0.049, "upto": 16000 }, { "rate": 0.059, "upto": Infinity }] } }, "NY": { "name": "New York", "single": { "brackets": [{ "rate": 0.04, "upto": 8500 }, { "rate": 0.045, "upto": 11700 }, { "rate": 0.0525, "upto": 13900 }, { "rate": 0.055, "upto": 80650 }, { "rate": 0.06, "upto": 215400 }, { "rate": 0.0685, "upto": 1077550 }, { "rate": 0.0965, "upto": 5000000 }, { "rate": 0.103, "upto": 25000000 }, { "rate": 0.109, "upto": Infinity }] } }, "NC": { "name": "North Carolina", "single": { "brackets": [{ "rate": 0.0475, "upto": Infinity }] } }, "ND": { "name": "North Dakota", "single": { "brackets": [{ "rate": 0.011, "upto": 44725 }, { "rate": 0.0204, "upto": 90425 }, { "rate": 0.0227, "upto": 222525 }, { "rate": 0.0264, "upto": 473975 }, { "rate": 0.029, "upto": Infinity }] } }, "OH": { "name": "Ohio", "single": { "brackets": [{ "rate": 0.02765, "upto": 26050 }, { "rate": 0.03226, "upto": 100000 }, { "rate": 0.03688, "upto": Infinity }] } }, "OK": { "name": "Oklahoma", "single": { "brackets": [{ "rate": 0.005, "upto": 1000 }, { "rate": 0.01, "upto": 2500 }, { "rate": 0.02, "upto": 3750 }, { "rate": 0.03, "upto": 4900 }, { "rate": 0.04, "upto": 7200 }, { "rate": 0.0475, "upto": Infinity }] } }, "OR": { "name": "Oregon", "single": { "brackets": [{ "rate": 0.0475, "upto": 3750 }, { "rate": 0.0675, "upto": 9450 }, { "rate": 0.0875, "upto": 125000 }, { "rate": 0.099, "upto": Infinity }] } }, "PA": { "name": "Pennsylvania", "single": { "brackets": [{ "rate": 0.0307, "upto": Infinity }] } }, "RI": { "name": "Rhode Island", "single": { "brackets": [{ "rate": 0.0375, "upto": 68250 }, { "rate": 0.0475, "upto": 155050 }, { "rate": 0.0599, "upto": Infinity }] } }, "SC": { "name": "South Carolina", "single": { "brackets": [{ "rate": 0.03, "upto": 3210 }, { "rate": 0.065, "upto": Infinity }] } }, "SD": { "name": "South Dakota", "single": { "brackets": [] } }, "TN": { "name": "Tennessee", "single": { "brackets": [] } }, "TX": { "name": "Texas", "single": { "brackets": [] } }, "UT": { "name": "Utah", "single": { "brackets": [{ "rate": 0.0465, "upto": Infinity }] } }, "VT": { "name": "Vermont", "single": { "brackets": [{ "rate": 0.0335, "upto": 45300 }, { "rate": 0.066, "upto": 109800 }, { "rate": 0.076, "upto": 229300 }, { "rate": 0.0875, "upto": Infinity }] } }, "VA": { "name": "Virginia", "single": { "brackets": [{ "rate": 0.02, "upto": 3000 }, { "rate": 0.03, "upto": 5000 }, { "rate": 0.05, "upto": 17000 }, { "rate": 0.0575, "upto": Infinity }] } }, "WA": { "name": "Washington", "single": { "brackets": [] } }, "WV": { "name": "West Virginia", "single": { "brackets": [{ "rate": 0.0236, "upto": 10000 }, { "rate": 0.0315, "upto": 25000 }, { "rate": 0.0354, "upto": 40000 }, { "rate": 0.0472, "upto": 60000 }, { "rate": 0.0512, "upto": Infinity }] } }, "WI": { "name": "Wisconsin", "single": { "brackets": [{ "rate": 0.0354, "upto": 13600 }, { "rate": 0.0465, "upto": 27210 }, { "rate": 0.053, "upto": 300090 }, { "rate": 0.0765, "upto": Infinity }] } }, "WY": { "name": "Wyoming", "single": { "brackets": [] } } }
             }
         };
@@ -390,19 +379,6 @@
             round: (num) => Math.round(num * 100) / 100
         };
         App.pMath = pMath;
-
-        /* NEW */
-        const debounce = (func, wait) => {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        };
 
         const formatDate = (dateString) => {
             if (!dateString) return '';
@@ -441,8 +417,7 @@
                 let ytdState = {
                     earnings: { ...baseFormData.initialYtd.earnings },
                     deductions: { ...baseFormData.initialYtd.deductions },
-                    taxes: { ...baseFormData.initialYtd.taxes },
-                    employerTaxes: { ...baseFormData.initialYtd.employerTaxes }
+                    taxes: { ...baseFormData.initialYtd.taxes }
                 };
 
                 for (let i = 0; i < baseFormData.numPaystubs; i++) {
@@ -453,7 +428,6 @@
                     result.earnings.forEach(e => ytdState.earnings[e.description] = e.ytd);
                     result.deductions.forEach(d => ytdState.deductions[d.description] = d.ytd);
                     result.taxes.forEach(t => ytdState.taxes[t.name] = t.ytd);
-                    result.employerTaxes.forEach(t => ytdState.employerTaxes[t.name] = t.ytd);
                     
                     results.push(result);
                 }
@@ -492,13 +466,6 @@
                 
                 const currentTotalTaxes = processedTaxes.reduce((sum, tax) => pMath.add(sum, tax.current), 0);
 
-                // Calculate employer taxes
-                const processedEmployerTaxes = [
-                    { name: 'FUTA (0%)', current: 0, ytd: 0 },
-                    { name: 'Employer Social Security', current: calculatedTaxes.socialSecurity, ytd: pMath.add(ytdState.employerTaxes['Employer Social Security'] || 0, calculatedTaxes.socialSecurity) },
-                    { name: 'Employer Medicare', current: calculatedTaxes.medicare, ytd: pMath.add(ytdState.employerTaxes['Employer Medicare'] || 0, calculatedTaxes.medicare) }
-                ];
-
                 // Final Net Pay calculation
                 const netPay = pMath.subtract(pMath.subtract(currentGrossPay, currentTotalTaxes), currentTotalDeductions);
 
@@ -512,12 +479,11 @@
                     earnings: processedEarnings,
                     deductions: processedDeductions,
                     taxes: processedTaxes,
-                    employerTaxes: processedEmployerTaxes,
                 };
             }
             
             calculateTaxes(currentGross, annualGross, formData, taxTables, numPayPeriods, ytdState) {
-                const totalYtdGrossBeforeThisStub = Object.values(ytdState.earnings).reduce((a, b) => a + b, 0);
+                const totalYtdGrossBeforeThisStub = ytdState.earnings['Regular Pay'] || 0; // Approximate with Regular Pay YTD
                 const federal = this.getFederalTax(annualGross, formData.filingStatus, taxTables.federal, numPayPeriods);
                 const socialSecurity = this.getSocialSecurityTax(currentGross, totalYtdGrossBeforeThisStub, taxTables.fica);
                 const medicare = this.getMedicareTax(currentGross, taxTables.fica);
@@ -618,8 +584,7 @@
                 this.updateEarningsTable(find('earnings-table'), data.earnings, data.grossPay, data.ytdGrossPay);
                 this.updateGenericTable(find('deductions-table'), data.deductions, 'currentTotalDeductions', 'ytdTotalDeductions');
                 this.updateGenericTable(find('taxes-table'), data.taxes, 'currentTotalTaxes', 'ytdTotalTaxes');
-                this.updateGenericTable(find('employer-taxes-table'), data.employerTaxes);
-
+                
                 // Summary
                 find('summary-grossPay').textContent = formatCurrency(data.grossPay);
                 find('summary-totalDeductions').textContent = formatCurrency(data.totalDeductions);
@@ -666,10 +631,8 @@
                             </tr>`;
                     });
                 }
-                if (currentTotalDataId && ytdTotalDataId) {
-                    table.querySelector(`[data-id="${currentTotalDataId}"]`).textContent = formatCurrency(currentTotal);
-                    table.querySelector(`[data-id="${ytdTotalDataId}"]`).textContent = formatCurrency(ytdTotal);
-                }
+                table.querySelector(`[data-id="${currentTotalDataId}"]`).textContent = formatCurrency(currentTotal);
+                table.querySelector(`[data-id="${ytdTotalDataId}"]`).textContent = formatCurrency(ytdTotal);
             }
 
 
@@ -689,8 +652,6 @@
                 const statusEl = document.getElementById('stub-nav-status');
                 const prevBtn = document.getElementById('prev-stub');
                 const nextBtn = document.getElementById('next-stub');
-                
-                if(!statusEl || !prevBtn || !nextBtn) return;
 
                 statusEl.textContent = `Stub ${this.currentIndex + 1} of ${this.totalStubs}`;
                 prevBtn.disabled = this.currentIndex === 0;
@@ -727,12 +688,9 @@
                 this.deductionFieldCount = 0;
                 
                 this.form.addEventListener('input', () => this.updateCallback());
-                document.getElementById('representedIncomeType').addEventListener('change', () => this.handleRepresentedIncomeCalculation());
-                document.getElementById('representedIncomeAmount').addEventListener('input', () => this.handleRepresentedIncomeCalculation());
-                document.getElementById('payPeriod').addEventListener('change', () => {
-                    this.generateDateInputs(); // Also recalculates dates
-                    this.handleRepresentedIncomeCalculation();
-                });
+                document.getElementById('incomeType').addEventListener('change', () => this.handleIncomeTypeChange());
+                document.getElementById('incomeAmount').addEventListener('input', () => this.handleIncomeCalculation());
+                document.getElementById('payPeriod').addEventListener('change', () => this.handleIncomeCalculation());
                 document.getElementById('add-earning').addEventListener('click', () => this.addEarningField());
                 document.getElementById('add-deduction').addEventListener('click', () => this.addDeductionField());
                 document.getElementById('numPaystubs').addEventListener('input', () => this.generateDateInputs());
@@ -771,20 +729,19 @@
                     }
                 });
                 
-                const getInitialYTD = (containerId, namePrefix, isEarning = false) => {
+                const getInitialYTD = (containerId, namePrefix) => {
                     const ytd = {};
                     document.querySelectorAll(`#${containerId} .dynamic-field`).forEach(field => {
                         const desc = field.querySelector(`[name*="${namePrefix}Description"]`).value;
                         if(desc) {
-                           const ytdInputName = isEarning ? `earningAmountYTD` : `${namePrefix}AmountYTD`;
-                           ytd[desc] = parseFloat(field.querySelector(`[name*="${ytdInputName}"]`).value) || 0;
+                           ytd[desc] = parseFloat(field.querySelector(`[name*="${namePrefix}AmountYTD"]`).value) || 0;
                         }
                     });
                     return ytd;
                 };
 
                 const payPeriod = document.getElementById('payPeriod').value;
-                const numPaystubs = parseInt(document.getElementById('numPaystubs').value, 10);
+                const numPaystubs = parseInt(document.getElementById('numPaystubs').value, 10) || 1;
                 const stubs = [];
                  for(let i=0; i<numPaystubs; i++){
                     const payPeriodStart = document.getElementById(`payPeriodStart-${i}`).value;
@@ -806,10 +763,9 @@
                     earnings,
                     deductions,
                     initialYtd: {
-                        earnings: getInitialYTD('earnings-container', 'earning', true),
+                        earnings: getInitialYTD('earnings-container', 'earning'),
                         deductions: getInitialYTD('deductions-container', 'deduction'),
-                        taxes: {},
-                        employerTaxes: {}
+                        taxes: {}
                     }
                 };
             }
@@ -818,34 +774,24 @@
                 const container = document.getElementById('paystub-dates-container');
                 const num = Math.min(12, Math.max(1, parseInt(document.getElementById('numPaystubs').value, 10) || 1));
                 const payPeriod = document.getElementById('payPeriod').value;
-                
-                // Preserve existing dates
-                const existingDates = [];
-                for (let i = 0; i < container.children.length; i++) {
-                    existingDates.push(document.getElementById(`payPeriodStart-${i}`).value);
-                }
-
                 container.innerHTML = '';
                 
-                let lastStartDateStr = existingDates[0] || new Date().toISOString().split('T')[0];
+                let lastStartDate = new Date();
                 
                 for (let i = 0; i < num; i++) {
-                    const dateValue = existingDates[i] || lastStartDateStr;
                     const div = document.createElement('div');
                     div.className = 'form-group';
                     div.innerHTML = `
                         <label for="payPeriodStart-${i}" class="block text-sm font-medium text-gray-700">Paystub ${i + 1} Start Date</label>
-                        <input type="date" id="payPeriodStart-${i}" name="payPeriodStart-${i}" value="${dateValue}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <input type="date" id="payPeriodStart-${i}" name="payPeriodStart-${i}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                     `;
                     container.appendChild(div);
+                    document.getElementById(`payPeriodStart-${i}`).value = lastStartDate.toISOString().split('T')[0];
                     
-                    // Increment date for next stub if it wasn't pre-filled
-                    if (!existingDates[i+1]) {
-                        const { payPeriodEnd } = this.calculateEndAndPayDates(dateValue, payPeriod);
-                        let nextStartDate = new Date(payPeriodEnd + 'T00:00:00');
-                        nextStartDate.setDate(nextStartDate.getDate() + 1);
-                        lastStartDateStr = nextStartDate.toISOString().split('T')[0];
-                    }
+                    // Increment date for next stub
+                    const { payPeriodEnd } = this.calculateEndAndPayDates(lastStartDate.toISOString().split('T')[0], payPeriod);
+                    lastStartDate = new Date(payPeriodEnd + 'T00:00:00');
+                    lastStartDate.setDate(lastStartDate.getDate() + 1);
                 }
                 this.updateCallback();
             }
@@ -877,44 +823,38 @@
                 };
             }
 
-            handleRepresentedIncomeCalculation() {
-                const incomeType = document.getElementById('representedIncomeType').value;
-                if (incomeType === 'manual') return;
-
-                const representedAmount = parseFloat(document.getElementById('representedIncomeAmount').value) || 0;
-                if (representedAmount <= 0) return;
-
-                let hourlyRate = 0;
-                switch (incomeType) {
-                    case 'annual':
-                        hourlyRate = pMath.divide(pMath.divide(representedAmount, 52), 40);
-                        break;
-                    case 'monthly':
-                        hourlyRate = pMath.divide(pMath.divide(pMath.multiply(representedAmount, 12), 52), 40);
-                        break;
-                    case 'weekly':
-                        hourlyRate = pMath.divide(representedAmount, 40);
-                        break;
+            handleIncomeTypeChange() {
+                const incomeType = document.getElementById('incomeType').value;
+                const incomeGroup = document.getElementById('income-amount-group');
+                incomeGroup.style.display = (incomeType === 'annual') ? 'block' : 'none';
+                if (incomeType === 'manual') {
+                    // Potentially clear the auto-calculated fields if desired
+                } else {
+                    this.handleIncomeCalculation();
                 }
+            }
+            
+            handleIncomeCalculation() {
+                const incomeType = document.getElementById('incomeType').value;
+                if (incomeType !== 'annual') return;
 
-                const payPeriod = document.getElementById('payPeriod').value;
-                let hours = 40; // Default for semi-monthly and monthly
-                if (payPeriod === 'weekly') {
-                    hours = 40;
-                } else if (payPeriod === 'bi-weekly') {
-                    hours = 80;
-                }
+                const incomeAmount = parseFloat(document.getElementById('incomeAmount').value) || 0;
+                if (incomeAmount <= 0) return;
                 
-                // Update the *first* 'Regular Pay' earning field
-                const firstEarningField = document.querySelector('#earnings-container .dynamic-field');
-                if (firstEarningField) {
-                    const rateInput = firstEarningField.querySelector('[name*="earningRate"]');
-                    const hoursInput = firstEarningField.querySelector('[name*="earningHours"]');
+                const payPeriod = document.getElementById('payPeriod').value;
+                const payPeriodsPerYear = { weekly: 52, 'bi-weekly': 26, 'semi-monthly': 24, monthly: 12 };
+                const hoursPerPeriod = { weekly: 40, 'bi-weekly': 80, 'semi-monthly': 86.67, monthly: 173.33 };
+
+                const grossPerPeriod = pMath.divide(incomeAmount, payPeriodsPerYear[payPeriod]);
+                const hourlyRate = pMath.divide(grossPerPeriod, hoursPerPeriod[payPeriod]);
+
+                // Update the 'Regular Pay' earning field, if it exists
+                const regularPayField = document.querySelector('#earnings-container .dynamic-field');
+                if (regularPayField) {
+                    const rateInput = regularPayField.querySelector('[name*="earningRate"]');
+                    const hoursInput = regularPayField.querySelector('[name*="earningHours"]');
                     if (rateInput) rateInput.value = pMath.round(hourlyRate);
-                    if (hoursInput) hoursInput.value = hours.toFixed(2);
-                    
-                    // Manually trigger update since we changed value via script
-                    this.updateCallback();
+                    if (hoursInput) hoursInput.value = hoursPerPeriod[payPeriod].toFixed(2);
                 }
             }
             
@@ -930,16 +870,9 @@
             
             addDefaultFields() {
                 this.addEarningField({ desc: 'Regular Pay', rate: 31.25, hours: 80, ytd: 65000 });
-                this.addEarningField({ desc: 'Overtime', rate: '', hours: '', ytd: '' });
-                this.addEarningField({ desc: 'Double Time', rate: '', hours: '', ytd: '' });
-                this.addEarningField({ desc: 'Commission', rate: '', hours: '', ytd: '' });
-                this.addEarningField({ desc: 'Sick', rate: '', hours: '', ytd: '' });
-                this.addEarningField({ desc: 'Holiday', rate: '', hours: '', ytd: '' });
+                this.addEarningField({ desc: 'Bonus', rate: 500, hours: 1, ytd: 1000 });
                 this.addDeductionField({ desc: 'Health Insurance', curr: 150, ytd: 3600 });
-                this.addDeductionField({ desc: 'Insurance – Dental', curr: '', ytd: '' });
-                this.addDeductionField({ desc: 'Insurance – Vision', curr: '', ytd: '' });
                 this.addDeductionField({ desc: '401k', curr: 125, ytd: 3000 });
-                this.addDeductionField({ desc: 'Garnishment', curr: '', ytd: '' });
             }
 
             addEarningField(defaults = {}) {
@@ -950,19 +883,19 @@
 
                 newField.innerHTML = `
                     <div class="col-span-4">
-                        <input type="text" name="earningDescription-${fieldId}" placeholder="Description" value="${defaults.desc || ''}" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="earning-desc-header">
+                        <input type="text" name="earningDescription-${fieldId}" placeholder="Description" value="${defaults.desc || ''}" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     </div>
                     <div class="col-span-3">
-                         <input type="number" name="earningRate-${fieldId}" placeholder="0.00" value="${defaults.rate || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="earning-rate-header">
+                         <input type="number" name="earningRate-${fieldId}" placeholder="0.00" value="${defaults.rate || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     </div>
                     <div class="col-span-2">
-                        <input type="number" name="earningHours-${fieldId}" placeholder="0.00" value="${defaults.hours || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="earning-hours-header">
+                        <input type="number" name="earningHours-${fieldId}" placeholder="0" value="${defaults.hours || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     </div>
                     <div class="col-span-2">
-                         <input type="number" name="earningAmountYTD-${fieldId}" placeholder="0.00" value="${defaults.ytd || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="earning-ytd-header">
+                         <input type="number" name="earningAmountYTD-${fieldId}" placeholder="0.00" value="${defaults.ytd || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     </div>
                     <div class="col-span-1 text-right">
-                        <button type="button" class="text-gray-400 hover:text-red-500 remove-btn" aria-label="Remove ${defaults.desc || 'earning'} row">&times;</button>
+                        <button type="button" class="text-gray-400 hover:text-red-500 remove-btn">&times;</button>
                     </div>
                 `;
                 container.appendChild(newField);
@@ -980,16 +913,16 @@
 
                 newField.innerHTML = `
                     <div class="col-span-6">
-                        <input type="text" name="deductionDescription-${fieldId}" placeholder="Description" value="${defaults.desc || ''}" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="deduction-desc-header">
+                        <input type="text" name="deductionDescription-${fieldId}" placeholder="Description" value="${defaults.desc || ''}" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     </div>
                     <div class="col-span-2">
-                         <input type="number" name="deductionAmountCurrent-${fieldId}" placeholder="0.00" value="${defaults.curr || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="deduction-current-header">
+                         <input type="number" name="deductionAmountCurrent-${fieldId}" placeholder="0.00" value="${defaults.curr || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     </div>
                      <div class="col-span-3">
-                         <input type="number" name="deductionAmountYTD-${fieldId}" placeholder="0.00" value="${defaults.ytd || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="deduction-ytd-header">
+                         <input type="number" name="deductionAmountYTD-${fieldId}" placeholder="0.00" value="${defaults.ytd || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     </div>
                     <div class="col-span-1 text-right">
-                        <button type="button" class="text-gray-400 hover:text-red-500 remove-btn" aria-label="Remove ${defaults.desc || 'deduction'} row">&times;</button>
+                        <button type="button" class="text-gray-400 hover:text-red-500 remove-btn">&times;</button>
                     </div>
                 `;
                 container.appendChild(newField);
@@ -1005,12 +938,8 @@
         class UIController {
             constructor() {
                 this.previewUpdater = new App.PreviewUpdater();
-                this.formManager = new App.FormManager(debounce(() => this.processUpdate(), 250));
+                this.formManager = new App.FormManager(() => this.processUpdate());
                 this.calculator = new App.PaystubCalculator();
-                this.isPayPalReady = false;
-                /* NEW */
-                this.payPalModal = document.getElementById('paypal-modal');
-                /* NEW */
                 this.isPayPalRendered = false;
                 
                 this.setupEventListeners();
@@ -1024,45 +953,62 @@
                     this.previewUpdater.updateAll(calculationResults);
                 } catch (error) {
                     console.error("Calculation Error:", error);
+                    // Optionally, display an error message to the user in the preview area
                     document.getElementById('previews-container').innerHTML = `<div class="p-10 text-center text-red-500">An error occurred during calculation. Check console for details.</div>`;
                 }
             }
+            
+            handlePaymentSuccess() {
+              document.getElementById('download-pdf').disabled = false;
+              document.getElementById('download-pdf').click();
+              document.getElementById('pay-button').style.display = 'none';
+              this.closePayPalModal();
+            }
 
-            /* NEW */
-            openPayPalModal() {
-                this.payPalModal.classList.remove('hidden');
-                if (this.isPayPalReady && !this.isPayPalRendered) {
-                    paypal.HostedButtons({
-                        hostedButtonId: "SGT94FSVSGRMY",
-                        onApprove: () => {
-                            console.log('Transaction approved by PayPal');
-                            this.closePayPalModal();
-                            const downloadBtn = document.getElementById('download-pdf');
-                            downloadBtn.disabled = false;
-                            downloadBtn.click();
-                            document.getElementById('pay-button').style.display = 'none'; // Hide pay button after success
-                        }
-                    }).render("#paypal-container-SGT94FSVSGRMY").catch(err => {
-                        console.error("PayPal Error:", err);
-                        document.getElementById('paypal-container-SGT94FSVSGRMY').innerHTML = `<p class="text-sm text-red-600 text-center">Payment could not be processed. Please try again.</p>`;
-                    });
+            renderPayPalButtons() {
+                const numStubs = parseInt(document.getElementById('numPaystubs').value, 10) || 1;
+                const amount = (numStubs * 3.25).toFixed(2);
+                const description = `BuellDocs Paystubs – ${numStubs} × $3.25`;
+                
+                const paypalContainer = document.getElementById('paypal-container');
+                paypalContainer.innerHTML = ''; // Clear previous buttons
+                this.isPayPalRendered = false;
+
+                paypal.Buttons({
+                    createOrder: (data, actions) => {
+                        return actions.order.create({
+                            purchase_units: [{
+                                description: description,
+                                amount: {
+                                    value: amount,
+                                    currency_code: 'USD'
+                                }
+                            }]
+                        });
+                    },
+                    onApprove: (data, actions) => {
+                        return actions.order.capture().then(() => this.handlePaymentSuccess());
+                    }
+                }).render('#paypal-container').then(() => {
                     this.isPayPalRendered = true;
-                }
+                });
             }
             
-            /* NEW */
+            openPayPalModal() {
+                document.getElementById('paypal-modal').classList.remove('hidden');
+                this.renderPayPalButtons();
+            }
+
             closePayPalModal() {
-                this.payPalModal.classList.add('hidden');
+                document.getElementById('paypal-modal').classList.add('hidden');
             }
 
             setupEventListeners() {
                 document.getElementById('download-pdf').addEventListener('click', () => {
                     const elementToPrint = this.previewUpdater.getCurrentStubHTMLforPDF();
-                    const formData = this.formManager.getFormData();
-                    const filename = `paystub_${formData.employeeName.replace(/ /g, '_')}_${formData.stubs[this.previewUpdater.currentIndex].payDate}.pdf`;
                     const opt = {
                         margin:       [0.25, 0.25, 0.25, 0.25],
-                        filename:     filename,
+                        filename:     'paystub.pdf',
                         image:        { type: 'jpeg', quality: 0.98 },
                         html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
                         jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
@@ -1074,27 +1020,14 @@
                 document.getElementById('prev-stub').addEventListener('click', () => this.previewUpdater.prev());
                 document.getElementById('footer-year').textContent = new Date().getFullYear();
                 
-                /* NEW */
+                // Payment Modal Listeners
                 document.getElementById('pay-button').addEventListener('click', () => this.openPayPalModal());
-                /* NEW */
-                document.getElementById('close-modal-button').addEventListener('click', () => this.closePayPalModal());
-                
-                // Defer PayPal setup until SDK is fully loaded
-                setTimeout(() => {
-                    if (typeof paypal !== 'undefined') {
-                        this.isPayPalReady = true;
-                    } else {
-                        console.error("PayPal SDK not loaded.");
-                        /* NEW */
-                        const payButton = document.getElementById('pay-button');
-                        /* NEW */
-                        if (payButton) {
-                            payButton.disabled = true;
-                            payButton.textContent = 'Payment Unavailable';
-                            payButton.classList.add('disabled:bg-gray-400', 'disabled:cursor-not-allowed');
-                        }
+                document.getElementById('close-paypal-modal').addEventListener('click', () => this.closePayPalModal());
+                document.getElementById('paypal-modal').addEventListener('click', (event) => {
+                    if (event.target.id === 'paypal-modal') {
+                        this.closePayPalModal();
                     }
-                }, 500);
+                });
             }
         }
         App.UIController = UIController;

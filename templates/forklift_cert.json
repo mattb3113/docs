@@ -1,0 +1,22 @@
+{
+  "basePdf": "/assets/backgrounds/forklift_style1.pdf",
+  "schemas": [
+    { "key": "Operator Name",    "type": "text",
+      "position": { "x": 306, "y": 215 }, "fontSize": 28, "alignment": "center" },
+
+    { "key": "Course Type",      "type": "text",
+      "position": { "x": 306, "y": 265 }, "fontSize": 18, "alignment": "center" },
+
+    { "key": "Trainer Name",     "type": "text",
+      "position": { "x": 306, "y": 315 }, "fontSize": 18, "alignment": "center" },
+
+    { "key": "Issue Date",       "type": "text",
+      "position": { "x": 246, "y": 375 }, "fontSize": 16 },
+
+    { "key": "Expiration Date",  "type": "text",
+      "position": { "x": 366, "y": 375 }, "fontSize": 16 },
+
+    { "key": "Certificate #",    "type": "text",
+      "position": { "x": 306, "y": 430 }, "fontSize": 14, "alignment": "center" }
+  ]
+}

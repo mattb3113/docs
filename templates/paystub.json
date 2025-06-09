@@ -1,0 +1,46 @@
+{
+  "basePdf": "/assets/backgrounds/paystub_blank.pdf",
+  "schemas": [
+    { "key": "Company Name",      "type": "text",
+      "position": { "x": 45,  "y":  40 }, "fontSize": 12 },
+
+    { "key": "Company Address",   "type": "text",
+      "position": { "x": 45,  "y":  60 }, "fontSize": 10 },
+
+    { "key": "Employee Name",     "type": "text",
+      "position": { "x": 400, "y":  40 }, "fontSize": 10 },
+
+    { "key": "Employee ID",       "type": "text",
+      "position": { "x": 400, "y":  55 }, "fontSize": 10 },
+
+    { "key": "Pay Period Start",  "type": "text",
+      "position": { "x": 400, "y":  95 }, "fontSize": 10 },
+
+    { "key": "Pay Period End",    "type": "text",
+      "position": { "x": 400, "y": 110 }, "fontSize": 10 },
+
+    { "key": "Pay Date",          "type": "text",
+      "position": { "x": 400, "y": 125 }, "fontSize": 10 },
+
+    { "key": "Regular Pay",       "type": "text",
+      "position": { "x":  95, "y": 185 }, "fontSize": 10, "alignment": "right" },
+    { "key": "OT Pay",            "type": "text",
+      "position": { "x":  95, "y": 200 }, "fontSize": 10, "alignment": "right" },
+    { "key": "Bonus",             "type": "text",
+      "position": { "x":  95, "y": 215 }, "fontSize": 10, "alignment": "right" },
+    { "key": "Gross Pay",         "type": "text",
+      "position": { "x":  95, "y": 235 }, "fontSize": 10, "alignment": "right" },
+
+    { "key": "Federal Tax",       "type": "text",
+      "position": { "x": 300, "y": 185 }, "fontSize": 10, "alignment": "right" },
+    { "key": "SS Tax",            "type": "text",
+      "position": { "x": 300, "y": 200 }, "fontSize": 10, "alignment": "right" },
+    { "key": "Medicare Tax",      "type": "text",
+      "position": { "x": 300, "y": 215 }, "fontSize": 10, "alignment": "right" },
+    { "key": "State Tax",         "type": "text",
+      "position": { "x": 300, "y": 230 }, "fontSize": 10, "alignment": "right" },
+
+    { "key": "Net Pay",           "type": "text",
+      "position": { "x": 460, "y": 260 }, "fontSize": 12, "alignment": "right" }
+  ]
+}

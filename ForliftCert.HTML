@@ -59,7 +59,7 @@
                              <button type="button" id="preview-btn" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 Generate Preview
                             </button>
-                             <button type="button" id="download-btn" class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                             <button type="button" id="download-btn" disabled class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 Download PDF
                             </button>
                         </div>
@@ -77,11 +77,10 @@
     </div>
 
     <script type="module">
-        import { generate } from 'https://unpkg.com/@pdfme/generator@1.7.0';
-
         const form = document.getElementById('cert-form');
         const previewPane = document.getElementById('pdf-preview');
         const issueDateInput = document.getElementById('issueDate');
+        const downloadBtn = document.getElementById('download-btn');
 
         // --- Helper Functions ---
         const getYYYYMMDD = (date) => date.toISOString().split('T')[0];
@@ -100,30 +99,44 @@
         };
 
         // --- Core PDF Logic ---
-        const getTemplate = async () => {
-            const response = await fetch('./templates/forklift_cert.json');
-            if (!response.ok) {
-                throw new Error('Could not load the certificate template.');
-            }
-            return await response.json();
+        const getTemplate = () => {
+            // Use the corrected JSON schema directly
+            return {
+              "basePdf": "assets/backgrounds/forklift_style1.pdf",
+              "schemas": [
+                { "key": "Operator Name",    "type": "text",
+                  "position": { "x": 306, "y": 215 }, "fontSize": 28, "alignment": "center" },
+                { "key": "Course Type",      "type": "text",
+                  "position": { "x": 306, "y": 265 }, "fontSize": 18, "alignment": "center" },
+                { "key": "Trainer Name",     "type": "text",
+                  "position": { "x": 306, "y": 315 }, "fontSize": 18, "alignment": "center" },
+                { "key": "Issue Date",       "type": "text",
+                  "position": { "x": 246, "y": 375 }, "fontSize": 16 },
+                { "key": "Expiration Date",  "type": "text",
+                  "position": { "x": 366, "y": 375 }, "fontSize": 16 },
+                { "key": "Certificate #",    "type": "text",
+                  "position": { "x": 306, "y": 430 }, "fontSize": 14, "alignment": "center" }
+              ]
+            };
         };
         
         const getInputs = () => {
             const formData = new FormData(form);
             const inputs = {};
             // Map form IDs to the keys in the JSON template
-            inputs.operatorName = formData.get('operatorName') || '';
-            inputs.courseType = formData.get('courseType') || '';
-            inputs.trainerName = formData.get('trainerName') || '';
-            inputs.issueDate = formData.get('issueDate') || '';
-            inputs.expirationDate = document.getElementById('expirationDate').value || ''; // Get readonly value
-            inputs.certNumber = document.getElementById('certNumber').value || ''; // Get readonly value
+            inputs['Operator Name'] = formData.get('operatorName') || '';
+            inputs['Course Type'] = formData.get('courseType') || '';
+            inputs['Trainer Name'] = formData.get('trainerName') || '';
+            inputs['Issue Date'] = formData.get('issueDate') || '';
+            inputs['Expiration Date'] = document.getElementById('expirationDate').value || ''; // Get readonly value
+            inputs['Certificate #'] = document.getElementById('certNumber').value || ''; // Get readonly value
             return [inputs]; // pdfme expects an array of inputs
         };
 
         const generatePdf = async () => {
             try {
-                const template = await getTemplate();
+                const { generate } = await import('https://unpkg.com/@pdfme/generator@1.7.0?module');
+                const template = getTemplate();
                 const inputs = getInputs();
                 const pdf = await generate({ template, inputs });
                 return new Blob([pdf], { type: 'application/pdf' });
@@ -141,6 +154,7 @@
             if (blob) {
                 const url = URL.createObjectURL(blob);
                 previewPane.innerHTML = `<iframe src="${url}" class="w-full h-full border-none"></iframe>`;
+                downloadBtn.disabled = false; // Enable download button
             } else {
                 previewPane.innerHTML = `<p class="text-red-500">Failed to generate preview.</p>`;
             }

@@ -1,22 +1,56 @@
 {
   "basePdf": "/assets/backgrounds/forklift_style1.pdf",
   "schemas": [
-    { "key": "Operator Name",    "type": "text",
-      "position": { "x": 306, "y": 215 }, "fontSize": 28, "alignment": "center" },
-
-    { "key": "Course Type",      "type": "text",
-      "position": { "x": 306, "y": 265 }, "fontSize": 18, "alignment": "center" },
-
-    { "key": "Trainer Name",     "type": "text",
-      "position": { "x": 306, "y": 315 }, "fontSize": 18, "alignment": "center" },
-
-    { "key": "Issue Date",       "type": "text",
-      "position": { "x": 246, "y": 375 }, "fontSize": 16 },
-
-    { "key": "Expiration Date",  "type": "text",
-      "position": { "x": 366, "y": 375 }, "fontSize": 16 },
-
-    { "key": "Certificate #",    "type": "text",
-      "position": { "x": 306, "y": 430 }, "fontSize": 14, "alignment": "center" }
+    {
+      "key": "operatorName",
+      "type": "text",
+      "position": { "x": 306, "y": 600 },
+      "width": 500,
+      "alignment": "center",
+      "fontSize": 28,
+      "characterSpacing": 1
+    },
+    {
+      "key": "courseType",
+      "type": "text",
+      "position": { "x": 306, "y": 525 },
+      "width": 500,
+      "alignment": "center",
+      "fontSize": 18,
+      "fontColor": "#334155"
+    },
+    {
+      "key": "trainerName",
+      "type": "text",
+      "position": { "x": 150, "y": 370 },
+      "width": 200,
+      "alignment": "center",
+      "fontSize": 16
+    },
+    {
+      "key": "issueDate",
+      "type": "text",
+      "position": { "x": 450, "y": 370 },
+      "width": 200,
+      "alignment": "center",
+      "fontSize": 16
+    },
+    {
+      "key": "expirationDate",
+      "type": "text",
+      "position": { "x": 450, "y": 305 },
+       "width": 200,
+      "alignment": "center",
+      "fontSize": 16
+    },
+    {
+      "key": "certNumber",
+      "type": "text",
+      "position": { "x": 306, "y": 150 },
+       "width": 500,
+      "alignment": "center",
+      "fontSize": 14,
+      "fontColor": "#64748B"
+    }
   ]
 }

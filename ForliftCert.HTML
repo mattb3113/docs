@@ -12,16 +12,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lexend:wght@500;600;700&display=swap" rel="stylesheet">
     
-    <!-- NEW: pdfme library for PDF generation -->
-    <script src="https://unpkg.com/@pdfme/generator@1.7.0"></script>
-    <script src="https://unpkg.com/@pdfme/ui@1.7.0"></script>
-
-    <!-- NEW: PayPal SDK -->
+    <!-- PayPal SDK -->
     <script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID&currency=USD&components=buttons"></script>
     <!-- 
         NOTE: Replace YOUR_CLIENT_ID with your actual PayPal Client ID.
         A test ID is used in the script below for demonstration purposes.
     -->
+    <!-- v2.0 ADD -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <script>
         // Customizations for Tailwind to use 'Inter' and 'Lexend' fonts
@@ -52,7 +50,7 @@
 <body class="bg-gray-100">
 
     <div class="max-w-screen-2xl mx-auto p-4 sm:p-6 lg:p-8">
-        <!-- NEW: Header and Breadcrumb -->
+        <!-- Header and Breadcrumb -->
         <header class="mb-8">
             <nav class="text-sm font-medium text-gray-500 mb-2">
                 <a href="/index.html" class="hover:text-gray-700">BuellDocs</a>
@@ -62,7 +60,6 @@
             <h1 class="font-display text-4xl font-bold text-slate-800">Forklift Certification Generator</h1>
             <p class="text-lg text-slate-600 mt-1">Fill in the details, preview the certificate, and download.</p>
         </header>
-        <!-- END NEW -->
 
         <main class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
@@ -74,6 +71,15 @@
                         <section>
                              <h3 class="font-display text-lg font-semibold text-slate-800 border-b pb-3 mb-4">Certification Details</h3>
                              <div class="space-y-4">
+                                <!-- v2.0 ADD -->
+                                <div class="form-group">
+                                  <label for="certStyle" class="block text-sm font-medium text-gray-700">Certificate Style</label>
+                                  <select id="certStyle" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    <option value="style1" selected>Classic OSHA</option>
+                                    <option value="style2">Modern Minimal</option>
+                                    <option value="style3">Dark Pro</option>
+                                  </select>
+                                </div>
                                 <div class="form-group">
                                    <label for="operatorName" class="block text-sm font-medium text-gray-700">Operator Name</label>
                                    <input type="text" id="operatorName" name="operatorName" value="John Doe" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
@@ -106,9 +112,6 @@
                                 </div>
                              </div>
                         </section>
-
-                        <!-- Action buttons will be in the right panel for better UX on large screens -->
-
                     </form>
                 </div>
             </aside>
@@ -116,22 +119,22 @@
             <!-- Preview Panel (Right) -->
             <section class="lg:col-span-7 xl:col-span-8">
                 <div class="sticky top-8">
-                    <!-- NEW: Action buttons -->
+                    <!-- Action buttons -->
                     <div class="flex flex-col sm:flex-row sm:justify-end sm:items-center mb-4 gap-4">
-                        <button type="button" id="generate-preview" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition">
+                        <button type="button" id="preview-btn" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition">
                             Generate Preview
                         </button>
                         <div id="paypal-button-container" class="w-full sm:w-auto"></div>
+                        <!-- v2.0 MOD -->
                         <button id="download-pdf" disabled class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition disabled:bg-gray-400 disabled:cursor-not-allowed">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                            Pay and Download ($3.25)
+                            Pay and Download
                         </button>
                     </div>
-                    <!-- END NEW -->
                     
-                    <div id="pdf-preview" class="bg-white rounded-2xl shadow-lg preview-container overflow-hidden">
-                        <div class="p-10 text-center text-gray-500 flex items-center justify-center h-full">
-                            <p>Your certificate preview will appear here.</p>
+                    <div id="pdf-preview" class="bg-white rounded-2xl shadow-lg preview-container overflow-hidden flex items-center justify-center">
+                        <div class="p-10 text-center text-gray-500">
+                            <p>Click "Generate Preview" to see your certificate.</p>
                         </div>
                     </div>
                 </div>
@@ -143,19 +146,34 @@
         </footer>
     </div>
     
-    <!-- NEW: Main application logic -->
-    <script type="module">
-        // Access pdfme from the global window object, as it's loaded via a script tag.
-        const { Generator, Viewer } = window.pdfme;
+    <!-- v2.0 DEL -->
+    <!-- <script id="forklift-schema" type="application/json"> ... </script> -->
 
+    <!-- v2.0 ADD – certificate template -->
+    <template id="forkliftCertTemplate">
+      <div class="relative w-[816px] h-[1056px] overflow-hidden bg-white">
+        <img data-id="bg" class="absolute inset-0 w-full h-full object-cover" src="" alt="Certificate Background">
+        <div class="absolute left-0 top-0 w-full h-full flex flex-col items-center justify-center text-center font-display text-gray-900 p-8">
+          <h2 data-id="operatorName" class="text-5xl font-bold"></h2>
+          <p class="mt-4 text-2xl">has successfully completed training for the</p>
+          <p data-id="courseType" class="mt-2 text-3xl font-semibold"></p>
+          <p class="mt-8 text-xl">trained by <span data-id="trainerName" class="font-semibold"></span></p>
+          <p class="mt-6 text-lg">
+            Issued: <span data-id="issueDate" class="font-semibold"></span> &nbsp;|&nbsp;
+            Expires: <span data-id="expirationDate" class="font-semibold"></span>
+          </p>
+          <p class="mt-12 text-base">Certificate&nbsp;#: <span data-id="certificateNumber" class="font-mono"></span></p>
+        </div>
+      </div>
+    </template>
+
+    <!-- Main application logic -->
+    <script type="module">
         // --- DOM Elements ---
         const form = document.getElementById('cert-form');
-        const previewContainer = document.getElementById('pdf-preview');
         const downloadBtn = document.getElementById('download-pdf');
-        const generateBtn = document.getElementById('generate-preview');
-
+        
         // --- Helper Functions ---
-        const formatDate = (date) => date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
         const getYYYYMMDD = (date) => date.toISOString().split('T')[0];
 
         const generateCertNumber = () => {
@@ -165,113 +183,52 @@
             const random = String(Math.floor(Math.random() * 9000) + 1000);
             return `FLT-${year}${month}${random}`;
         };
-
-        const debounce = (func, wait) => {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        };
-
-        // --- PDFme Template ---
-        // Using a placeholder image for the background. Replace the URL with your actual asset path.
-        const backgroundUrl = 'https://placehold.co/816x1056/ffffff/E0E0E0?text=Your+Certificate+Background';
-        let basePdf = ''; // Will be loaded dynamically
-
-        const template = {
-            schemas: [
-                {
-                    operatorName: { type: 'text', position: { x: 35, y: 75 }, width: 140, height: 15, alignment: 'center', fontSize: 32, fontName: "Lexend", textColor: '#1E293B' },
-                    congratsText: { type: 'text', position: { x: 35, y: 100 }, width: 140, height: 8, alignment: 'center', fontSize: 14, textColor: '#475569' },
-                    courseType: { type: 'text', position: { x: 35, y: 115 }, width: 140, height: 10, alignment: 'center', fontSize: 22, fontName: "Lexend", textColor: '#1E3A8A' },
-                    completionText: { type: 'text', position: { x: 35, y: 130 }, width: 140, height: 8, alignment: 'center', fontSize: 12, textColor: '#475569' },
-                    
-                    issueDateLabel: { type: 'text', position: { x: 40, y: 180 }, width: 55, height: 6, alignment: 'center', fontSize: 10, textColor: '#475569' },
-                    issueDate: { type: 'text', position: { x: 40, y: 188 }, width: 55, height: 8, alignment: 'center', fontSize: 14, fontName: "Lexend", textColor: '#1E293B' },
-                    
-                    expirationDateLabel: { type: 'text', position: { x: 115, y: 180 }, width: 55, height: 6, alignment: 'center', fontSize: 10, textColor: '#475569' },
-                    expirationDate: { type: 'text', position: { x: 115, y: 188 }, width: 55, height: 8, alignment: 'center', fontSize: 14, fontName: "Lexend", textColor: '#1E293B' },
-
-                    trainerNameLabel: { type: 'text', position: { x: 40, y: 205 }, width: 55, height: 6, alignment: 'center', fontSize: 10, textColor: '#475569' },
-                    trainerName: { type: 'text', position: { x: 40, y: 213 }, width: 55, height: 8, alignment: 'center', fontSize: 14, fontName: "Lexend", textColor: '#1E293B' },
-
-                    certNumberLabel: { type: 'text', position: { x: 115, y: 205 }, width: 55, height: 6, alignment: 'center', fontSize: 10, textColor: '#475569' },
-                    certificateNumber: { type: 'text', position: { x: 115, y: 213 }, width: 55, height: 8, alignment: 'center', fontSize: 14, fontName: "Lexend", textColor: '#1E293B' },
-                }
-            ],
-            // `basePdf` will be added here after fetching the background
-        };
-
-        // --- PDFme Instances ---
-        let viewer;
-        let generator;
-
-        const getInputs = () => {
-            const formData = new FormData(form);
-            const issueDateVal = new Date(formData.get('issueDate') + 'T00:00:00');
-            const expirationDateVal = new Date(formData.get('expirationDate') + 'T00:00:00');
-
-            return [{
-                operatorName: formData.get('operatorName') || '',
-                congratsText: 'has successfully completed training for the',
-                courseType: formData.get('courseType') || '',
-                completionText: 'in accordance with OSHA standards.',
-                
-                issueDateLabel: 'Date of Issue',
-                issueDate: formatDate(issueDateVal),
-                
-                expirationDateLabel: 'Expiration Date',
-                expirationDate: formatDate(expirationDateVal),
-
-                trainerNameLabel: 'Trainer',
-                trainerName: formData.get('trainerName') || '',
-
-                certNumberLabel: 'Certificate No.',
-                certificateNumber: formData.get('certificateNumber') || '',
-            }];
-        };
-
-        const updatePreview = async () => {
-            if (!viewer || !basePdf) {
-                console.log("Viewer or background not ready.");
-                return;
-            }
-            try {
-                template.basePdf = basePdf;
-                await viewer.update({ template, inputs: getInputs() });
-            } catch (error) {
-                console.error('Error updating preview:', error);
-            }
-        };
         
-        const handleDownload = async () => {
-            if (!generator || !basePdf) {
-                alert("Generator not ready.");
-                return;
-            }
-            template.basePdf = basePdf;
-            const pdf = await generator.generate({ template, inputs: getInputs() });
-            const blob = new Blob([pdf.buffer], { type: 'application/pdf' });
-            
-            const operatorName = document.getElementById('operatorName').value.replace(/\s+/g, '_');
-            const filename = `${operatorName}_forklift_cert.pdf`;
+        // v2.0 REPLACE generatePreview
+        function generatePreview() {
+          const tpl = document.getElementById('forkliftCertTemplate').content.cloneNode(true);
+          const bgMap = {
+            style1: 'https://i.imgur.com/M52p2G4.png', // Classic
+            style2: 'https://i.imgur.com/V2x2xVz.png', // Modern
+            style3: 'https://i.imgur.com/sC3b3aE.png', // Dark
+          };
+          tpl.querySelector('[data-id="bg"]').src = bgMap[document.getElementById('certStyle').value];
+          
+          // v2.0 MOD - Apply text color change for dark theme
+          if (document.getElementById('certStyle').value === 'style3') {
+              tpl.querySelector('.font-display').classList.remove('text-gray-900');
+              tpl.querySelector('.font-display').classList.add('text-gray-100');
+          }
 
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        };
+          tpl.querySelector('[data-id="operatorName"]').textContent   = document.getElementById('operatorName').value;
+          tpl.querySelector('[data-id="courseType"]').textContent     = document.getElementById('courseType').value;
+          tpl.querySelector('[data-id="trainerName"]').textContent    = document.getElementById('trainerName').value;
+          tpl.querySelector('[data-id="issueDate"]').textContent      = document.getElementById('issueDate').value;
+          tpl.querySelector('[data-id="expirationDate"]').textContent = document.getElementById('expirationDate').value;
+          tpl.querySelector('[data-id="certificateNumber"]').textContent = document.getElementById('certificateNumber').value;
+
+          const preview = document.getElementById('pdf-preview');
+          preview.innerHTML = '';
+          preview.appendChild(tpl);
+        }
+
+        // v2.0 REPLACE handleDownload
+        async function handleDownload() {
+          const element = document.getElementById('pdf-preview').firstElementChild.cloneNode(true);
+          const operator = document.getElementById('operatorName').value.replace(/\s+/g,'_');
+          const opt = {
+            margin:       [0,0,0,0],
+            filename:     `${operator}_forklift_cert.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'pt', format: 'letter', orientation: 'landscape' }
+          };
+          html2pdf().from(element).set(opt).save();
+        }
 
 
         // --- Initialization ---
-        const init = async () => {
+        const init = () => {
             // Set footer year
             document.getElementById('footer-year').textContent = new Date().getFullYear();
 
@@ -283,70 +240,62 @@
             document.getElementById('issueDate').value = getYYYYMMDD(today);
             document.getElementById('expirationDate').value = getYYYYMMDD(expiration);
             document.getElementById('certificateNumber').value = generateCertNumber();
-            
-            // Fetch the background PDF and convert to base64
-            // In a real scenario, this would be '/assets/forklift-cert-bg.png'
-            // Using a placeholder for this example as direct local asset access is restricted
-            const response = await fetch(backgroundUrl);
-            const blob = await response.blob();
-            basePdf = await new Promise(resolve => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.readAsDataURL(blob);
+
+            // Wire the button
+            document.getElementById('preview-btn').addEventListener('click', e => {
+                e.preventDefault();
+                generatePreview();
             });
 
-            // Instantiate Viewer and Generator
-            viewer = new Viewer({ domContainer: previewContainer, template, inputs: getInputs() });
-            generator = new Generator();
-            
-            // Set up event listeners
-            form.addEventListener('input', debounce(updatePreview, 300));
-            generateBtn.addEventListener('click', updatePreview);
+            // Set up download button listener
             downloadBtn.addEventListener('click', handleDownload);
 
-            // Initial render
-            await updatePreview();
-
             // Setup PayPal Buttons
-            paypal.Buttons({
-                // Using a sandbox Client ID for testing
-                // Replace with your production client ID
-                client: 'AZDxjDScFpQtjWTOUtWKbyN_bDt4OgqaF4eYXlewfBP4-8aqX3PiV8e124gA-DYURi2cSpL392I3cAaN',
-                createOrder: (data, actions) => {
-                    return actions.order.create({
-                        purchase_units: [{
-                            description: "Forklift Safety Certificate",
-                            amount: {
-                                currency_code: 'USD',
-                                value: '3.25'
-                            }
-                        }]
-                    });
-                },
-                onApprove: (data, actions) => {
-                    return actions.order.capture().then(details => {
-                        console.log('Transaction completed by ' + details.payer.name.given_name);
-                        // Enable and trigger download
-                        downloadBtn.disabled = false;
-                        downloadBtn.click();
-                    });
-                },
-                onError: (err) => {
-                    console.error("PayPal Error:", err);
-                    alert("An error occurred with the payment. Please try again.");
-                }
-            }).render('#paypal-button-container').catch(err => {
-                console.error("Failed to render PayPal buttons", err);
-                document.getElementById('paypal-button-container').innerText = "Payment failed to load.";
-            });
+            try {
+                paypal.Buttons({
+                    // Using a sandbox Client ID for testing
+                    // Replace with your production client ID
+                    client: 'AZDxjDScFpQtjWTOUtWKbyN_bDt4OgqaF4eYXlewfBP4-8aqX3PiV8e124gA-DYURi2cSpL392I3cAaN',
+                    createOrder: (data, actions) => {
+                        // v2.0 MOD - Amount computed
+                        const amount = '3.25';
+                        return actions.order.create({
+                            purchase_units: [{
+                                description: "Forklift Safety Certificate",
+                                amount: {
+                                    currency_code: 'USD',
+                                    value: amount
+                                }
+                            }]
+                        });
+                    },
+                    // v2.0 MOD - Updated approval flow
+                    onApprove: (data, actions) => {
+                        return actions.order.capture().then(details => {
+                            console.log('Transaction completed by ' + details.payer.name.given_name);
+                            generatePreview(); // Ensure preview has latest data
+                            downloadBtn.disabled = false;
+                            handleDownload();
+                        });
+                    },
+                    onError: (err) => {
+                        console.error("PayPal Error:", err);
+                        alert("An error occurred with the payment. Please try again.");
+                    }
+                }).render('#paypal-button-container');
+            } catch (err) {
+                 console.error("Failed to render PayPal buttons", err);
+                 document.getElementById('paypal-button-container').innerHTML = `<p class="text-sm text-red-600">Payment system failed to load.</p>`;
+            }
 
         };
 
         document.addEventListener('DOMContentLoaded', init);
 
     </script>
-    <!-- END NEW -->
-
+    
+    <!-- v2.0 DEL -->
+    <!-- <script type="module" src="https://unpkg.com/@pdfme/generator@1.7.0"></script> -->
 </body>
 
 </html>

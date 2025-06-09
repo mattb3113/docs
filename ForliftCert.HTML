@@ -6,19 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BuellDocs Forklift Certification Generator</title>
     
-    <!-- Tailwind & Fonts from design system -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lexend:wght@500;600;700&display=swap" rel="stylesheet">
     
-    <!-- PayPal SDK -->
     <script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID&currency=USD&components=buttons"></script>
-    <!-- 
-        NOTE: Replace YOUR_CLIENT_ID with your actual PayPal Client ID.
-        A test ID is used in the script below for demonstration purposes.
-    -->
-
     <script>
         // Customizations for Tailwind to use 'Inter' and 'Lexend' fonts
         tailwind.config = {
@@ -46,7 +39,6 @@
 <body class="bg-gray-100">
 
     <div class="max-w-screen-2xl mx-auto p-4 sm:p-6 lg:p-8">
-        <!-- Header and Breadcrumb -->
         <header class="mb-8">
             <nav class="text-sm font-medium text-gray-500 mb-2">
                 <a href="/index.html" class="hover:text-gray-700">BuellDocs</a>
@@ -59,25 +51,24 @@
 
         <main class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <!-- Form Panel (Left) -->
             <aside class="lg:col-span-5 xl:col-span-4">
                 <div class="bg-white p-6 rounded-2xl shadow-sm sticky top-8">
                     <form id="cert-form" class="space-y-6">
                         
                         <section>
-                             <h3 class="font-display text-lg font-semibold text-slate-800 border-b pb-3 mb-4">Certification Details</h3>
-                             <div class="space-y-4">
+                            <h3 class="font-display text-lg font-semibold text-slate-800 border-b pb-3 mb-4">Certification Details</h3>
+                            <div class="space-y-4">
                                 <div class="form-group">
-                                  <label for="certStyle" class="block text-sm font-medium text-gray-700">Certificate Style</label>
-                                  <select id="certStyle" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                    <option value="style1" selected>Classic OSHA</option>
-                                    <option value="style2">Modern Minimal</option>
-                                    <option value="style3">Dark Pro</option>
-                                  </select>
+                                    <label for="certStyle" class="block text-sm font-medium text-gray-700">Certificate Style</label>
+                                    <select id="certStyle" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        <option value="style1" selected>Classic OSHA</option>
+                                        <option value="style2">Modern Minimal</option>
+                                        <option value="style3">Dark Pro</option>
+                                    </select>
                                 </div>
                                 <div class="form-group">
-                                   <label for="operatorName" class="block text-sm font-medium text-gray-700">Operator Name</label>
-                                   <input type="text" id="operatorName" name="operatorName" value="John Doe" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                    <label for="operatorName" class="block text-sm font-medium text-gray-700">Operator Name</label>
+                                    <input type="text" id="operatorName" name="operatorName" value="John Doe" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="courseType" class="block text-sm font-medium text-gray-700">Course Type</label>
@@ -88,33 +79,31 @@
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                   <label for="trainerName" class="block text-sm font-medium text-gray-700">Trainer Name</label>
-                                   <input type="text" id="trainerName" name="trainerName" value="Jane Smith" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                    <label for="trainerName" class="block text-sm font-medium text-gray-700">Trainer Name</label>
+                                    <input type="text" id="trainerName" name="trainerName" value="Jane Smith" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
                                 </div>
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="form-group">
-                                       <label for="issueDate" class="block text-sm font-medium text-gray-700">Issue Date</label>
-                                       <input type="date" id="issueDate" name="issueDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                        <label for="issueDate" class="block text-sm font-medium text-gray-700">Issue Date</label>
+                                        <input type="date" id="issueDate" name="issueDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
                                     </div>
                                     <div class="form-group">
-                                       <label for="expirationDate" class="block text-sm font-medium text-gray-700">Expiration Date</label>
-                                       <input type="date" id="expirationDate" name="expirationDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                        <label for="expirationDate" class="block text-sm font-medium text-gray-700">Expiration Date</label>
+                                        <input type="date" id="expirationDate" name="expirationDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                   <label for="certificateNumber" class="block text-sm font-medium text-gray-700">Certificate #</label>
-                                   <input type="text" id="certificateNumber" name="certificateNumber" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                    <label for="certificateNumber" class="block text-sm font-medium text-gray-700">Certificate #</label>
+                                    <input type="text" id="certificateNumber" name="certificateNumber" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
                                 </div>
-                             </div>
+                            </div>
                         </section>
                     </form>
                 </div>
             </aside>
 
-            <!-- Preview Panel (Right) -->
             <section class="lg:col-span-7 xl:col-span-8">
                 <div class="sticky top-8">
-                    <!-- Action buttons -->
                     <div class="flex flex-col sm:flex-row sm:justify-end sm:items-center mb-4 gap-4">
                         <button type="button" id="preview-btn" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition">
                             Generate Preview
@@ -140,22 +129,20 @@
         </footer>
     </div>
     
-    <!-- FIXED schema -->
     <script id="forklift-schema" type="application/json">
     {
-      "basePdf": "https://raw.githubusercontent.com/mattb3113/docs/main/assets/forklift_style1.pdf",
+      "basePdf": "/assets/forklift_style1.pdf",
       "schemas": [
-        { "key": "Operator Name",  "type": "text", "position": { "x": 50,  "y": 150 }, "fontSize": 18, "alignment": "center", "width": 200 },
-        { "key": "Course Type",    "type": "text", "position": { "x": 50,  "y": 180 }, "fontSize": 14, "alignment": "center", "width": 200 },
-        { "key": "Trainer Name",   "type": "text", "position": { "x": 50,  "y": 210 }, "fontSize": 14, "alignment": "center", "width": 200 },
-        { "key": "Issue Date",     "type": "text", "position": { "x": 50,  "y": 240 }, "fontSize": 14, "alignment": "center", "width": 200 },
-        { "key": "Expiration Date","type": "text", "position": { "x": 50,  "y": 270 }, "fontSize": 14, "alignment": "center", "width": 200 },
-        { "key": "Certificate #",  "type": "text", "position": { "x": 50,  "y": 300 }, "fontSize": 12, "alignment": "center", "width": 200 }
+        { "key": "Operator Name",   "type": "text", "position": { "x": 50, "y": 150 }, "fontSize": 18, "alignment": "center", "width": 200 },
+        { "key": "Course Type",     "type": "text", "position": { "x": 50, "y": 180 }, "fontSize": 14, "alignment": "center", "width": 200 },
+        { "key": "Trainer Name",    "type": "text", "position": { "x": 50, "y": 210 }, "fontSize": 14, "alignment": "center", "width": 200 },
+        { "key": "Issue Date",      "type": "text", "position": { "x": 50, "y": 240 }, "fontSize": 14, "alignment": "center", "width": 200 },
+        { "key": "Expiration Date", "type": "text", "position": { "x": 50, "y": 270 }, "fontSize": 14, "alignment": "center", "width": 200 },
+        { "key": "Certificate #",   "type": "text", "position": { "x": 50, "y": 300 }, "fontSize": 12, "alignment": "center", "width": 200 }
       ]
     }
     </script>
 
-    <!-- Main application logic -->
     <script type="module">
         // --- DOM Elements ---
         const downloadBtn = document.getElementById('download-pdf');
@@ -187,7 +174,7 @@
         async function generatePreview() {
             const { generate } = await import('https://unpkg.com/@pdfme/generator@1.7.0');
             const { template, inputs } = await getInputs();
-            const pdf = await generate({ template, inputs });
+            const pdf = await generate({ template, inputs }); // pdf is a Uint8Array
             const blob = new Blob([pdf], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
 
@@ -232,6 +219,7 @@
 
             try {
                 paypal.Buttons({
+                    // Using PayPal's public test client ID
                     client: 'AZDxjDScFpQtjWTOUtWKbyN_bDt4OgqaF4eYXlewfBP4-8aqX3PiV8e124gA-DYURi2cSpL392I3cAaN',
                     createOrder: (data, actions) => {
                         return actions.order.create({

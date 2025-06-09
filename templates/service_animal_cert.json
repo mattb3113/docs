@@ -1,0 +1,22 @@
+{
+  "basePdf": "/assets/backgrounds/service_animal_style1.pdf",
+  "schemas": [
+    { "key": "Handler Name",     "type": "text",
+      "position": { "x": 300, "y": 205 }, "fontSize": 24, "alignment": "center" },
+
+    { "key": "Animal Name",      "type": "text",
+      "position": { "x": 300, "y": 245 }, "fontSize": 20, "alignment": "center" },
+
+    { "key": "Animal Type",      "type": "text",
+      "position": { "x": 300, "y": 285 }, "fontSize": 18, "alignment": "center" },
+
+    { "key": "Registration ID",  "type": "text",
+      "position": { "x": 300, "y": 335 }, "fontSize": 16, "alignment": "center" },
+
+    { "key": "Issue Date",       "type": "text",
+      "position": { "x": 230, "y": 388 }, "fontSize": 14 },
+
+    { "key": "Expiration Date",  "type": "text",
+      "position": { "x": 370, "y": 388 }, "fontSize": 14 }
+  ]
+}

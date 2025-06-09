@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en" class="bg-gray-100">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,11 +9,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lexend:wght@500;600;700&display=swap" rel="stylesheet">
-    
-    <script src="https://www.paypal.com/sdk/js?client-id=AarU_P-7N56A1PZ-fveW92Tq2_s_gLnhx1ZJbK1kYlYI53NToz1aKjP1t63wscjGjmm2Kk5cmGvI3qjA&currency=USD&components=buttons"></script>
 
     <script>
-        // Customizations for Tailwind to use 'Inter' and 'Lexend' fonts
+        // Apply custom fonts to Tailwind's configuration
         tailwind.config = {
             theme: {
                 extend: {
@@ -27,12 +24,8 @@
         }
     </script>
     <style>
-        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        body { font-family: 'Inter', 'sans-serif'; -webkit-font-smoothing: antialiased; }
         .preview-container { min-height: 700px; max-height: 80vh; }
-        /* Hide number input spinners */
-        input[type='number']::-webkit-inner-spin-button,
-        input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type='number'] { -moz-appearance: textfield; }
     </style>
 </head>
 
@@ -41,7 +34,7 @@
     <div class="max-w-screen-2xl mx-auto p-4 sm:p-6 lg:p-8">
         <header class="mb-8">
             <h1 class="font-display text-4xl font-bold text-slate-800">Forklift Certification Generator</h1>
-            <p class="text-lg text-slate-600 mt-1">Enter the operator's details, preview the certificate, and download.</p>
+            <p class="text-lg text-slate-600 mt-1">Fill out the form, preview the certificate, and click Download.</p>
         </header>
 
         <main class="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -50,38 +43,37 @@
                 <div class="bg-white p-6 rounded-2xl shadow-sm sticky top-8">
                     <form id="cert-form" class="space-y-6">
                         <section>
-                            <h3 class="font-display text-lg font-semibold text-slate-800 border-b pb-3 mb-4">Operator & Training Details</h3>
+                            <h3 class="font-display text-lg font-semibold text-slate-800 border-b pb-3 mb-4">Certification Details</h3>
                             <div class="space-y-4">
-                                <div class="form-group">
+                                <div>
                                     <label for="operatorName" class="block text-sm font-medium text-gray-700">Operator Name</label>
-                                    <input type="text" id="operatorName" value="John Doe" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                    <input type="text" id="operatorName" value="John Doe" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                 </div>
-                                <div class="form-group">
-                                    <label for="courseType" class="block text-sm font-medium text-gray-700">Forklift Class Trained</label>
-                                    <select id="courseType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                <div>
+                                    <label for="courseType" class="block text-sm font-medium text-gray-700">Forklift Class</label>
+                                    <select id="courseType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                         <option>Class I, IV, V: Sit-Down Counterbalance</option>
-                                        <option>Class II: Reach-Truck / Order Picker</option>
-                                        <option>Class III: Pallet Jack / Walkie Stacker</option>
-                                        <option>All Classes (I-V)</option>
+                                        <option>Class II: Narrow Aisle / Reach-Truck</option>
+                                        <option>Class III: Pallet Jack / Walkie</option>
                                     </select>
                                 </div>
-                                <div class="form-group">
-                                    <label for="trainerName" class="block text-sm font-medium text-gray-700">Trainer Name</label>
-                                    <input type="text" id="trainerName" value="Jane Smith, C.S.T." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                <div>
+                                    <label for="trainerName" class="block text-sm font-medium text-gray-700">Trainer/Examiner Name</label>
+                                    <input type="text" id="trainerName" value="Jane Smith, C.S.T." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                 </div>
                                 <div class="grid grid-cols-2 gap-4">
-                                    <div class="form-group">
-                                        <label for="issueDate" class="block text-sm font-medium text-gray-700">Date of Training</label>
-                                        <input type="date" id="issueDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                    <div>
+                                        <label for="issueDate" class="block text-sm font-medium text-gray-700">Issue Date</label>
+                                        <input type="date" id="issueDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                     </div>
-                                    <div class="form-group">
+                                    <div>
                                         <label for="expirationDate" class="block text-sm font-medium text-gray-700">Expiration Date</label>
-                                        <input type="date" id="expirationDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                        <input type="date" id="expirationDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" disabled>
                                     </div>
                                 </div>
-                                <div class="form-group">
+                                <div>
                                     <label for="certNumber" class="block text-sm font-medium text-gray-700">Certificate ID</label>
-                                    <input type="text" id="certNumber" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                    <input type="text" id="certNumber" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" readonly>
                                 </div>
                             </div>
                         </section>
@@ -92,18 +84,17 @@
             <section class="lg:col-span-7 xl:col-span-8">
                 <div class="sticky top-8">
                     <div class="flex flex-col sm:flex-row sm:justify-end sm:items-center mb-4 gap-4">
-                        <button type="button" id="preview-btn" class="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition">
+                        <button id="preview-btn" class="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition">
                             Generate Preview
                         </button>
-                        <div id="paypal-button-container" class="w-full sm:w-auto"></div>
-                        <button id="download-btn" disabled class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition disabled:bg-gray-400 disabled:cursor-not-allowed">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                            Pay and Download
+                        <button id="download-btn" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
+                           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                           Download PDF
                         </button>
                     </div>
                     
-                    <div id="pdf-preview" class="bg-white rounded-2xl shadow-lg preview-container overflow-hidden flex items-center justify-center text-gray-500">
-                        <p>Click "Generate Preview" to see your certificate.</p>
+                    <div id="pdf-preview" class="bg-white rounded-2xl shadow-lg preview-container overflow-hidden flex items-center justify-center text-gray-500 p-4">
+                        <p>Fill out the form and click "Generate Preview".</p>
                     </div>
                 </div>
             </section>
@@ -114,22 +105,24 @@
     {
       "basePdf": "https://raw.githubusercontent.com/mattb3113/docs/main/assets/forklift_style1.pdf",
       "schemas": [
-        { "key": "operatorName", "type": "text", "position": { "x": 35.5, "y": 91 }, "width": 140, "alignment": "center", "fontSize": 22, "fontName": "Lexend", "fontColor": "#1E293B" },
-        { "key": "courseType",   "type": "text", "position": { "x": 35.5, "y": 122 }, "width": 140, "alignment": "center", "fontSize": 11, "fontName": "Inter" },
-        { "key": "issueDate",    "type": "text", "position": { "x": 51,   "y": 158.5 }, "width": 45, "alignment": "center", "fontSize": 10, "fontName": "Inter" },
-        { "key": "trainerName",  "type": "text", "position": { "x": 115,  "y": 158.5 }, "width": 45, "alignment": "center", "fontSize": 10, "fontName": "Inter" },
-        { "key": "certNumber",   "type": "text", "position": { "x": 3,    "y": 182 }, "width": 45, "alignment": "left", "fontSize": 8, "fontColor": "#64748B" }
+        { "key": "operatorName", "type": "text", "position": { "x": 35.5, "y": 91 }, "width": 140, "alignment": "center", "fontSize": 24, "fontName": "Lexend", "fontColor": "#1E293B" },
+        { "key": "courseType",   "type": "text", "position": { "x": 35.5, "y": 122 }, "width": 140, "alignment": "center", "fontSize": 12, "fontName": "Inter", "fontColor": "#334155"},
+        { "key": "issueDate",    "type": "text", "position": { "x": 51,   "y": 158.5 }, "width": 45, "alignment": "center", "fontSize": 11, "fontName": "Inter" },
+        { "key": "trainerName",  "type": "text", "position": { "x": 115,  "y": 158.5 }, "width": 45, "alignment": "center", "fontSize": 11, "fontName": "Inter" },
+        { "key": "certNumber",   "type": "text", "position": { "x": 3,    "y": 182 }, "width": 45, "alignment": "left", "fontSize": 8.5, "fontColor": "#64748B" }
       ]
     }
     </script>
 
     <script type="module">
-        const { generate } = await import('https://unpkg.com/@pdfme/generator@1.7.0');
+        import { generate } from 'https://unpkg.com/@pdfme/generator@1.7.0';
 
-        // --- DOM Elements ---
+        // --- DOM Element References ---
+        const previewBtn = document.getElementById('preview-btn');
         const downloadBtn = document.getElementById('download-btn');
         const previewPane = document.getElementById('pdf-preview');
-        
+        const issueDateInput = document.getElementById('issueDate');
+
         // --- Helper Functions ---
         const getYYYYMMDD = (date) => date.toISOString().split('T')[0];
 
@@ -140,100 +133,82 @@
             const random = String(Math.floor(Math.random() * 90000) + 10000);
             return `FLT${year}${month}-${random}`;
         };
+        
+        const updateExpirationDate = () => {
+            const issueDate = new Date(issueDateInput.value);
+            // Add 3 years for OSHA standard re-evaluation
+            issueDate.setFullYear(issueDate.getFullYear() + 3);
+            document.getElementById('expirationDate').value = getYYYYMMDD(issueDate);
+        };
 
-        const getInputs = () => {
-            // Expiration date is handled by the init function, not in the schema
-            const inputs = [{
+        // --- Core PDF Generation Logic ---
+        const getFormInputs = () => {
+            return [{
                 operatorName: document.getElementById('operatorName').value,
                 courseType: document.getElementById('courseType').value,
                 trainerName: document.getElementById('trainerName').value,
                 issueDate: document.getElementById('issueDate').value,
-                certNumber: "ID: " + document.getElementById('certNumber').value,
+                certNumber: "Cert ID: " + document.getElementById('certNumber').value,
             }];
-            return inputs;
-        };
-        
-        const generatePdf = async () => {
-            const template = JSON.parse(document.getElementById('forklift-schema').textContent);
-            const inputs = getInputs();
-            return await generate({ template, inputs });
         };
 
-        const renderPreview = async () => {
-            previewPane.innerHTML = `<div class="p-10 text-center text-gray-500">Generating...</div>`;
+        const generatePdfBlob = async () => {
             try {
-                const pdf = await generatePdf();
-                const blob = new Blob([pdf], { type: 'application/pdf' });
-                const url = URL.createObjectURL(blob);
-                previewPane.innerHTML = `<iframe src="${url}" class="w-full h-full border-none rounded-lg"></iframe>`;
+                const template = JSON.parse(document.getElementById('forklift-schema').textContent);
+                const inputs = getFormInputs();
+                const pdf = await generate({ template, inputs });
+                return new Blob([pdf], { type: 'application/pdf' });
             } catch (error) {
                 console.error("PDF Generation Error:", error);
-                previewPane.innerHTML = `<div class="p-10 text-center text-red-600">Error generating preview. Check console for details.</div>`;
+                // Return null to indicate failure
+                return null; 
             }
         };
 
-        const downloadPdf = async () => {
-            try {
-                const pdf = await generatePdf();
-                const blob = new Blob([pdf], { type: 'application/pdf' });
-                const operator = document.getElementById('operatorName').value.trim().replace(/\s+/g, '_');
-                const filename = `Forklift_Certificate_${operator}.pdf`;
+        // --- Event Handlers ---
+        const handlePreview = async () => {
+            previewPane.innerHTML = `<p>Generating preview...</p>`;
+            const blob = await generatePdfBlob();
+            
+            if (blob) {
+                const url = URL.createObjectURL(blob);
+                previewPane.innerHTML = `<iframe src="${url}" class="w-full h-full border-none rounded-lg"></iframe>`;
+            } else {
+                previewPane.innerHTML = `<p class="text-red-600"><strong>Error:</strong> Could not generate PDF preview. The background template may be unavailable or the schema is invalid. Please check the console.</p>`;
+            }
+        };
 
+        const handleDownload = async () => {
+            const blob = await generatePdfBlob();
+            if (blob) {
+                const operator = document.getElementById('operatorName').value.trim().replace(/\s+/g, '_');
+                const filename = `Forklift_Certificate_${operator || 'Cert'}.pdf`;
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 link.download = filename;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-            } catch (error) {
-                console.error("PDF Download Error:", error);
-                alert("Could not generate PDF for download. Please try again.");
+            } else {
+                alert("Could not generate PDF for download. Please try generating a preview first and check for errors.");
             }
         };
 
-        // --- PayPal & Event Listeners ---
+        // --- Initialization ---
         const init = () => {
-            document.getElementById('preview-btn').addEventListener('click', renderPreview);
-            downloadBtn.addEventListener('click', downloadPdf);
-            
-            // Set default dates
-            const today = new Date();
-            const expiration = new Date();
-            expiration.setFullYear(today.getFullYear() + 3); // OSHA standard: 3 years
-            
-            document.getElementById('issueDate').value = getYYYYMMDD(today);
-            document.getElementById('expirationDate').value = getYYYYMMDD(expiration);
+            // Set default dates and cert number
+            issueDateInput.value = getYYYYMMDD(new Date());
+            updateExpirationDate();
             document.getElementById('certNumber').value = generateCertNumber();
-
-            // Render PayPal Buttons
-            try {
-                paypal.Buttons({
-                    createOrder: (data, actions) => {
-                        return actions.order.create({
-                            purchase_units: [{
-                                description: "Forklift Operator Certificate (Digital PDF)",
-                                amount: { currency_code: 'USD', value: '4.99' }
-                            }]
-                        });
-                    },
-                    onApprove: async (data, actions) => {
-                        await actions.order.capture();
-                        downloadBtn.disabled = false;
-                        await downloadPdf();
-                    },
-                    onError: (err) => {
-                        console.error("PayPal Error:", err);
-                        alert("An error occurred with the payment. Please check the console and try again.");
-                    }
-                }).render('#paypal-button-container');
-            } catch (err) {
-                 console.error("Failed to render PayPal buttons:", err);
-                 document.getElementById('paypal-button-container').innerHTML = `<p class="text-xs text-red-600">Payment system failed to load.</p>`;
-            }
+            
+            // Add event listeners
+            previewBtn.addEventListener('click', handlePreview);
+            downloadBtn.addEventListener('click', handleDownload);
+            issueDateInput.addEventListener('change', updateExpirationDate);
         };
 
+        // Run on page load
         document.addEventListener('DOMContentLoaded', init);
     </script>
-    
 </body>
 </html>

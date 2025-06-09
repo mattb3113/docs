@@ -1,1091 +1,187 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-gray-50">
-
+<html lang="en" class="bg-gray-100">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BuellDocs Paystub Builder</title>
+    <title>Forklift Certificate Generator</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lexend:wght@500;600;700&display=swap" rel="stylesheet">
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lexend:wght@500;700&display=swap" rel="stylesheet">
 
-    <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=USD"></script>
-
-    <script>
-        // Customizations for Tailwind to use the 'Inter' and 'Lexend' font families
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        display: ['Lexend', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
     <style>
-        /* A few minor style overrides for better presentation */
-        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-        .paystub-preview-container { min-height: 800px; }
-        /* Prevent ugly spinners on number inputs */
-        input[type='number']::-webkit-inner-spin-button,
-        input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type='number'] { -moz-appearance: textfield; }
-        /* Styling for the PDF output */
-        @media print {
-            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        }
-        .hidden { display: none; }
+        body { font-family: 'Inter', sans-serif; }
+        /* Adjusted for landscape 11 x 8.5 inches */
+        .preview-container { height: 612px; width: 100%; max-width: 792px; } 
     </style>
 </head>
+<body class="bg-gray-50">
 
-<body class="bg-gray-100">
-
-    <div class="max-w-screen-2xl mx-auto p-4 sm:p-6 lg:p-8">
-        <header class="mb-8">
-            <h1 class="font-display text-4xl font-bold text-slate-800">Paystub Generator By<span class="text-indigo-600">BuellDocs</span></h1>
-            <p class="text-lg text-slate-600 mt-1">Create, calculate, and download professional paystubs with ease.</p>
-            <a href="ForliftCert.HTML" class="inline-block mt-4 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700">Forklift Operator PDF</a>
+    <div class="max-w-screen-xl mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-slate-800 font-family-lexend">Forklift Certificate Generator</h1>
+            <p class="text-lg text-slate-600 mt-2">Enter the details below to generate a certificate.</p>
         </header>
 
-        <main class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <main class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
-            <aside class="lg:col-span-5 xl:col-span-4">
-                <div class="bg-white p-6 rounded-2xl shadow-sm sticky top-8">
-                    <form id="paystub-form" class="space-y-8">
-                        
-                        <!-- v5.7 ADD – Annual-salary toggle and functionality -->
-                        <section>
-                          <h3 class="font-display text-lg font-semibold text-slate-800 border-b pb-3 mb-4">Controls</h3>
-                          <div class="space-y-4">
-                            <div class="form-group">
-                               <label for="numPaystubs" class="block text-sm font-medium text-gray-700">Number of Paystubs (1-12)</label>
-                               <input type="number" id="numPaystubs" name="numPaystubs" min="1" max="12" value="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+            <section>
+                <div class="bg-white p-8 rounded-lg shadow-md">
+                    <form id="cert-form" class="space-y-4">
+                        <div>
+                            <label for="operatorName" class="block text-sm font-medium text-gray-700">Operator Name</label>
+                            <input type="text" id="operatorName" value="John Doe" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label for="courseType" class="block text-sm font-medium text-gray-700">Course Type / Forklift Class</label>
+                            <input type="text" id="courseType" value="OSHA Certified: Classes I, IV, V" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label for="trainerName" class="block text-sm font-medium text-gray-700">Trainer Name</label>
+                            <input type="text" id="trainerName" value="Jane Smith, C.S.T." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="issueDate" class="block text-sm font-medium text-gray-700">Issue Date</label>
+                                <input type="date" id="issueDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             </div>
-                            <div class="form-group">
-                              <label for="incomeType" class="block text-sm font-medium text-gray-700">Calculate Pay From</label>
-                              <select id="incomeType" name="incomeType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                <option value="manual" selected>Manual Entry Below</option>
-                                <option value="annual">Annual Salary</option>
-                              </select>
+                            <div>
+                                <label for="expirationDate" class="block text-sm font-medium text-gray-700">Expiration Date</label>
+                                <input type="date" id="expirationDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100" readonly>
                             </div>
-                        
-                            <div class="form-group" id="income-amount-group" style="display:none;">
-                              <label for="incomeAmount" class="block text-sm font-medium text-gray-700">Annual Salary Amount ($)</label>
-                              <div class="relative mt-1">
-                                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 sm:text-sm">$</span>
-                                <input type="number" id="incomeAmount" name="incomeAmount" placeholder="e.g., 100000" step="0.01"
-                                       class="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                              </div>
-                            </div>
-                          </div>
-                        </section>
+                        </div>
+                        <div>
+                            <label for="certNumber" class="block text-sm font-medium text-gray-700">Certificate #</label>
+                            <input type="text" id="certNumber" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100" readonly>
+                        </div>
 
-                        <section>
-                            <h3 class="font-display text-lg font-semibold text-slate-800 border-b pb-3 mb-4">Pay Period Dates</h3>
-                            <div id="paystub-dates-container" class="space-y-4">
-                                </div>
-                        </section>
-
-                        <section>
-                            <h3 class="font-display text-lg font-semibold text-slate-800 border-b pb-3 mb-4">Business Information</h3>
-                            <div class="space-y-4">
-                                <div class="form-group"><label for="businessName" class="block text-sm font-medium text-gray-700">Business Name</label><input type="text" id="businessName" value="Innovatech Solutions LLC" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></div>
-                                <div class="form-group"><label for="businessAddress" class="block text-sm font-medium text-gray-700">Business Address</label><input type="text" id="businessAddress" value="123 Innovation Drive, Tech City, CA 94105" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></div>
-                            </div>
-                        </section>
-
-                        <section>
-                            <h3 class="font-display text-lg font-semibold text-slate-800 border-b pb-3 mb-4">Employee Information</h3>
-                            <div class="space-y-4">
-                                <div class="form-group"><label for="employeeName" class="block text-sm font-medium text-gray-700">Employee Name</label><input type="text" id="employeeName" value="Alex Doe" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></div>
-                                <div class="form-group"><label for="employeeId" class="block text-sm font-medium text-gray-700">Employee ID</label><input type="text" id="employeeId" value="EMP-007" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></div>
-                            </div>
-                        </section>
-                        
-                        <section>
-                             <h3 class="font-display text-lg font-semibold text-slate-800 border-b pb-3 mb-4">Pay Details</h3>
-                             <div class="grid grid-cols-2 gap-4">
-                                 <div class="form-group">
-                                    <label for="payPeriod" class="block text-sm font-medium text-gray-700">Pay Frequency</label>
-                                    <select id="payPeriod" name="payPeriod" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                        <option value="weekly">Weekly</option>
-                                        <option value="bi-weekly" selected>Bi-Weekly</option>
-                                        <option value="semi-monthly">Semi-Monthly</option>
-                                        <option value="monthly">Monthly</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="taxYear" class="block text-sm font-medium text-gray-700">Tax Year</label>
-                                    <select id="taxYear" name="taxYear" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                        <option value="2025">2025</option>
-                                        <option value="2024" selected>2024</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="filingStatus" class="block text-sm font-medium text-gray-700">Fed Filing Status</label>
-                                    <select id="filingStatus" name="filingStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                        <option value="single">Single</option>
-                                        <option value="married">Married Filing Jointly</option>
-                                        <option value="hoh">Head of Household</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="state" class="block text-sm font-medium text-gray-700">State</label>
-                                    <select id="state" name="state" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></select>
-                                </div>
-                            </div>
-                        </section>
-
-                        <section>
-                            <div class="flex justify-between items-center border-b pb-3 mb-4">
-                                <h3 class="font-display text-lg font-semibold text-slate-800">Earnings</h3>
-                                <button type="button" id="add-earning" class="text-sm font-semibold text-indigo-600 hover:text-indigo-500">+ Add Earning</button>
-                            </div>
-                            <div class="space-y-3" id="earnings-container">
-                                <div class="grid grid-cols-12 gap-2 text-xs font-medium text-gray-500">
-                                    <label class="col-span-4" id="earning-desc-header">Description</label>
-                                    <label class="col-span-3 text-right" id="earning-rate-header">Rate</label>
-                                    <label class="col-span-2 text-right" id="earning-hours-header">Hours</label>
-                                    <label class="col-span-3 text-right" id="earning-ytd-header">YTD</label>
-                                </div>
-                                </div>
-                        </section>
-                        
-                        <section>
-                            <div class="flex justify-between items-center border-b pb-3 mb-4">
-                                <h3 class="font-display text-lg font-semibold text-slate-800">Deductions</h3>
-                                <button type="button" id="add-deduction" class="text-sm font-semibold text-indigo-600 hover:text-indigo-500">+ Add Deduction</button>
-                            </div>
-                            <div class="space-y-3" id="deductions-container">
-                                 <div class="grid grid-cols-12 gap-2 text-xs font-medium text-gray-500">
-                                    <label class="col-span-6" id="deduction-desc-header">Description</label>
-                                    <label class="col-span-3 text-right" id="deduction-current-header">Current</label>
-                                    <label class="col-span-3 text-right" id="deduction-ytd-header">YTD</label>
-                                </div>
-                                </div>
-                        </section>
-
+                        <div class="pt-4 flex space-x-4">
+                             <button type="button" id="preview-btn" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Generate Preview
+                            </button>
+                             <button type="button" id="download-btn" disabled class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Download PDF
+                            </button>
+                        </div>
                     </form>
                 </div>
-            </aside>
-
-            <section class="lg:col-span-7 xl:col-span-8">
-                <div class="sticky top-8">
-                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
-                        <div class="flex items-center space-x-4 mb-4 sm:mb-0">
-                            <button id="prev-stub" class="p-2 rounded-md bg-white border border-gray-300 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
-                            </button>
-                             <span id="stub-nav-status" class="font-semibold text-gray-700 text-center w-24">Stub 1 of 1</span>
-                            <button id="next-stub" class="p-2 rounded-md bg-white border border-gray-300 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-                               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
-                            </button>
-                        </div>
-                         <div class="w-full sm:w-auto flex items-center gap-x-3">
-                             <button id="pay-button" class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition">
-                                Pay Now
-                            </button>
-                            <button id="download-pdf" disabled class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                                Download
-                            </button>
-                        </div>
-                    </div>
-
-                    <div id="previews-container" class="bg-white rounded-2xl shadow-lg paystub-preview-container">
-                        </div>
+            </section>
+            
+            <section class="bg-white p-4 rounded-lg shadow-md">
+                <div id="pdf-preview" class="preview-container flex items-center justify-center bg-gray-200 rounded">
+                    <p class="text-gray-500">Preview will appear here</p>
                 </div>
             </section>
+
         </main>
+    </div>
+
+    <script type="module">
+        const form = document.getElementById('cert-form');
+        const previewPane = document.getElementById('pdf-preview');
+        const issueDateInput = document.getElementById('issueDate');
+        const downloadBtn = document.getElementById('download-btn');
+
+        // --- Helper Functions ---
+        const getYYYYMMDD = (date) => date.toISOString().split('T')[0];
         
-        <footer class="text-center mt-12 py-6">
-            <p class="text-sm text-gray-500">&copy; <span id="footer-year">2024</span> Paystub Generator Pro. All Rights Reserved.</p>
-        </footer>
-    </div>
-    
-    <div id="paypal-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md relative">
-            <button id="close-paypal-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
-            <h3 class="font-display text-2xl font-bold text-slate-800 mb-2">Complete Your Purchase</h3>
-            <p class="text-slate-600 mb-6">Your download will be enabled automatically after payment.</p>
-            <div id="paypal-container"></div>
-        </div>
-    </div>
-
-
-    <template id="paystub-template">
-        <div class="p-6 sm:p-8 lg:p-10 font-sans text-sm text-gray-800">
-            <div class="text-center mb-6">
-                <h3 data-id="businessName" class="font-display text-2xl font-bold text-gray-900"></h3>
-                <p data-id="businessAddress" class="text-gray-600"></p>
-                <p class="mt-2 text-lg font-semibold text-gray-700 tracking-wider">EARNINGS STATEMENT</p>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 border-t border-b border-gray-200 py-4 mb-6">
-                <div>
-                    <strong class="font-semibold text-gray-600">EMPLOYEE</strong>
-                    <div class="mt-1">
-                        <span data-id="employeeName"></span><br>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-x-4">
-                    <div>
-                        <strong class="font-semibold text-gray-600">EMPLOYEE ID</strong>
-                        <p data-id="employeeId" class="mt-1"></p>
-                    </div>
-                     <div>
-                        <strong class="font-semibold text-gray-600">PAY DATE</strong>
-                        <p data-id="payDate" class="mt-1"></p>
-                    </div>
-                     <div>
-                        <strong class="font-semibold text-gray-600">PAY PERIOD</strong>
-                        <p data-id="payPeriodRange" class="mt-1"></p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
-                <div class="md:col-span-2">
-                    <h4 class="font-display text-lg font-semibold text-gray-800 mb-2">Earnings</h4>
-                    <table class="w-full" data-id="earnings-table">
-                        <thead class="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider">
-                            <tr>
-                                <th class="p-3 font-medium">Description</th>
-                                <th class="p-3 font-medium text-right">Rate</th>
-                                <th class="p-3 font-medium text-right">Hours</th>
-                                <th class="p-3 font-medium text-right">Current</th>
-                                <th class="p-3 font-medium text-right">YTD</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200"></tbody>
-                        <tfoot class="bg-gray-50 font-semibold">
-                            <tr>
-                                <td colspan="3" class="p-3">Gross Pay</td>
-                                <td class="p-3 text-right" data-id="currentGrossPay"></td>
-                                <td class="p-3 text-right" data-id="ytdGrossPay"></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-
-                <div>
-                    <h4 class="font-display text-lg font-semibold text-gray-800 mb-2">Deductions</h4>
-                    <table class="w-full" data-id="deductions-table">
-                        <thead class="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider">
-                            <tr>
-                                <th class="p-3 font-medium">Description</th>
-                                <th class="p-3 font-medium text-right">Current</th>
-                                <th class="p-3 font-medium text-right">YTD</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200"></tbody>
-                        <tfoot class="bg-gray-50 font-semibold">
-                            <tr>
-                                <td class="p-3">Total Deductions</td>
-                                <td class="p-3 text-right" data-id="currentTotalDeductions"></td>
-                                <td class="p-3 text-right" data-id="ytdTotalDeductions"></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-
-                <div>
-                    <h4 class="font-display text-lg font-semibold text-gray-800 mb-2">Taxes</h4>
-                    <table class="w-full" data-id="taxes-table">
-                         <thead class="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider">
-                            <tr>
-                                <th class="p-3 font-medium">Description</th>
-                                <th class="p-3 font-medium text-right">Current</th>
-                                <th class="p-3 font-medium text-right">YTD</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200"></tbody>
-                        <tfoot class="bg-gray-50 font-semibold">
-                            <tr>
-                                <td class="p-3">Total Taxes</td>
-                                <td class="p-3 text-right" data-id="currentTotalTaxes"></td>
-                                <td class="p-3 text-right" data-id="ytdTotalTaxes"></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-
-            <div class="bg-slate-800 text-white rounded-lg p-6 mt-4">
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-                    <div class="summary-item">
-                        <strong class="block text-sm opacity-80 font-normal">Gross Pay</strong>
-                        <span data-id="summary-grossPay" class="text-xl font-semibold"></span>
-                    </div>
-                    <div class="summary-item">
-                        <strong class="block text-sm opacity-80 font-normal">Deductions</strong>
-                        <span data-id="summary-totalDeductions" class="text-xl font-semibold"></span>
-                    </div>
-                     <div class="summary-item">
-                        <strong class="block text-sm opacity-80 font-normal">Taxes</strong>
-                        <span data-id="summary-totalTaxes" class="text-xl font-semibold"></span>
-                    </div>
-                    <div class="summary-item">
-                        <strong class="block text-sm text-indigo-300 font-semibold">NET PAY</strong>
-                        <span data-id="summary-netPay" class="text-3xl font-bold text-white"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </template>
-
-
-    <script>
-    // This script combines all necessary logic for the paystub generator.
-    // It's structured into classes for better organization and maintainability.
-    (function() {
-        'use strict';
-
-        // --- GLOBAL APP OBJECT ---
-        const App = {};
-
-        // --- DATA STORE ---
-        // Contains tax information. In a real-world app, this might be fetched from a server.
-        const taxTablesData = {
-            "2024": {
-                "federal": {
-                    "single": { "brackets": [{ "rate": 0.10, "upto": 11600 }, { "rate": 0.12, "upto": 47150 }, { "rate": 0.22, "upto": 100525 }, { "rate": 0.24, "upto": 191950 }, { "rate": 0.32, "upto": 243725 }, { "rate": 0.35, "upto": 609350 }, { "rate": 0.37, "upto": Infinity }], "deduction": 14600 },
-                    "married": { "brackets": [{ "rate": 0.10, "upto": 23200 }, { "rate": 0.12, "upto": 94300 }, { "rate": 0.22, "upto": 201050 }, { "rate": 0.24, "upto": 383900 }, { "rate": 0.32, "upto": 487450 }, { "rate": 0.35, "upto": 731200 }, { "rate": 0.37, "upto": Infinity }], "deduction": 29200 },
-                    "hoh": { "brackets": [{ "rate": 0.10, "upto": 16550 }, { "rate": 0.12, "upto": 63100 }, { "rate": 0.22, "upto": 100500 }, { "rate": 0.24, "upto": 191950 }, { "rate": 0.32, "upto": 243700 }, { "rate": 0.35, "upto": 609350 }, { "rate": 0.37, "upto": Infinity }], "deduction": 21900 }
-                },
-                "fica": { "social_security_rate": 0.062, "social_security_limit": 168600, "medicare_rate": 0.0145 },
-                "states": { "AL": { "name": "Alabama", "single": { "brackets": [{ "rate": 0.02, "upto": 500 }, { "rate": 0.04, "upto": 3000 }, { "rate": 0.05, "upto": Infinity }] } }, "AK": { "name": "Alaska", "single": { "brackets": [] } }, "AZ": { "name": "Arizona", "single": { "brackets": [{ "rate": 0.025, "upto": Infinity }] } }, "AR": { "name": "Arkansas", "single": { "brackets": [{ "rate": 0.02, "upto": 24299 }, { "rate": 0.04, "upto": 87000 }, { "rate": 0.049, "upto": Infinity }] } }, "CA": { "name": "California", "single": { "brackets": [{ "rate": 0.01, "upto": 10412 }, { "rate": 0.02, "upto": 24684 }, { "rate": 0.04, "upto": 38959 }, { "rate": 0.06, "upto": 54081 }, { "rate": 0.08, "upto": 68350 }, { "rate": 0.093, "upto": 349137 }, { "rate": 0.103, "upto": 418961 }, { "rate": 0.113, "upto": 698271 }, { "rate": 0.123, "upto": Infinity }] } }, "CO": { "name": "Colorado", "single": { "brackets": [{ "rate": 0.044, "upto": Infinity }] } }, "CT": { "name": "Connecticut", "single": { "brackets": [{ "rate": 0.03, "upto": 10000 }, { "rate": 0.05, "upto": 50000 }, { "rate": 0.055, "upto": 100000 }, { "rate": 0.06, "upto": 200000 }, { "rate": 0.065, "upto": 250000 }, { "rate": 0.069, "upto": 500000 }, { "rate": 0.0699, "upto": Infinity }] } }, "DE": { "name": "Delaware", "single": { "brackets": [{ "rate": 0.022, "upto": 5000 }, { "rate": 0.039, "upto": 10000 }, { "rate": 0.048, "upto": 20000 }, { "rate": 0.052, "upto": 25000 }, { "rate": 0.0555, "upto": 60000 }, { "rate": 0.066, "upto": Infinity }] } }, "FL": { "name": "Florida", "single": { "brackets": [] } }, "GA": { "name": "Georgia", "single": { "brackets": [{ "rate": 0.0549, "upto": Infinity }] } }, "HI": { "name": "Hawaii", "single": { "brackets": [{ "rate": 0.014, "upto": 2400 }, { "rate": 0.032, "upto": 4800 }, { "rate": 0.055, "upto": 9600 }, { "rate": 0.064, "upto": 14400 }, { "rate": 0.068, "upto": 19200 }, { "rate": 0.072, "upto": 24000 }, { "rate": 0.076, "upto": 36000 }, { "rate": 0.079, "upto": 48000 }, { "rate": 0.0825, "upto": 150000 }, { "rate": 0.09, "upto": 175000 }, { "rate": 0.1, "upto": 200000 }, { "rate": 0.11, "upto": Infinity }] } }, "ID": { "name": "Idaho", "single": { "brackets": [{ "rate": 0.058, "upto": Infinity }] } }, "IL": { "name": "Illinois", "single": { "brackets": [{ "rate": 0.0495, "upto": Infinity }] } }, "IN": { "name": "Indiana", "single": { "brackets": [{ "rate": 0.0315, "upto": Infinity }] } }, "IA": { "name": "Iowa", "single": { "brackets": [{ "rate": 0.057, "upto": Infinity }] } }, "KS": { "name": "Kansas", "single": { "brackets": [{ "rate": 0.031, "upto": 15000 }, { "rate": 0.0525, "upto": 30000 }, { "rate": 0.057, "upto": Infinity }] } }, "KY": { "name": "Kentucky", "single": { "brackets": [{ "rate": 0.045, "upto": Infinity }] } }, "LA": { "name": "Louisiana", "single": { "brackets": [{ "rate": 0.0185, "upto": 12500 }, { "rate": 0.037, "upto": 50000 }, { "rate": 0.0425, "upto": Infinity }] } }, "ME": { "name": "Maine", "single": { "brackets": [{ "rate": 0.058, "upto": 24500 }, { "rate": 0.0675, "upto": 58050 }, { "rate": 0.0715, "upto": Infinity }] } }, "MD": { "name": "Maryland", "single": { "brackets": [{ "rate": 0.02, "upto": 1000 }, { "rate": 0.03, "upto": 2000 }, { "rate": 0.04, "upto": 3000 }, { "rate": 0.0475, "upto": 100000 }, { "rate": 0.05, "upto": 125000 }, { "rate": 0.0525, "upto": 150000 }, { "rate": 0.055, "upto": 250000 }, { "rate": 0.0575, "upto": Infinity }] } }, "MA": { "name": "Massachusetts", "single": { "brackets": [{ "rate": 0.05, "upto": Infinity }] } }, "MI": { "name": "Michigan", "single": { "brackets": [{ "rate": 0.0425, "upto": Infinity }] } }, "MN": { "name": "Minnesota", "single": { "brackets": [{ "rate": 0.0535, "upto": 30070 }, { "rate": 0.068, "upto": 98750 }, { "rate": 0.0785, "upto": 183340 }, { "rate": 0.0985, "upto": Infinity }] } }, "MS": { "name": "Mississippi", "single": { "brackets": [{ "rate": 0.04, "upto": 5000 }, { "rate": 0.05, "upto": Infinity }] } }, "MO": { "name": "Missouri", "single": { "brackets": [{ "rate": 0.0495, "upto": Infinity }] } }, "MT": { "name": "Montana", "single": { "brackets": [{ "rate": 0.047, "upto": 20500 }, { "rate": 0.059, "upto": Infinity }] } }, "NE": { "name": "Nebraska", "single": { "brackets": [{ "rate": 0.0246, "upto": 3220 }, { "rate": 0.0351, "upto": 19340 }, { "rate": 0.0501, "upto": 32230 }, { "rate": 0.0664, "upto": Infinity }] } }, "NV": { "name": "Nevada", "single": { "brackets": [] } }, "NH": { "name": "New Hampshire", "single": { "brackets": [] } }, "NJ": { "name": "New Jersey", "single": { "brackets": [{ "rate": 0.014, "upto": 20000 }, { "rate": 0.0175, "upto": 35000 }, { "rate": 0.035, "upto": 40000 }, { "rate": 0.05525, "upto": 75000 }, { "rate": 0.0637, "upto": 500000 }, { "rate": 0.0897, "upto": 1000000 }, { "rate": 0.1075, "upto": Infinity }] } }, "NM": { "name": "New Mexico", "single": { "brackets": [{ "rate": 0.017, "upto": 5500 }, { "rate": 0.032, "upto": 11000 }, { "rate": 0.049, "upto": 16000 }, { "rate": 0.059, "upto": Infinity }] } }, "NY": { "name": "New York", "single": { "brackets": [{ "rate": 0.04, "upto": 8500 }, { "rate": 0.045, "upto": 11700 }, { "rate": 0.0525, "upto": 13900 }, { "rate": 0.055, "upto": 80650 }, { "rate": 0.06, "upto": 215400 }, { "rate": 0.0685, "upto": 1077550 }, { "rate": 0.0965, "upto": 5000000 }, { "rate": 0.103, "upto": 25000000 }, { "rate": 0.109, "upto": Infinity }] } }, "NC": { "name": "North Carolina", "single": { "brackets": [{ "rate": 0.0475, "upto": Infinity }] } }, "ND": { "name": "North Dakota", "single": { "brackets": [{ "rate": 0.011, "upto": 44725 }, { "rate": 0.0204, "upto": 90425 }, { "rate": 0.0227, "upto": 222525 }, { "rate": 0.0264, "upto": 473975 }, { "rate": 0.029, "upto": Infinity }] } }, "OH": { "name": "Ohio", "single": { "brackets": [{ "rate": 0.02765, "upto": 26050 }, { "rate": 0.03226, "upto": 100000 }, { "rate": 0.03688, "upto": Infinity }] } }, "OK": { "name": "Oklahoma", "single": { "brackets": [{ "rate": 0.005, "upto": 1000 }, { "rate": 0.01, "upto": 2500 }, { "rate": 0.02, "upto": 3750 }, { "rate": 0.03, "upto": 4900 }, { "rate": 0.04, "upto": 7200 }, { "rate": 0.0475, "upto": Infinity }] } }, "OR": { "name": "Oregon", "single": { "brackets": [{ "rate": 0.0475, "upto": 3750 }, { "rate": 0.0675, "upto": 9450 }, { "rate": 0.0875, "upto": 125000 }, { "rate": 0.099, "upto": Infinity }] } }, "PA": { "name": "Pennsylvania", "single": { "brackets": [{ "rate": 0.0307, "upto": Infinity }] } }, "RI": { "name": "Rhode Island", "single": { "brackets": [{ "rate": 0.0375, "upto": 68250 }, { "rate": 0.0475, "upto": 155050 }, { "rate": 0.0599, "upto": Infinity }] } }, "SC": { "name": "South Carolina", "single": { "brackets": [{ "rate": 0.03, "upto": 3210 }, { "rate": 0.065, "upto": Infinity }] } }, "SD": { "name": "South Dakota", "single": { "brackets": [] } }, "TN": { "name": "Tennessee", "single": { "brackets": [] } }, "TX": { "name": "Texas", "single": { "brackets": [] } }, "UT": { "name": "Utah", "single": { "brackets": [{ "rate": 0.0465, "upto": Infinity }] } }, "VT": { "name": "Vermont", "single": { "brackets": [{ "rate": 0.0335, "upto": 45300 }, { "rate": 0.066, "upto": 109800 }, { "rate": 0.076, "upto": 229300 }, { "rate": 0.0875, "upto": Infinity }] } }, "VA": { "name": "Virginia", "single": { "brackets": [{ "rate": 0.02, "upto": 3000 }, { "rate": 0.03, "upto": 5000 }, { "rate": 0.05, "upto": 17000 }, { "rate": 0.0575, "upto": Infinity }] } }, "WA": { "name": "Washington", "single": { "brackets": [] } }, "WV": { "name": "West Virginia", "single": { "brackets": [{ "rate": 0.0236, "upto": 10000 }, { "rate": 0.0315, "upto": 25000 }, { "rate": 0.0354, "upto": 40000 }, { "rate": 0.0472, "upto": 60000 }, { "rate": 0.0512, "upto": Infinity }] } }, "WI": { "name": "Wisconsin", "single": { "brackets": [{ "rate": 0.0354, "upto": 13600 }, { "rate": 0.0465, "upto": 27210 }, { "rate": 0.053, "upto": 300090 }, { "rate": 0.0765, "upto": Infinity }] } }, "WY": { "name": "Wyoming", "single": { "brackets": [] } } }
-            }
+        const generateCertNumber = () => {
+            const now = new Date();
+            const year = now.getFullYear();
+            const random = String(Math.floor(Math.random() * 900000) + 100000);
+            return `${year}-${random}`;
         };
-        // Add 2025 data, referencing 2024 state data. This is a simplification; in reality, state data changes too.
-        taxTablesData["2025"] = JSON.parse(JSON.stringify(taxTablesData["2024"])); // Deep copy
-        taxTablesData["2025"].federal = {
-            "single": { "brackets": [{ "rate": 0.10, "upto": 12000 }, { "rate": 0.12, "upto": 48500 }, { "rate": 0.22, "upto": 103500 }, { "rate": 0.24, "upto": 197500 }, { "rate": 0.32, "upto": 250000 }, { "rate": 0.35, "upto": 625000 }, { "rate": 0.37, "upto": Infinity }], "deduction": 15000 },
-            "married": { "brackets": [{ "rate": 0.10, "upto": 24000 }, { "rate": 0.12, "upto": 97000 }, { "rate": 0.22, "upto": 207000 }, { "rate": 0.24, "upto": 395000 }, { "rate": 0.32, "upto": 500000 }, { "rate": 0.35, "upto": 750000 }, { "rate": 0.37, "upto": Infinity }], "deduction": 30000 },
-            "hoh": { "brackets": [{ "rate": 0.10, "upto": 17000 }, { "rate": 0.12, "upto": 65000 }, { "rate": 0.22, "upto": 103500 }, { "rate": 0.24, "upto": 197500 }, { "rate": 0.32, "upto": 250000 }, { "rate": 0.35, "upto": 625000 }, { "rate": 0.37, "upto": Infinity }], "deduction": 22500 }
+
+        const updateExpirationDate = () => {
+            const issueDate = new Date(issueDateInput.value + 'T00:00:00'); // Use T00:00:00 to avoid timezone issues
+            issueDate.setFullYear(issueDate.getFullYear() + 3);
+            document.getElementById('expirationDate').value = getYYYYMMDD(issueDate);
         };
-        taxTablesData["2025"].fica.social_security_limit = 175000;
 
-
-        // --- UTILS ---
-        const pMath = {
-            add: (...nums) => nums.reduce((a, b) => a + b, 0),
-            subtract: (a, b) => a - b,
-            multiply: (a, b) => a * b,
-            divide: (a, b) => (b === 0 ? 0 : a / b),
-            round: (num) => Math.round(num * 100) / 100
-        };
-        App.pMath = pMath;
-
-        const debounce = (func, wait) => {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
+        // --- Core PDF Logic ---
+        const getTemplate = () => {
+            // Use the corrected JSON schema directly, now with landscape coordinates
+            return {
+              "basePdf": "assets/backgrounds/forklift_style1.pdf",
+              "schemas": [
+                { "key": "Operator Name",    "type": "text",
+                  "position": { "x": 396, "y": 250 }, "width": 600, "fontSize": 32, "alignment": "center" },
+                { "key": "Course Type",      "type": "text",
+                  "position": { "x": 396, "y": 300 }, "width": 600, "fontSize": 20, "alignment": "center" },
+                { "key": "Trainer Name",     "type": "text",
+                  "position": { "x": 190, "y": 450 }, "width": 250, "fontSize": 18, "alignment": "center" },
+                { "key": "Issue Date",       "type": "text",
+                  "position": { "x": 550, "y": 420 }, "width": 200, "fontSize": 16, "alignment": "center" },
+                { "key": "Expiration Date",  "type": "text",
+                  "position": { "x": 550, "y": 480 }, "width": 200, "fontSize": 16, "alignment": "center" },
+                { "key": "Certificate #",    "type": "text",
+                  "position": { "x": 396, "y": 550 }, "width": 700, "fontSize": 14, "alignment": "center" }
+              ]
             };
         };
+        
+        const getInputs = () => {
+            const formData = new FormData(form);
+            const inputs = {};
+            // Map form IDs to the keys in the JSON template
+            inputs['Operator Name'] = formData.get('operatorName') || '';
+            inputs['Course Type'] = formData.get('courseType') || '';
+            inputs['Trainer Name'] = formData.get('trainerName') || '';
+            inputs['Issue Date'] = formData.get('issueDate') || '';
+            inputs['Expiration Date'] = document.getElementById('expirationDate').value || ''; // Get readonly value
+            inputs['Certificate #'] = document.getElementById('certNumber').value || ''; // Get readonly value
+            return [inputs]; // pdfme expects an array of inputs
+        };
 
-        const formatDate = (dateString) => {
-            if (!dateString) return '';
-            const date = new Date(dateString + 'T00:00:00'); // Treat as local time to prevent timezone shifts
-            return date.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        const generatePdf = async () => {
+            try {
+                const { generate } = await import('https://unpkg.com/@pdfme/generator@1.7.0?module');
+                const template = getTemplate();
+                const inputs = getInputs();
+                const pdf = await generate({ template, inputs });
+                return new Blob([pdf], { type: 'application/pdf' });
+            } catch (error) {
+                console.error('PDF Generation Error:', error);
+                alert('Error generating PDF: ' + error.message);
+                return null;
+            }
+        };
+
+        // --- Event Handlers ---
+        document.getElementById('preview-btn').addEventListener('click', async () => {
+            previewPane.innerHTML = `<p class="text-gray-500">Generating...</p>`;
+            const blob = await generatePdf();
+            if (blob) {
+                const url = URL.createObjectURL(blob);
+                previewPane.innerHTML = `<iframe src="${url}" class="w-full h-full border-none"></iframe>`;
+                downloadBtn.disabled = false; // Enable download button
+            } else {
+                previewPane.innerHTML = `<p class="text-red-500">Failed to generate preview.</p>`;
+            }
+        });
+
+        document.getElementById('download-btn').addEventListener('click', async () => {
+            const blob = await generatePdf();
+            if (blob) {
+                const link = document.createElement('a');
+                const operatorName = document.getElementById('operatorName').value.replace(/\s/g, '_');
+                link.download = `Forklift_Certificate_${operatorName}.pdf`;
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                URL.revokeObjectURL(link.href);
+            }
+        });
+        
+        // --- Initialization ---
+        const init = () => {
+            issueDateInput.value = getYYYYMMDD(new Date());
+            updateExpirationDate();
+            document.getElementById('certNumber').value = generateCertNumber();
+            issueDateInput.addEventListener('change', updateExpirationDate);
         };
         
-        const formatCurrency = (amount) => `$${(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-        // --- DATA SERVICE ---
-        class DataService {
-            getTaxTables(year) { return Promise.resolve(taxTablesData[year] || null); }
-            getAllStateNames() {
-                const yearData = taxTablesData['2024'];
-                if (!yearData || !yearData.states) return {};
-                const states = {};
-                for (const abbr in yearData.states) {
-                    states[abbr] = yearData.states[abbr].name;
-                }
-                return states;
-            }
-        }
-        App.DataService = DataService;
-
-        // --- PAYSTUB CALCULATOR ---
-        class PaystubCalculator {
-            constructor() {
-                this.dataService = new App.DataService();
-            }
-
-            async calculateAll(baseFormData) {
-                const results = [];
-                const taxTables = await this.dataService.getTaxTables(baseFormData.taxYear);
-                if (!taxTables) throw new Error(`Tax info for ${baseFormData.taxYear} not found.`);
-
-                let ytdState = {
-                    earnings: { ...baseFormData.initialYtd.earnings },
-                    deductions: { ...baseFormData.initialYtd.deductions },
-                    taxes: { ...baseFormData.initialYtd.taxes }
-                };
-
-                for (let i = 0; i < baseFormData.numPaystubs; i++) {
-                    const singleStubData = { ...baseFormData, ...baseFormData.stubs[i] };
-                    const result = this.calculateSingle(singleStubData, taxTables, ytdState);
-                    
-                    // Update YTD trackers for the next iteration
-                    result.earnings.forEach(e => ytdState.earnings[e.description] = e.ytd);
-                    result.deductions.forEach(d => ytdState.deductions[d.description] = d.ytd);
-                    result.taxes.forEach(t => ytdState.taxes[t.name] = t.ytd);
-                    
-                    results.push(result);
-                }
-                return results;
-            }
-
-            calculateSingle(formData, taxTables, ytdState) {
-                const payPeriodsPerYear = { weekly: 52, 'bi-weekly': 26, 'semi-monthly': 24, monthly: 12 };
-                const numPayPeriods = payPeriodsPerYear[formData.payPeriod] || 26;
-                
-                // Calculate current and YTD earnings
-                const currentGrossPay = formData.earnings.reduce((total, item) => pMath.add(total, item.current), 0);
-                const processedEarnings = formData.earnings.map(e => ({
-                    ...e,
-                    ytd: pMath.add(ytdState.earnings[e.description] || 0, e.current)
-                }));
-                const ytdGrossPay = processedEarnings.reduce((total, item) => pMath.add(total, item.ytd), 0);
-
-                const annualGross = pMath.multiply(currentGrossPay, numPayPeriods);
-
-                // Calculate current deductions and update YTD
-                const processedDeductions = formData.deductions.map(d => ({
-                    ...d,
-                    ytd: pMath.add(ytdState.deductions[d.description] || 0, d.current)
-                }));
-                const currentTotalDeductions = processedDeductions.reduce((total, item) => pMath.add(total, item.current), 0);
-
-                // Calculate taxes and update YTD
-                const calculatedTaxes = this.calculateTaxes(currentGrossPay, annualGross, formData, taxTables, numPayPeriods, ytdState);
-                const processedTaxes = [
-                    { name: 'Federal', current: calculatedTaxes.federal, ytd: pMath.add(ytdState.taxes['Federal'] || 0, calculatedTaxes.federal) },
-                    { name: 'Social Security', current: calculatedTaxes.socialSecurity, ytd: pMath.add(ytdState.taxes['Social Security'] || 0, calculatedTaxes.socialSecurity) },
-                    { name: 'Medicare', current: calculatedTaxes.medicare, ytd: pMath.add(ytdState.taxes['Medicare'] || 0, calculatedTaxes.medicare) },
-                    { name: 'State', current: calculatedTaxes.state, ytd: pMath.add(ytdState.taxes['State'] || 0, calculatedTaxes.state) },
-                ].filter(t => t.current > 0 || t.ytd > 0);
-                
-                const currentTotalTaxes = processedTaxes.reduce((sum, tax) => pMath.add(sum, tax.current), 0);
-
-                // Final Net Pay calculation
-                const netPay = pMath.subtract(pMath.subtract(currentGrossPay, currentTotalTaxes), currentTotalDeductions);
-
-                return {
-                    ...formData,
-                    grossPay: currentGrossPay,
-                    ytdGrossPay: ytdGrossPay,
-                    netPay,
-                    totalDeductions: currentTotalDeductions,
-                    totalTaxes: currentTotalTaxes,
-                    earnings: processedEarnings,
-                    deductions: processedDeductions,
-                    taxes: processedTaxes,
-                };
-            }
-            
-            calculateTaxes(currentGross, annualGross, formData, taxTables, numPayPeriods, ytdState) {
-                const totalYtdGrossBeforeThisStub = Object.values(ytdState.earnings).reduce((a, b) => a + b, 0);
-                const federal = this.getFederalTax(annualGross, formData.filingStatus, taxTables.federal, numPayPeriods);
-                const socialSecurity = this.getSocialSecurityTax(currentGross, totalYtdGrossBeforeThisStub, taxTables.fica);
-                const medicare = this.getMedicareTax(currentGross, taxTables.fica);
-                const state = this.getStateTax(annualGross, formData.state, formData.filingStatus, taxTables.states, numPayPeriods);
-                return { federal, socialSecurity, medicare, state };
-            }
-
-            calculateBracketTax(annualIncome, taxInfo) {
-                let tax = 0;
-                let lastUpto = 0;
-                if (!taxInfo || !taxInfo.brackets) return 0;
-                for (const bracket of taxInfo.brackets) {
-                    if (annualIncome > lastUpto) {
-                        const taxableInBracket = Math.min(annualIncome, bracket.upto) - lastUpto;
-                        tax += pMath.multiply(taxableInBracket, bracket.rate);
-                    }
-                    lastUpto = bracket.upto;
-                }
-                return tax;
-            }
-
-            getFederalTax(annualGross, filingStatus, federalTables, numPayPeriods) {
-                const table = federalTables[filingStatus];
-                if (!table) return 0;
-                const taxableIncome = Math.max(0, pMath.subtract(annualGross, table.deduction));
-                const annualTax = this.calculateBracketTax(taxableIncome, table);
-                return pMath.round(pMath.divide(annualTax, numPayPeriods));
-            }
-
-            getStateTax(annualGross, stateAbbr, filingStatus, stateTables, numPayPeriods) {
-                const stateInfo = stateTables[stateAbbr];
-                const table = (stateInfo && stateInfo[filingStatus]) || (stateInfo && stateInfo.single);
-                if (!table || table.brackets.length === 0) return 0;
-                const annualTax = this.calculateBracketTax(annualGross, table);
-                return pMath.round(pMath.divide(annualTax, numPayPeriods));
-            }
-
-            getSocialSecurityTax(currentGross, ytdGross, ficaTable) {
-                const limit = ficaTable.social_security_limit;
-                if (ytdGross >= limit) return 0;
-                const remainingTaxable = pMath.subtract(limit, ytdGross);
-                const taxableThisPeriod = Math.min(currentGross, remainingTaxable);
-                return pMath.round(pMath.multiply(taxableThisPeriod, ficaTable.social_security_rate));
-            }
-
-            getMedicareTax(currentGross, ficaTable) {
-                return pMath.round(pMath.multiply(currentGross, ficaTable.medicare_rate));
-            }
-        }
-        App.PaystubCalculator = PaystubCalculator;
-
-        // --- PREVIEW UPDATER ---
-        class PreviewUpdater {
-            constructor() {
-                this.container = document.getElementById('previews-container');
-                this.template = document.getElementById('paystub-template');
-                this.currentIndex = 0;
-                this.totalStubs = 0;
-            }
-
-            updateAll(results) {
-                this.container.innerHTML = '';
-                this.totalStubs = results.length;
-                this.currentIndex = 0;
-
-                if (results.length === 0) {
-                     this.container.innerHTML = `<div class="p-10 text-center text-gray-500">Please fill out the form to see a preview.</div>`;
-                     this.updateNav();
-                     return;
-                }
-
-                results.forEach((data, index) => {
-                    const newStubContent = this.template.content.cloneNode(true);
-                    const newStubWrapper = document.createElement('div');
-                    newStubWrapper.id = `paystub-preview-${index}`;
-                    newStubWrapper.classList.add('paystub-wrapper');
-                    if (index !== 0) newStubWrapper.style.display = 'none';
-                    newStubWrapper.appendChild(newStubContent);
-                    
-                    this.container.appendChild(newStubWrapper);
-                    this.populateStub(newStubWrapper, data);
-                });
-                this.updateNav();
-            }
-
-            populateStub(stubElement, data) {
-                const find = (selector) => stubElement.querySelector(`[data-id="${selector}"]`);
-                
-                // Header & Info
-                find('businessName').textContent = data.businessName;
-                find('businessAddress').textContent = data.businessAddress;
-                find('employeeName').textContent = data.employeeName;
-                find('employeeId').textContent = data.employeeId;
-                find('payDate').textContent = formatDate(data.payDate);
-                find('payPeriodRange').textContent = `${formatDate(data.payPeriodStart)} - ${formatDate(data.payPeriodEnd)}`;
-                
-                // Tables
-                this.updateEarningsTable(find('earnings-table'), data.earnings, data.grossPay, data.ytdGrossPay);
-                this.updateGenericTable(find('deductions-table'), data.deductions, 'currentTotalDeductions', 'ytdTotalDeductions');
-                this.updateGenericTable(find('taxes-table'), data.taxes, 'currentTotalTaxes', 'ytdTotalTaxes');
-                
-                // Summary
-                find('summary-grossPay').textContent = formatCurrency(data.grossPay);
-                find('summary-totalDeductions').textContent = formatCurrency(data.totalDeductions);
-                find('summary-totalTaxes').textContent = formatCurrency(data.totalTaxes);
-                find('summary-netPay').textContent = formatCurrency(data.netPay);
-            }
-            
-            updateEarningsTable(table, items, currentTotal, ytdTotal) {
-                const tbody = table.querySelector('tbody');
-                tbody.innerHTML = '';
-                if (!items || items.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-gray-500">None</td></tr>`;
-                } else {
-                    items.forEach(item => {
-                        tbody.innerHTML += `
-                            <tr class="text-gray-700">
-                                <td class="p-3">${item.description}</td>
-                                <td class="p-3 text-right">${formatCurrency(item.rate)}</td>
-                                <td class="p-3 text-right">${(item.hours || 0).toFixed(2)}</td>
-                                <td class="p-3 text-right font-medium text-gray-900">${formatCurrency(item.current)}</td>
-                                <td class="p-3 text-right">${formatCurrency(item.ytd)}</td>
-                            </tr>`;
-                    });
-                }
-                table.querySelector('[data-id="currentGrossPay"]').textContent = formatCurrency(currentTotal);
-                table.querySelector('[data-id="ytdGrossPay"]').textContent = formatCurrency(ytdTotal);
-            }
-            
-            updateGenericTable(table, items, currentTotalDataId, ytdTotalDataId) {
-                const tbody = table.querySelector('tbody');
-                tbody.innerHTML = '';
-                const currentTotal = items.reduce((sum, item) => sum + item.current, 0);
-                const ytdTotal = items.reduce((sum, item) => sum + item.ytd, 0);
-
-                if (!items || items.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="3" class="p-3 text-gray-500">None</td></tr>`;
-                } else {
-                    items.forEach(item => {
-                        tbody.innerHTML += `
-                            <tr class="text-gray-700">
-                                <td class="p-3">${item.name || item.description}</td>
-                                <td class="p-3 text-right font-medium text-gray-900">${formatCurrency(item.current)}</td>
-                                <td class="p-3 text-right">${formatCurrency(item.ytd)}</td>
-                            </tr>`;
-                    });
-                }
-                table.querySelector(`[data-id="${currentTotalDataId}"]`).textContent = formatCurrency(currentTotal);
-                table.querySelector(`[data-id="${ytdTotalDataId}"]`).textContent = formatCurrency(ytdTotal);
-            }
-
-
-            showStub(index) {
-                if (index < 0 || index >= this.totalStubs) return;
-                this.currentIndex = index;
-                this.container.querySelectorAll('.paystub-wrapper').forEach((stub, i) => {
-                    stub.style.display = (i === this.currentIndex) ? 'block' : 'none';
-                });
-                this.updateNav();
-            }
-            
-            next() { this.showStub(this.currentIndex + 1); }
-            prev() { this.showStub(this.currentIndex - 1); }
-            
-            updateNav() {
-                const statusEl = document.getElementById('stub-nav-status');
-                const prevBtn = document.getElementById('prev-stub');
-                const nextBtn = document.getElementById('next-stub');
-
-                statusEl.textContent = `Stub ${this.currentIndex + 1} of ${this.totalStubs}`;
-                prevBtn.disabled = this.currentIndex === 0;
-                nextBtn.disabled = this.currentIndex >= this.totalStubs - 1;
-
-                if (this.totalStubs <= 1) {
-                    statusEl.parentElement.style.display = 'none';
-                } else {
-                    statusEl.parentElement.style.display = 'flex';
-                }
-            }
-
-            getCurrentStubHTMLforPDF() {
-                const activeStub = this.container.querySelector(`#paystub-preview-${this.currentIndex}`);
-                if (!activeStub) return "<div>No paystub selected.</div>";
-                
-                // Create a temporary clone for PDF generation to apply specific styles
-                const pdfClone = activeStub.cloneNode(true);
-                // Use a smaller font size for better PDF fitting
-                pdfClone.style.fontSize = '12px';
-                pdfClone.style.width = '8.5in'; // Set width for PDF layout
-                return pdfClone;
-            }
-        }
-        App.PreviewUpdater = PreviewUpdater;
-
-        // --- FORM MANAGER ---
-        class FormManager {
-            constructor(updateCallback) {
-                this.form = document.getElementById('paystub-form');
-                this.updateCallback = updateCallback;
-                this.dataService = new App.DataService();
-                this.earningFieldCount = 0;
-                this.deductionFieldCount = 0;
-                
-                this.form.addEventListener('input', debounce(() => this.updateCallback(), 250));
-                
-                // v5.7 ADD – toggle salary field listeners
-                document.getElementById('incomeType').addEventListener('change', () => this.toggleIncomeType());
-                document.getElementById('incomeAmount').addEventListener('input', () => this.calcSalaryRate());
-                
-                document.getElementById('payPeriod').addEventListener('change', () => {
-                    this.generateDateInputs();
-                    this.calcSalaryRate();
-                });
-                document.getElementById('add-earning').addEventListener('click', () => this.addEarningField());
-                document.getElementById('add-deduction').addEventListener('click', () => this.addDeductionField());
-                document.getElementById('numPaystubs').addEventListener('input', () => this.generateDateInputs());
-
-                this.populateStateOptions();
-                this.addDefaultFields();
-                this.generateDateInputs();
-                
-                // v5.7 ADD – Initial call to set correct visibility
-                this.toggleIncomeType();
-            }
-            
-            getFormData() {
-                const earnings = [];
-                document.querySelectorAll('#earnings-container .dynamic-field').forEach(field => {
-                    const desc = field.querySelector('[name*="earningDescription"]').value;
-                    if (desc) {
-                        const rate = parseFloat(field.querySelector('[name*="earningRate"]').value) || 0;
-                        const hours = parseFloat(field.querySelector('[name*="earningHours"]').value) || 0;
-                        earnings.push({
-                            description: desc,
-                            rate,
-                            hours,
-                            current: pMath.round(pMath.multiply(rate, hours))
-                        });
-                    }
-                });
-                
-                const deductions = [];
-                document.querySelectorAll('#deductions-container .dynamic-field').forEach(field => {
-                    const desc = field.querySelector('[name*="deductionDescription"]').value;
-                    if (desc) {
-                        deductions.push({
-                            description: desc,
-                            current: parseFloat(field.querySelector('[name*="deductionAmountCurrent"]').value) || 0
-                        });
-                    }
-                });
-                
-                const getInitialYTD = (containerId, namePrefix, isEarning = false) => {
-                    const ytd = {};
-                    document.querySelectorAll(`#${containerId} .dynamic-field`).forEach(field => {
-                        const desc = field.querySelector(`[name*="${namePrefix}Description"]`).value;
-                        if(desc) {
-                           const ytdInputName = isEarning ? `earningAmountYTD` : `${namePrefix}AmountYTD`;
-                           ytd[desc] = parseFloat(field.querySelector(`[name*="${ytdInputName}"]`).value) || 0;
-                        }
-                    });
-                    return ytd;
-                };
-
-                const payPeriod = document.getElementById('payPeriod').value;
-                const numPaystubs = parseInt(document.getElementById('numPaystubs').value, 10) || 1;
-                const stubs = [];
-                 for(let i=0; i<numPaystubs; i++){
-                    const payPeriodStart = document.getElementById(`payPeriodStart-${i}`).value;
-                    const { payPeriodEnd, payDate } = this.calculateEndAndPayDates(payPeriodStart, payPeriod);
-                    stubs.push({ payPeriodStart, payPeriodEnd, payDate });
-                }
-
-                return {
-                    businessName: document.getElementById('businessName').value,
-                    businessAddress: document.getElementById('businessAddress').value,
-                    employeeName: document.getElementById('employeeName').value,
-                    employeeId: document.getElementById('employeeId').value,
-                    payPeriod: payPeriod,
-                    taxYear: document.getElementById('taxYear').value,
-                    filingStatus: document.getElementById('filingStatus').value,
-                    state: document.getElementById('state').value,
-                    numPaystubs,
-                    stubs,
-                    earnings,
-                    deductions,
-                    initialYtd: {
-                        earnings: getInitialYTD('earnings-container', 'earning', true),
-                        deductions: getInitialYTD('deductions-container', 'deduction'),
-                        taxes: {}
-                    }
-                };
-            }
-            
-            generateDateInputs() {
-                const container = document.getElementById('paystub-dates-container');
-                const num = Math.min(12, Math.max(1, parseInt(document.getElementById('numPaystubs').value, 10) || 1));
-                const payPeriod = document.getElementById('payPeriod').value;
-                
-                const existingDates = [];
-                for (let i = 0; i < container.children.length; i++) {
-                    const input = document.getElementById(`payPeriodStart-${i}`);
-                    if(input) existingDates.push(input.value);
-                }
-
-                container.innerHTML = '';
-                
-                let lastStartDateStr = existingDates[0] || new Date().toISOString().split('T')[0];
-                
-                for (let i = 0; i < num; i++) {
-                    const dateValue = existingDates[i] || lastStartDateStr;
-                    const div = document.createElement('div');
-                    div.className = 'form-group';
-                    div.innerHTML = `
-                        <label for="payPeriodStart-${i}" class="block text-sm font-medium text-gray-700">Paystub ${i + 1} Start Date</label>
-                        <input type="date" id="payPeriodStart-${i}" name="payPeriodStart-${i}" value="${dateValue}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                    `;
-                    container.appendChild(div);
-                    
-                    if (!existingDates[i+1]) {
-                        const { payPeriodEnd } = this.calculateEndAndPayDates(dateValue, payPeriod);
-                        let nextStartDate = new Date(payPeriodEnd + 'T00:00:00');
-                        nextStartDate.setDate(nextStartDate.getDate() + 1);
-                        lastStartDateStr = nextStartDate.toISOString().split('T')[0];
-                    }
-                }
-                this.updateCallback();
-            }
-
-
-            calculateEndAndPayDates(startDateString, payPeriod) {
-                if (!startDateString) return { payPeriodEnd: '', payDate: '' };
-                const startDate = new Date(startDateString + 'T00:00:00');
-                const endDate = new Date(startDate);
-                let payDate;
-                
-                switch(payPeriod) {
-                    case 'weekly': endDate.setDate(startDate.getDate() + 6); break;
-                    case 'bi-weekly': endDate.setDate(startDate.getDate() + 13); break;
-                    case 'semi-monthly':
-                        if (startDate.getDate() === 1) {
-                            endDate.setDate(15);
-                        } else {
-                            endDate.setMonth(endDate.getMonth() + 1, 0);
-                        }
-                        break;
-                    case 'monthly': endDate.setMonth(endDate.getMonth() + 1, 0); break;
-                }
-                payDate = new Date(endDate);
-                payDate.setDate(endDate.getDate() + 5); // Example: Pay 5 days after period ends
-                
-                return { 
-                    payPeriodEnd: endDate.toISOString().split('T')[0],
-                    payDate: payDate.toISOString().split('T')[0]
-                };
-            }
-
-            // v5.7 ADD
-            toggleIncomeType() {
-              const isAnnual = document.getElementById('incomeType').value === 'annual';
-              document.getElementById('income-amount-group').style.display = isAnnual ? 'block' : 'none';
-              if (!isAnnual) return;
-              this.calcSalaryRate();
-            }
-            
-            // v5.7 ADD - converts annual salary → hourly & hours
-            calcSalaryRate() {
-              const salary = parseFloat(document.getElementById('incomeAmount').value) || 0;
-              if (salary <= 0) return;
-              const freq = document.getElementById('payPeriod').value;
-              const periods = { 'weekly':52, 'bi-weekly':26, 'semi-monthly':24, 'monthly':12 }[freq] || 26;
-              const hoursPer = { 'weekly':40, 'bi-weekly':80, 'semi-monthly':86.67, 'monthly':173.33 }[freq] || 80;
-              const hourly = (salary / periods / hoursPer).toFixed(2);
-            
-              // update first "Regular Pay" row
-              const firstRow = document.querySelector('#earnings-container .dynamic-field');
-              if (!firstRow) return;
-
-              const rateInput = firstRow.querySelector('[name*="earningRate"]');
-              const hoursInput = firstRow.querySelector('[name*="earningHours"]');
-
-              if(rateInput) rateInput.value = hourly;
-              if(hoursInput) hoursInput.value = hoursPer.toFixed(2);
-              
-              // trigger recalculation by dispatching a generic input event
-              this.form.dispatchEvent(new Event('input', { bubbles: true }));
-            }
-            
-            async populateStateOptions() {
-                const stateSelect = document.getElementById('state');
-                const states = this.dataService.getAllStateNames();
-                const sortedStates = Object.entries(states).sort((a, b) => a[1].localeCompare(b[1]));
-                for (const [abbr, name] of sortedStates) {
-                    stateSelect.add(new Option(name, abbr));
-                }
-                stateSelect.value = 'CA'; // Default to California
-            }
-            
-            addDefaultFields() {
-                this.addEarningField({ desc: 'Regular Pay', rate: 31.25, hours: 80, ytd: 65000 });
-                this.addEarningField({ desc: 'Overtime', rate: '', hours: '', ytd: '' });
-                this.addEarningField({ desc: 'Double Time', rate: '', hours: '', ytd: '' });
-                this.addEarningField({ desc: 'Commission', rate: '', hours: '', ytd: '' });
-                this.addEarningField({ desc: 'Sick', rate: '', hours: '', ytd: '' });
-                this.addEarningField({ desc: 'Holiday', rate: '', hours: '', ytd: '' });
-                this.addDeductionField({ desc: 'Health Insurance', curr: 150, ytd: 3600 });
-                this.addDeductionField({ desc: 'Insurance – Dental', curr: '', ytd: '' });
-                this.addDeductionField({ desc: 'Insurance – Vision', curr: '', ytd: '' });
-                this.addDeductionField({ desc: '401k', curr: 125, ytd: 3000 });
-                this.addDeductionField({ desc: 'Garnishment', curr: '', ytd: '' });
-            }
-
-            addEarningField(defaults = {}) {
-                const container = document.getElementById('earnings-container');
-                const newField = document.createElement('div');
-                newField.className = 'dynamic-field grid grid-cols-12 gap-2 items-center';
-                const fieldId = this.earningFieldCount++;
-
-                newField.innerHTML = `
-                    <div class="col-span-4">
-                        <input type="text" name="earningDescription-${fieldId}" placeholder="Description" value="${defaults.desc || ''}" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="earning-desc-header">
-                    </div>
-                    <div class="col-span-3">
-                         <input type="number" name="earningRate-${fieldId}" placeholder="0.00" value="${defaults.rate || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="earning-rate-header">
-                    </div>
-                    <div class="col-span-2">
-                        <input type="number" name="earningHours-${fieldId}" placeholder="0.00" value="${defaults.hours || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="earning-hours-header">
-                    </div>
-                    <div class="col-span-2">
-                         <input type="number" name="earningAmountYTD-${fieldId}" placeholder="0.00" value="${defaults.ytd || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="earning-ytd-header">
-                    </div>
-                    <div class="col-span-1 text-right">
-                        <button type="button" class="text-gray-400 hover:text-red-500 remove-btn" aria-label="Remove ${defaults.desc || 'earning'} row">&times;</button>
-                    </div>
-                `;
-                container.appendChild(newField);
-                newField.querySelector('.remove-btn').addEventListener('click', (e) => {
-                    e.target.closest('.dynamic-field').remove();
-                    this.updateCallback();
-                });
-            }
-
-            addDeductionField(defaults = {}) {
-                const container = document.getElementById('deductions-container');
-                const newField = document.createElement('div');
-                newField.className = 'dynamic-field grid grid-cols-12 gap-2 items-center';
-                const fieldId = this.deductionFieldCount++;
-
-                newField.innerHTML = `
-                    <div class="col-span-6">
-                        <input type="text" name="deductionDescription-${fieldId}" placeholder="Description" value="${defaults.desc || ''}" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="deduction-desc-header">
-                    </div>
-                    <div class="col-span-2">
-                         <input type="number" name="deductionAmountCurrent-${fieldId}" placeholder="0.00" value="${defaults.curr || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="deduction-current-header">
-                    </div>
-                     <div class="col-span-3">
-                         <input type="number" name="deductionAmountYTD-${fieldId}" placeholder="0.00" value="${defaults.ytd || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="deduction-ytd-header">
-                    </div>
-                    <div class="col-span-1 text-right">
-                        <button type="button" class="text-gray-400 hover:text-red-500 remove-btn" aria-label="Remove ${defaults.desc || 'deduction'} row">&times;</button>
-                    </div>
-                `;
-                container.appendChild(newField);
-                 newField.querySelector('.remove-btn').addEventListener('click', (e) => {
-                    e.target.closest('.dynamic-field').remove();
-                    this.updateCallback();
-                });
-            }
-        }
-        App.FormManager = FormManager;
-
-        // --- UI CONTROLLER ---
-        class UIController {
-            constructor() {
-                this.previewUpdater = new App.PreviewUpdater();
-                this.formManager = new FormManager(() => this.processUpdate());
-                this.calculator = new App.PaystubCalculator();
-                this.isPayPalRendered = false;
-                
-                this.setupEventListeners();
-                this.processUpdate(); // Initial calculation and render
-            }
-
-            async processUpdate() {
-                try {
-                    const formData = this.formManager.getFormData();
-                    const calculationResults = await this.calculator.calculateAll(formData);
-                    this.previewUpdater.updateAll(calculationResults);
-                } catch (error) {
-                    console.error("Calculation Error:", error);
-                    document.getElementById('previews-container').innerHTML = `<div class="p-10 text-center text-red-500">An error occurred during calculation. Check console for details.</div>`;
-                }
-            }
-            
-            handlePaymentSuccess() {
-              const downloadBtn = document.getElementById('download-pdf');
-              downloadBtn.disabled = false;
-              // Programmatically click once to start the download
-              downloadBtn.click(); 
-              document.getElementById('pay-button').style.display = 'none';
-              this.closePayPalModal();
-            }
-
-            renderPayPalButtons() {
-                const numStubs = parseInt(document.getElementById('numPaystubs').value, 10) || 1;
-                const amount = (numStubs * 3.25).toFixed(2);
-                const description = `BuellDocs Paystubs – ${numStubs} × $3.25`;
-                
-                const paypalContainer = document.getElementById('paypal-container');
-                paypalContainer.innerHTML = ''; // Clear previous buttons
-                this.isPayPalRendered = false;
-
-                paypal.Buttons({
-                    createOrder: (data, actions) => {
-                        return actions.order.create({
-                            purchase_units: [{
-                                description: description,
-                                amount: {
-                                    value: amount,
-                                    currency_code: 'USD'
-                                }
-                            }]
-                        });
-                    },
-                    onApprove: (data, actions) => {
-                        return actions.order.capture().then(() => this.handlePaymentSuccess());
-                    },
-                    onError: (err) => {
-                        console.error("PayPal button rendering error:", err);
-                        paypalContainer.innerHTML = `<p class="text-sm text-red-600 text-center">Sorry, the payment service is unavailable. Please try again later.</p>`;
-                    }
-                }).render('#paypal-container').then(() => {
-                    this.isPayPalRendered = true;
-                }).catch((err) => {
-                     console.error("PayPal button rendering failed:", err);
-                     paypalContainer.innerHTML = `<p class="text-sm text-red-600 text-center">Sorry, the payment service failed to load. Please try again later.</p>`;
-                });
-            }
-            
-            openPayPalModal() {
-                document.getElementById('paypal-modal').classList.remove('hidden');
-                // Defer rendering to ensure the modal is visible and dimensions are calculated
-                setTimeout(() => this.renderPayPalButtons(), 100);
-            }
-
-            closePayPalModal() {
-                document.getElementById('paypal-modal').classList.add('hidden');
-            }
-
-            setupEventListeners() {
-                document.getElementById('download-pdf').addEventListener('click', () => {
-                    const elementToPrint = this.previewUpdater.getCurrentStubHTMLforPDF();
-                    const formData = this.formManager.getFormData();
-                    const filename = `paystub_${formData.employeeName.replace(/ /g, '_')}_${formData.stubs[this.previewUpdater.currentIndex].payDate}.pdf`;
-                    const opt = {
-                        margin:       [0.25, 0.25, 0.25, 0.25],
-                        filename:     filename,
-                        image:        { type: 'jpeg', quality: 0.98 },
-                        html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
-                        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-                    };
-                    html2pdf().from(elementToPrint).set(opt).save();
-                });
-
-                document.getElementById('next-stub').addEventListener('click', () => this.previewUpdater.next());
-                document.getElementById('prev-stub').addEventListener('click', () => this.previewUpdater.prev());
-                document.getElementById('footer-year').textContent = new Date().getFullYear();
-                
-                // Payment Modal Listeners
-                document.getElementById('pay-button').addEventListener('click', () => this.openPayPalModal());
-                document.getElementById('close-paypal-modal').addEventListener('click', () => this.closePayPalModal());
-                document.getElementById('paypal-modal').addEventListener('click', (event) => {
-                    if (event.target.id === 'paypal-modal') {
-                        this.closePayPalModal();
-                    }
-                });
-            }
-        }
-        App.UIController = UIController;
-
-        // --- APP INITIALIZATION ---
-        document.addEventListener('DOMContentLoaded', () => {
-            new App.UIController();
-        });
-    })();
+        init();
     </script>
 </body>
-
 </html>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> BuellDocs Paystub Generator Pro</title>
+    <title>BuellDocs Paystub Builder v5.7</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -59,28 +59,31 @@
                 <div class="bg-white p-6 rounded-2xl shadow-sm sticky top-8">
                     <form id="paystub-form" class="space-y-8">
                         
+                        <!-- v5.7 ADD – Annual-salary toggle and functionality -->
                         <section>
-                             <h3 class="font-display text-lg font-semibold text-slate-800 border-b pb-3 mb-4">Controls</h3>
-                             <div class="space-y-4">
-                                <div class="form-group">
-                                   <label for="numPaystubs" class="block text-sm font-medium text-gray-700">Number of Paystubs (1-12)</label>
-                                   <input type="number" id="numPaystubs" name="numPaystubs" min="1" max="12" value="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                </div>
-                                <div class="form-group">
-                                    <label for="incomeType" class="block text-sm font-medium text-gray-700">Calculate Pay From</label>
-                                    <select id="incomeType" name="incomeType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                        <option value="manual" selected>Manual Entry Below</option>
-                                        <option value="annual">Annual Salary</option>
-                                    </select>
-                                </div>
-                                 <div class="form-group" id="income-amount-group" style="display: none;">
-                                    <label for="incomeAmount" class="block text-sm font-medium text-gray-700">Annual Salary Amount</label>
-                                    <div class="relative mt-1">
-                                      <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
-                                      <input type="number" id="incomeAmount" name="incomeAmount" placeholder="e.g., 65000" step="0.01" class="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                    </div>
-                                </div>
-                             </div>
+                          <h3 class="font-display text-lg font-semibold text-slate-800 border-b pb-3 mb-4">Controls</h3>
+                          <div class="space-y-4">
+                            <div class="form-group">
+                               <label for="numPaystubs" class="block text-sm font-medium text-gray-700">Number of Paystubs (1-12)</label>
+                               <input type="number" id="numPaystubs" name="numPaystubs" min="1" max="12" value="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            </div>
+                            <div class="form-group">
+                              <label for="incomeType" class="block text-sm font-medium text-gray-700">Calculate Pay From</label>
+                              <select id="incomeType" name="incomeType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                <option value="manual" selected>Manual Entry Below</option>
+                                <option value="annual">Annual Salary</option>
+                              </select>
+                            </div>
+                        
+                            <div class="form-group" id="income-amount-group" style="display:none;">
+                              <label for="incomeAmount" class="block text-sm font-medium text-gray-700">Annual Salary Amount ($)</label>
+                              <div class="relative mt-1">
+                                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 sm:text-sm">$</span>
+                                <input type="number" id="incomeAmount" name="incomeAmount" placeholder="e.g., 100000" step="0.01"
+                                       class="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                              </div>
+                            </div>
+                          </div>
                         </section>
 
                         <section>
@@ -146,10 +149,10 @@
                             </div>
                             <div class="space-y-3" id="earnings-container">
                                 <div class="grid grid-cols-12 gap-2 text-xs font-medium text-gray-500">
-                                    <label class="col-span-4">Description</label>
-                                    <label class="col-span-3 text-right">Rate</label>
-                                    <label class="col-span-2 text-right">Hours</label>
-                                    <label class="col-span-3 text-right">YTD</label>
+                                    <label class="col-span-4" id="earning-desc-header">Description</label>
+                                    <label class="col-span-3 text-right" id="earning-rate-header">Rate</label>
+                                    <label class="col-span-2 text-right" id="earning-hours-header">Hours</label>
+                                    <label class="col-span-3 text-right" id="earning-ytd-header">YTD</label>
                                 </div>
                                 </div>
                         </section>
@@ -161,9 +164,9 @@
                             </div>
                             <div class="space-y-3" id="deductions-container">
                                  <div class="grid grid-cols-12 gap-2 text-xs font-medium text-gray-500">
-                                    <label class="col-span-6">Description</label>
-                                    <label class="col-span-3 text-right">Current</label>
-                                    <label class="col-span-3 text-right">YTD</label>
+                                    <label class="col-span-6" id="deduction-desc-header">Description</label>
+                                    <label class="col-span-3 text-right" id="deduction-current-header">Current</label>
+                                    <label class="col-span-3 text-right" id="deduction-ytd-header">YTD</label>
                                 </div>
                                 </div>
                         </section>
@@ -174,7 +177,7 @@
 
             <section class="lg:col-span-7 xl:col-span-8">
                 <div class="sticky top-8">
-                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
                         <div class="flex items-center space-x-4 mb-4 sm:mb-0">
                             <button id="prev-stub" class="p-2 rounded-md bg-white border border-gray-300 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
@@ -184,13 +187,13 @@
                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
                             </button>
                         </div>
-                        <div class="flex items-center gap-2">
-                             <button id="pay-button" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition">
+                         <div class="w-full sm:w-auto flex items-center gap-x-3">
+                             <button id="pay-button" class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition">
                                 Pay Now
                             </button>
-                            <button id="download-pdf" disabled class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button id="download-pdf" disabled class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition disabled:opacity-50 disabled:cursor-not-allowed">
                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                                Download PDF
+                                Download
                             </button>
                         </div>
                     </div>
@@ -380,6 +383,18 @@
         };
         App.pMath = pMath;
 
+        const debounce = (func, wait) => {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        };
+
         const formatDate = (dateString) => {
             if (!dateString) return '';
             const date = new Date(dateString + 'T00:00:00'); // Treat as local time to prevent timezone shifts
@@ -483,7 +498,7 @@
             }
             
             calculateTaxes(currentGross, annualGross, formData, taxTables, numPayPeriods, ytdState) {
-                const totalYtdGrossBeforeThisStub = ytdState.earnings['Regular Pay'] || 0; // Approximate with Regular Pay YTD
+                const totalYtdGrossBeforeThisStub = Object.values(ytdState.earnings).reduce((a, b) => a + b, 0);
                 const federal = this.getFederalTax(annualGross, formData.filingStatus, taxTables.federal, numPayPeriods);
                 const socialSecurity = this.getSocialSecurityTax(currentGross, totalYtdGrossBeforeThisStub, taxTables.fica);
                 const medicare = this.getMedicareTax(currentGross, taxTables.fica);
@@ -687,10 +702,16 @@
                 this.earningFieldCount = 0;
                 this.deductionFieldCount = 0;
                 
-                this.form.addEventListener('input', () => this.updateCallback());
-                document.getElementById('incomeType').addEventListener('change', () => this.handleIncomeTypeChange());
-                document.getElementById('incomeAmount').addEventListener('input', () => this.handleIncomeCalculation());
-                document.getElementById('payPeriod').addEventListener('change', () => this.handleIncomeCalculation());
+                this.form.addEventListener('input', debounce(() => this.updateCallback(), 250));
+                
+                // v5.7 ADD – toggle salary field listeners
+                document.getElementById('incomeType').addEventListener('change', () => this.toggleIncomeType());
+                document.getElementById('incomeAmount').addEventListener('input', () => this.calcSalaryRate());
+                
+                document.getElementById('payPeriod').addEventListener('change', () => {
+                    this.generateDateInputs();
+                    this.calcSalaryRate();
+                });
                 document.getElementById('add-earning').addEventListener('click', () => this.addEarningField());
                 document.getElementById('add-deduction').addEventListener('click', () => this.addDeductionField());
                 document.getElementById('numPaystubs').addEventListener('input', () => this.generateDateInputs());
@@ -698,11 +719,12 @@
                 this.populateStateOptions();
                 this.addDefaultFields();
                 this.generateDateInputs();
+                
+                // v5.7 ADD – Initial call to set correct visibility
+                this.toggleIncomeType();
             }
             
             getFormData() {
-                const getValues = (selector) => Array.from(document.querySelectorAll(selector)).map(el => el.value);
-
                 const earnings = [];
                 document.querySelectorAll('#earnings-container .dynamic-field').forEach(field => {
                     const desc = field.querySelector('[name*="earningDescription"]').value;
@@ -729,12 +751,13 @@
                     }
                 });
                 
-                const getInitialYTD = (containerId, namePrefix) => {
+                const getInitialYTD = (containerId, namePrefix, isEarning = false) => {
                     const ytd = {};
                     document.querySelectorAll(`#${containerId} .dynamic-field`).forEach(field => {
                         const desc = field.querySelector(`[name*="${namePrefix}Description"]`).value;
                         if(desc) {
-                           ytd[desc] = parseFloat(field.querySelector(`[name*="${namePrefix}AmountYTD"]`).value) || 0;
+                           const ytdInputName = isEarning ? `earningAmountYTD` : `${namePrefix}AmountYTD`;
+                           ytd[desc] = parseFloat(field.querySelector(`[name*="${ytdInputName}"]`).value) || 0;
                         }
                     });
                     return ytd;
@@ -763,7 +786,7 @@
                     earnings,
                     deductions,
                     initialYtd: {
-                        earnings: getInitialYTD('earnings-container', 'earning'),
+                        earnings: getInitialYTD('earnings-container', 'earning', true),
                         deductions: getInitialYTD('deductions-container', 'deduction'),
                         taxes: {}
                     }
@@ -774,27 +797,37 @@
                 const container = document.getElementById('paystub-dates-container');
                 const num = Math.min(12, Math.max(1, parseInt(document.getElementById('numPaystubs').value, 10) || 1));
                 const payPeriod = document.getElementById('payPeriod').value;
+                
+                const existingDates = [];
+                for (let i = 0; i < container.children.length; i++) {
+                    const input = document.getElementById(`payPeriodStart-${i}`);
+                    if(input) existingDates.push(input.value);
+                }
+
                 container.innerHTML = '';
                 
-                let lastStartDate = new Date();
+                let lastStartDateStr = existingDates[0] || new Date().toISOString().split('T')[0];
                 
                 for (let i = 0; i < num; i++) {
+                    const dateValue = existingDates[i] || lastStartDateStr;
                     const div = document.createElement('div');
                     div.className = 'form-group';
                     div.innerHTML = `
                         <label for="payPeriodStart-${i}" class="block text-sm font-medium text-gray-700">Paystub ${i + 1} Start Date</label>
-                        <input type="date" id="payPeriodStart-${i}" name="payPeriodStart-${i}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <input type="date" id="payPeriodStart-${i}" name="payPeriodStart-${i}" value="${dateValue}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                     `;
                     container.appendChild(div);
-                    document.getElementById(`payPeriodStart-${i}`).value = lastStartDate.toISOString().split('T')[0];
                     
-                    // Increment date for next stub
-                    const { payPeriodEnd } = this.calculateEndAndPayDates(lastStartDate.toISOString().split('T')[0], payPeriod);
-                    lastStartDate = new Date(payPeriodEnd + 'T00:00:00');
-                    lastStartDate.setDate(lastStartDate.getDate() + 1);
+                    if (!existingDates[i+1]) {
+                        const { payPeriodEnd } = this.calculateEndAndPayDates(dateValue, payPeriod);
+                        let nextStartDate = new Date(payPeriodEnd + 'T00:00:00');
+                        nextStartDate.setDate(nextStartDate.getDate() + 1);
+                        lastStartDateStr = nextStartDate.toISOString().split('T')[0];
+                    }
                 }
                 this.updateCallback();
             }
+
 
             calculateEndAndPayDates(startDateString, payPeriod) {
                 if (!startDateString) return { payPeriodEnd: '', payDate: '' };
@@ -823,39 +856,35 @@
                 };
             }
 
-            handleIncomeTypeChange() {
-                const incomeType = document.getElementById('incomeType').value;
-                const incomeGroup = document.getElementById('income-amount-group');
-                incomeGroup.style.display = (incomeType === 'annual') ? 'block' : 'none';
-                if (incomeType === 'manual') {
-                    // Potentially clear the auto-calculated fields if desired
-                } else {
-                    this.handleIncomeCalculation();
-                }
+            // v5.7 ADD
+            toggleIncomeType() {
+              const isAnnual = document.getElementById('incomeType').value === 'annual';
+              document.getElementById('income-amount-group').style.display = isAnnual ? 'block' : 'none';
+              if (!isAnnual) return;
+              this.calcSalaryRate();
             }
             
-            handleIncomeCalculation() {
-                const incomeType = document.getElementById('incomeType').value;
-                if (incomeType !== 'annual') return;
+            // v5.7 ADD - converts annual salary → hourly & hours
+            calcSalaryRate() {
+              const salary = parseFloat(document.getElementById('incomeAmount').value) || 0;
+              if (salary <= 0) return;
+              const freq = document.getElementById('payPeriod').value;
+              const periods = { 'weekly':52, 'bi-weekly':26, 'semi-monthly':24, 'monthly':12 }[freq] || 26;
+              const hoursPer = { 'weekly':40, 'bi-weekly':80, 'semi-monthly':86.67, 'monthly':173.33 }[freq] || 80;
+              const hourly = (salary / periods / hoursPer).toFixed(2);
+            
+              // update first "Regular Pay" row
+              const firstRow = document.querySelector('#earnings-container .dynamic-field');
+              if (!firstRow) return;
 
-                const incomeAmount = parseFloat(document.getElementById('incomeAmount').value) || 0;
-                if (incomeAmount <= 0) return;
-                
-                const payPeriod = document.getElementById('payPeriod').value;
-                const payPeriodsPerYear = { weekly: 52, 'bi-weekly': 26, 'semi-monthly': 24, monthly: 12 };
-                const hoursPerPeriod = { weekly: 40, 'bi-weekly': 80, 'semi-monthly': 86.67, monthly: 173.33 };
+              const rateInput = firstRow.querySelector('[name*="earningRate"]');
+              const hoursInput = firstRow.querySelector('[name*="earningHours"]');
 
-                const grossPerPeriod = pMath.divide(incomeAmount, payPeriodsPerYear[payPeriod]);
-                const hourlyRate = pMath.divide(grossPerPeriod, hoursPerPeriod[payPeriod]);
-
-                // Update the 'Regular Pay' earning field, if it exists
-                const regularPayField = document.querySelector('#earnings-container .dynamic-field');
-                if (regularPayField) {
-                    const rateInput = regularPayField.querySelector('[name*="earningRate"]');
-                    const hoursInput = regularPayField.querySelector('[name*="earningHours"]');
-                    if (rateInput) rateInput.value = pMath.round(hourlyRate);
-                    if (hoursInput) hoursInput.value = hoursPerPeriod[payPeriod].toFixed(2);
-                }
+              if(rateInput) rateInput.value = hourly;
+              if(hoursInput) hoursInput.value = hoursPer.toFixed(2);
+              
+              // trigger recalculation by dispatching a generic input event
+              this.form.dispatchEvent(new Event('input', { bubbles: true }));
             }
             
             async populateStateOptions() {
@@ -870,9 +899,16 @@
             
             addDefaultFields() {
                 this.addEarningField({ desc: 'Regular Pay', rate: 31.25, hours: 80, ytd: 65000 });
-                this.addEarningField({ desc: 'Bonus', rate: 500, hours: 1, ytd: 1000 });
+                this.addEarningField({ desc: 'Overtime', rate: '', hours: '', ytd: '' });
+                this.addEarningField({ desc: 'Double Time', rate: '', hours: '', ytd: '' });
+                this.addEarningField({ desc: 'Commission', rate: '', hours: '', ytd: '' });
+                this.addEarningField({ desc: 'Sick', rate: '', hours: '', ytd: '' });
+                this.addEarningField({ desc: 'Holiday', rate: '', hours: '', ytd: '' });
                 this.addDeductionField({ desc: 'Health Insurance', curr: 150, ytd: 3600 });
+                this.addDeductionField({ desc: 'Insurance – Dental', curr: '', ytd: '' });
+                this.addDeductionField({ desc: 'Insurance – Vision', curr: '', ytd: '' });
                 this.addDeductionField({ desc: '401k', curr: 125, ytd: 3000 });
+                this.addDeductionField({ desc: 'Garnishment', curr: '', ytd: '' });
             }
 
             addEarningField(defaults = {}) {
@@ -883,19 +919,19 @@
 
                 newField.innerHTML = `
                     <div class="col-span-4">
-                        <input type="text" name="earningDescription-${fieldId}" placeholder="Description" value="${defaults.desc || ''}" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <input type="text" name="earningDescription-${fieldId}" placeholder="Description" value="${defaults.desc || ''}" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="earning-desc-header">
                     </div>
                     <div class="col-span-3">
-                         <input type="number" name="earningRate-${fieldId}" placeholder="0.00" value="${defaults.rate || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                         <input type="number" name="earningRate-${fieldId}" placeholder="0.00" value="${defaults.rate || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="earning-rate-header">
                     </div>
                     <div class="col-span-2">
-                        <input type="number" name="earningHours-${fieldId}" placeholder="0" value="${defaults.hours || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <input type="number" name="earningHours-${fieldId}" placeholder="0.00" value="${defaults.hours || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="earning-hours-header">
                     </div>
                     <div class="col-span-2">
-                         <input type="number" name="earningAmountYTD-${fieldId}" placeholder="0.00" value="${defaults.ytd || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                         <input type="number" name="earningAmountYTD-${fieldId}" placeholder="0.00" value="${defaults.ytd || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="earning-ytd-header">
                     </div>
                     <div class="col-span-1 text-right">
-                        <button type="button" class="text-gray-400 hover:text-red-500 remove-btn">&times;</button>
+                        <button type="button" class="text-gray-400 hover:text-red-500 remove-btn" aria-label="Remove ${defaults.desc || 'earning'} row">&times;</button>
                     </div>
                 `;
                 container.appendChild(newField);
@@ -913,16 +949,16 @@
 
                 newField.innerHTML = `
                     <div class="col-span-6">
-                        <input type="text" name="deductionDescription-${fieldId}" placeholder="Description" value="${defaults.desc || ''}" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <input type="text" name="deductionDescription-${fieldId}" placeholder="Description" value="${defaults.desc || ''}" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="deduction-desc-header">
                     </div>
                     <div class="col-span-2">
-                         <input type="number" name="deductionAmountCurrent-${fieldId}" placeholder="0.00" value="${defaults.curr || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                         <input type="number" name="deductionAmountCurrent-${fieldId}" placeholder="0.00" value="${defaults.curr || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="deduction-current-header">
                     </div>
                      <div class="col-span-3">
-                         <input type="number" name="deductionAmountYTD-${fieldId}" placeholder="0.00" value="${defaults.ytd || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                         <input type="number" name="deductionAmountYTD-${fieldId}" placeholder="0.00" value="${defaults.ytd || ''}" step="0.01" class="w-full text-sm text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" aria-labelledby="deduction-ytd-header">
                     </div>
                     <div class="col-span-1 text-right">
-                        <button type="button" class="text-gray-400 hover:text-red-500 remove-btn">&times;</button>
+                        <button type="button" class="text-gray-400 hover:text-red-500 remove-btn" aria-label="Remove ${defaults.desc || 'deduction'} row">&times;</button>
                     </div>
                 `;
                 container.appendChild(newField);
@@ -938,7 +974,7 @@
         class UIController {
             constructor() {
                 this.previewUpdater = new App.PreviewUpdater();
-                this.formManager = new App.FormManager(() => this.processUpdate());
+                this.formManager = new FormManager(() => this.processUpdate());
                 this.calculator = new App.PaystubCalculator();
                 this.isPayPalRendered = false;
                 
@@ -953,14 +989,15 @@
                     this.previewUpdater.updateAll(calculationResults);
                 } catch (error) {
                     console.error("Calculation Error:", error);
-                    // Optionally, display an error message to the user in the preview area
                     document.getElementById('previews-container').innerHTML = `<div class="p-10 text-center text-red-500">An error occurred during calculation. Check console for details.</div>`;
                 }
             }
             
             handlePaymentSuccess() {
-              document.getElementById('download-pdf').disabled = false;
-              document.getElementById('download-pdf').click();
+              const downloadBtn = document.getElementById('download-pdf');
+              downloadBtn.disabled = false;
+              // Programmatically click once to start the download
+              downloadBtn.click(); 
               document.getElementById('pay-button').style.display = 'none';
               this.closePayPalModal();
             }
@@ -988,15 +1025,23 @@
                     },
                     onApprove: (data, actions) => {
                         return actions.order.capture().then(() => this.handlePaymentSuccess());
+                    },
+                    onError: (err) => {
+                        console.error("PayPal button rendering error:", err);
+                        paypalContainer.innerHTML = `<p class="text-sm text-red-600 text-center">Sorry, the payment service is unavailable. Please try again later.</p>`;
                     }
                 }).render('#paypal-container').then(() => {
                     this.isPayPalRendered = true;
+                }).catch((err) => {
+                     console.error("PayPal button rendering failed:", err);
+                     paypalContainer.innerHTML = `<p class="text-sm text-red-600 text-center">Sorry, the payment service failed to load. Please try again later.</p>`;
                 });
             }
             
             openPayPalModal() {
                 document.getElementById('paypal-modal').classList.remove('hidden');
-                this.renderPayPalButtons();
+                // Defer rendering to ensure the modal is visible and dimensions are calculated
+                setTimeout(() => this.renderPayPalButtons(), 100);
             }
 
             closePayPalModal() {
@@ -1006,9 +1051,11 @@
             setupEventListeners() {
                 document.getElementById('download-pdf').addEventListener('click', () => {
                     const elementToPrint = this.previewUpdater.getCurrentStubHTMLforPDF();
+                    const formData = this.formManager.getFormData();
+                    const filename = `paystub_${formData.employeeName.replace(/ /g, '_')}_${formData.stubs[this.previewUpdater.currentIndex].payDate}.pdf`;
                     const opt = {
                         margin:       [0.25, 0.25, 0.25, 0.25],
-                        filename:     'paystub.pdf',
+                        filename:     filename,
                         image:        { type: 'jpeg', quality: 0.98 },
                         html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
                         jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }

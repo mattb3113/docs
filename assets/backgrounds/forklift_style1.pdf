@@ -1,11 +1,45 @@
-%PDF-1.1
-% placeholder forklift certificate background
+%PDF-1.7
+% A minimal, valid, blank PDF for use as a background.
+% Page size is US Letter (8.5x11 inches = 612x792 points).
+
 1 0 obj
-<< /Type /Catalog /Pages 2 0 R >>
+<< /Type /Catalog
+   /Pages 2 0 R
+>>
 endobj
+
 2 0 obj
-<< /Type /Pages /Count 0 >>
+<< /Type /Pages
+   /Kids [3 0 R]
+   /Count 1
+>>
 endobj
+
+3 0 obj
+<< /Type /Page
+   /Parent 2 0 R
+   /MediaBox [0 0 612 792]
+   /Contents 4 0 R
+   /Resources <<>>
+>>
+endobj
+
+4 0 obj
+<< /Length 0 >>
+stream
+endstream
+endobj
+
+xref
+0 5
+0000000000 65535 f 
+0000000018 00000 n 
+0000000078 00000 n 
+0000000140 00000 n 
+0000000242 00000 n 
+
 trailer
-<< /Root 1 0 R >>
+<< /Size 5
+   /Root 1 0 R
+>>
 %%EOF
